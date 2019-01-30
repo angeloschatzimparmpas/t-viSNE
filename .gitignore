@@ -1,0 +1,10 @@
+*~
+**/.DS_Store
+paper/template.aux
+paper/template.fdb_latexmk
+paper/template.fls
+paper/template.log
+paper/template.out
+paper/template.pdf
+template.bbl
+template.blg

@@ -1,0 +1,301 @@
+/* Main html/body configurations */
+html, body {
+    max-width: 100%;
+    margin-top: 15px;
+    font: serif;
+}
+
+#param-correlation {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#param-correlation > .param {
+  display: flex;
+  margin: 5px 0px;
+}
+
+#param-correlation > .param > label {
+  width: 200px;
+  text-align: left;
+  padding: 4px 0 0 0px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  cursor: default;
+}
+
+#param-correlation > .param > input[type='range'] {
+  width: 60%;
+  margin-right: 10px;
+  text-align: left;
+}
+
+#param-correlation > .param > select {
+flex: 0 0 45%;
+width: 100%;
+text-align: left;
+}
+
+#param-correlation > .param > output {
+flex: 1;
+text-align: left;
+padding:5px 0;
+vertical-align: middle;
+user-select: none;
+-webkit-user-select: none;
+-moz-user-select: none;
+cursor: default;
+}
+
+
+/* Control panels on the left side are styled */
+
+#control-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#control-panel > .param {
+  display: flex;
+  margin: 5px 0px;
+}
+
+#control-panel > .param > label {
+  width: 200px;
+  text-align: left;
+  padding: 4px 0 0 8px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  cursor: default;
+}
+
+#control-panel > .param > input[type='range'] {
+  width: 60%;
+  margin-right: 10px;
+  text-align: left;
+}
+
+#control-panel > .param > select {
+flex: 0 0 45%;
+width: 100%;
+text-align: left;
+}
+
+#control-panel > .param > output {
+flex: 1;
+text-align: left;
+padding:5px 0;
+vertical-align: middle;
+user-select: none;
+-webkit-user-select: none;
+-moz-user-select: none;
+cursor: default;
+}
+
+/* Styling of the main canvas */
+#modtSNEcanvas {
+    width: 50vw;
+    height: 50vw;
+    border: 1px solid black;
+    position: absolute;
+    display: block;
+}
+
+/* Styling of the overview canvas */
+#tSNEcanvas {
+  border: 1px solid black;
+  width: 11vw;
+  height: 11vw;
+  position: absolute;
+}
+
+/* A little styling for knn's bar chart */
+#knnBarChart {
+    width: 50vw;
+    height: 4.2vw;
+    margin-top: 3.6vw;
+    border: 1px solid black;
+    position: absolute;
+    display: block;
+}
+
+/* Styling of the main SVG behind canvas */
+#modtSNEcanvas_svg {
+  width: 50vw;
+  height: 50vw;
+  opacity: 1.0;
+  margin-left: 15px;
+  position:absolute; 
+  z-index: 2;
+}
+
+/* Legend of the Overview t-SNE canvas */
+ div#legend3 {
+   height: 11vw;
+   width: 11vw;
+   text-align: left;
+   overflow: auto;
+  }
+
+  /* Legend of the Overview t-SNE canvas */
+ #legend1 {
+  height: 11vw;
+  width: 5vw;
+  text-align: left;
+ }
+
+/* Styling of the ShepardHeatmap */
+#sheparheat {
+  width: 11vw;
+  height: 11vw;
+  position: absolute;
+}
+
+/* Number of Points font-size */
+text.legendtitle {
+  font-size: 12px;
+}
+
+/* Number of Points font-size */
+text.label {
+  font-size: 10px;
+}
+
+/* Styling of the ShepardHeatmap */
+svg#legend4 {
+  height: 11vw;
+  width: 11vw;
+  text-align: left;
+  overflow: auto;
+}
+
+/* This is the styling for the thumbnails list*/
+#ThumbNailsList{
+  border: 1px solid black;
+  width: 15.4vw;
+  height: 8vw;
+  padding: 10px 10px 10px 10px;
+}
+
+/* ShepardHeatmap Styling for the different rectangles used there */
+rect {
+        stroke: #E6E6E6;
+        stroke-width: 1.5px;
+      }
+
+.axis text {
+  font-size: 9pt;
+  font-family: Consolas, courier;
+  fill: #000;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: none;
+}
+
+.d3-tip {
+  line-height: 1;
+  font: 14px sans-serif;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: rgb(185, 185, 185);
+  border-radius: 2px;
+}
+
+/* Creates a small triangle extender for the tooltip */
+.d3-tip:after {
+  box-sizing: border-box;
+  display: inline;
+  font-size: 10px;
+  width: 100%;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.8);
+  content: "\25BC";
+  position: absolute;
+  text-align: center;
+}
+
+/* Style northward tooltips differently */
+.d3-tip.n:after {
+  margin: -1px 0 0 0;
+  top: 100%;
+  left: 0;
+}
+
+/* Dropdown Button */
+.dropbtn {
+  background-color: rgb(185, 185, 185);
+  color: black;
+  padding: 14px;
+  border: none;
+  cursor: pointer;
+}
+
+/* Dropdown button on hover & focus */
+.dropbtn:hover, .dropbtn:focus {
+  background-color: lightblue;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: rgb(146, 168, 177);
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}
+
+/* This is for the Correlation bar chart */
+.y.axis line {
+  fill: none;
+}
+
+.x.axis line {
+  fill: none;
+  stroke: #e0e0e0;
+  shape-rendering: crispEdges;
+}
+
+.axis path {
+  display: none;
+}
+
+.brush .extent {
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}
+
+.resize {
+  display: inline !important; /* show when empty */
+  fill: #7A7A7A;
+  fill-opacity: 1;
+  stroke: #7A7A7A;
+  stroke-width: 2px;
+}
+
+.bar {
+  /*shape-rendering: crispEdges;*/
+}

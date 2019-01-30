@@ -1,0 +1,245 @@
+<html>
+  <head>
+    <!-- Ignore Favicon -> Solved the warning... -->
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+  <!-- Importing D3 module -->
+  <script src='./modules/d3v3/d3.min.js'></script>
+  <script src='./modules/d3/d3.min.js'></script>
+
+
+  <script src="./modules/d3-tip/tip.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.13.0/d3-legend.js"></script>
+  <script src="./modules/savage.toggle-switch.js" type="text/javascript"></script>
+
+  <script src="./modules/papa/papaparse.min.js"></script>
+  <script src="./modules/jquery/jquery.min.js"></script>
+
+  <!-- Basic scripts -->
+	<script src="./js/tsne.js"></script>
+  <script src="./js/k-nearest.js"></script>
+  <script src="./js/checkbox.js"></script>
+  <script src="./js/data_form_handler.js"></script>
+  <script src="./lasso.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/style.css"/>
+  <link rel="stylesheet" href="./css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="./css/dc.css"/>
+
+	<!-- Bootstrap -->
+  <script src="./modules/bootstrap.min.js"></script>
+  
+
+    </head>
+
+    <body>
+
+	<div class="container-fluid">
+	  <div class="row">
+		  <div class="col-md-3">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+              <h3 class="panel-title">t-SNE Overview</h3>
+          </div>
+          <div class="row">
+              <div class="panel-body">
+                  <div class="col-md-6">
+                      <canvas id = "tSNEcanvas"></canvas>
+                  </div>
+                  <div class="col-md-2">
+                      <div class="legend" id = "legend3"></div>
+                  </div>
+              </div>
+          </div>
+            <div id="control-panel">
+              <div class="param">
+                <label for="param-lim">Points radius scaling factor</label>
+                <input id="param-lim" type="range" min="4" max="20" value="10", step="4">
+                <output for="param-lim" id="param-lim-value">10</output>
+              </div>
+          </div>
+        </div>
+		    </div>
+    <div class="col-md-6">
+          <svg id="modtSNEcanvas_svg"></svg>
+          <canvas id = "modtSNEcanvas" ></canvas>
+    </div>
+    <div class="col-md-1">
+          <svg id="legend1"></svg>
+    </div>
+    <div class="col-md-2">
+          <div id="ThumbNailsList">
+                <label for="male">Neighborhood Preservation</label>
+                <select id="param-neighborhoodMapping" name ="param-neighborhoodMapping">
+                  <option selected="selected" value="color">Color</option>
+                  <option value="size">Size</option>
+                </select>
+                <label for="male">Final Cost (Kullback-Leibler)</label>
+                <select id="param-divergenceMapping" name ="param-divergenceMapping">
+                  <option value="color">Color</option>
+                  <option selected="selected" value="size">Size</option>
+                </select>
+                <div id="param-correlation">
+                  <div class="param">
+                      <label for="param-corr">Correlation threshold</label>
+                      <input id="param-corr" type="range" min="0" max="750" value="150", step="50">
+                      <output for="param-corr" id="param-corr-value">150</output>
+                  </div>
+                </div>
+            </div>
+        </div>
+        </div>
+  <div class="row">
+    <div class="col-md-3">
+		    <div class="panel panel-default">
+			<div class="panel-heading">
+ 			    <h3 class="panel-title">Shepard Heatmap</h3>
+			</div>
+      <div class="panel-body">
+      <div class="row">
+        <div class="col-md-6">
+          <svg id="sheparheat"></svg>
+        </div>
+        <div class="col-md-2">
+          <svg id="legend4"></svg>
+        </div>
+			</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-md-offset-6">
+      <svg id="correlation"></svg>
+  </div>
+</div>
+<div class="row">
+		<div class="col-md-3">
+		    <div class="panel panel-default">
+			<div class="panel-heading">
+ 			    <h3 class="panel-title">t-SNE Parameters</h3>
+			</div>
+			<div class="panel-body">
+			<div id="control-panel" data-sr="enter left over 8s">
+          <div class="param">
+        <label id="data" for="param-dataset">Data sets</label>
+        <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
+          <option value="winequality-red.csv">Red Wine - Quality</option>
+          <option value="iris.csv" selected>Iris</option>
+          <option value="mnist.csv" >Mnist</option>
+          <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
+          <option value="empty">Add New File</option>
+        </select>
+          </div>
+			    <div class="param">
+				<label for="param-perplexity">Perplexity</label>
+				<input id="param-perplexity" type="range" min="2" max="100" value="30", step="1">
+				<output for="param-perplexity" id="param-perplexity-value">30</output>
+			    </div>
+			    <div class="param">
+				<label for="param-learningrate">Learning rate</label>
+				<input id="param-learningrate" type="range" min="1" max="300" value="10", step="1">
+				<output for="param-learningrate" id="param-learningrate-value">10</output>
+			    </div>
+			    <div class="param">
+				<label for="param-maxiter">Max iterations</label>
+				<input id="param-maxiter" type="range" min="10" max="1000" value="10", step="10">
+				<output for="param-maxiter" id="param-maxiter-value">10</output>
+			    </div>
+			    <div class="param">
+				<label for="param-distance">Distance metric</label>
+				<select id="param-distance" name="param-distance">
+				    <option value="euclideanDist" selected>Euclidean distance</option>
+				    <option value="jaccardDist">Jaccard dissimilarity</option>
+				</select>
+				<output for="param-distance" id="param-distance-value"></output>
+			    </div>
+			    <div class="param">
+				<label for="param-transform">Data transform</label>
+				<select id="param-transform" name="param-transform">
+				    <option value="noTrans" selected>No transform</option>
+				    <option value="logTrans">Log10</option>
+				    <option value="asinhTrans">asinh</option>
+				    <option value="binTrans">Binarize</option>
+				</select>
+				<output for="param-transform" id="param-transform-value"></output>
+			    </div>
+			    <p><div id="run-button"><button class="btn btn-primary btn-block" onclick="getData();">Run New tSNE</button></div></p>
+			    <div id="cost"></div>
+			</div>
+			</div>
+		    </div>
+		</div>
+  </div>
+<div class="row">
+	<div class="col-md-3">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+ 			    <h3 class="panel-title">History Thumbnails</h3>
+			</div>
+			<div class="panel-body">
+        <div id="toggleLassoAndLine"></div> 
+      </div>
+    </div>
+  </div>
+  <div class = col-md-6>
+        <svg id="knnBarChart"></svg>
+  </div>
+</div>
+</div>
+    <script>
+      $('#param-neighborHood').bind('input', function () { $('#param-neighborhoodMapping-value').text($('#param-neighborhoodMapping').val()); });
+      $('#param-divergence').bind('input', function () { $('#param-divergenceMapping-value').text($('#param-divergenceMapping').val()); });
+      $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); });
+      $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });
+      $('#param-perplexity').bind('input', function () { $('#param-perplexity-value').text($('#param-perplexity').val()); });
+      $('#param-earlyexag').bind('input', function () { $('#param-earlyexag-value').text($('#param-earlyexag').val()); });
+      $('#param-learningrate').bind('input', function () { $('#param-learningrate-value').text($('#param-learningrate').val()); });
+      $('#param-maxiter').bind('input', function () { $('#param-maxiter-value').text($('#param-maxiter').val()); });
+      SaVaGe.ToggleSwitch({container: "#toggleLassoAndLine", onChange: function(toggler){ setToggle(toggler.getValue()); }} );
+    </script>
+  <script>
+    /* On resize refresh the shepardHeatmap */
+    window.onresize = function(event) {
+      if ( document.getElementById('cost').hasChildNodes() ) {
+        // Clear legend for the shepardHeatmap
+        var svgLegend = d3.select("#legend4");
+        svgLegend.selectAll("*").remove();
+
+        // Clear the SheapHeardmap before refreshing
+        var svg = d3.select("#sheparheat");
+        svg.selectAll("*").remove();
+
+        // Call the ShepardHeatmap again to be redrawn
+        ShepardHeatMap();
+      }
+
+    }
+
+    /* When the user clicks on the button, 
+    toggle between hiding and showing the dropdown content */
+    function myFunction() {
+      document.getElementById("myDropdown").classList.toggle("show");
+    }
+
+    // Close the dropdown menu if the user clicks outside of it
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+  </script>
+
+<!--
+  Load the visualization script
+-->
+<script src="./js/tsne_vis.js"></script>
+
+  </body>
+</html>
