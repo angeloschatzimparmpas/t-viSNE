@@ -8,7 +8,7 @@ var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
 var dim = document.getElementById('tSNEcanvas').offsetWidth;
 
 var format; var new_file; var opt; var step_counter; var final_dataset; var max_counter; var dists; var dists2d; var all_labels; var runner; var tsne; var count_canvas = 0; var x_position = []; var y_position = []; var x_position2 = []; var y_position2 = []; var cost_each; var beta_all = [];
-var points2d = []; var ArrayContainsDataFeatures = [];
+var points2d = []; var ArrayContainsDataFeatures = []; var ArrayContainsDataFeaturesCleared = [];
 
 function getfile(file){
   new_file = file;   //uploaded file data
@@ -88,10 +88,18 @@ function init(data, results_all, fields) {
     tsne = new tsnejs.tSNE(opt);
     final_dataset = data;
     dataFeatures = results_all;
- 
+    var temp, object;
     for (let k = 0; k < dataFeatures.length; k++){
       ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
+      object = [];
+      Object.values(dataFeatures[k]).forEach(function(dataFeature){
+        if(typeof(dataFeature) == "number"){
+          object.push(dataFeature);
+        }
+      });
+      ArrayContainsDataFeaturesCleared.push(object);
     }
+
     dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
     tsne.initDataDist(dists);
     all_labels = [];
@@ -123,7 +131,6 @@ function initDist(data) {
 
 // calculate euclidean distance
 function euclideanDist(data) {
-
     dist = initDist(data);
     for(var i = 0; i < data.length; i++) {
       for(var j = i + 1; j < data.length; j++) {
@@ -242,8 +249,9 @@ function updateEmbedding() {
     for(var i = 0; i < final_dataset.length; i++) {
       x_position[i] = x(Y[i][0]);
       y_position[i] = y(Y[i][1]);
-          points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true};
+          points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, DimON: null};
           points2d[i] = {id: i, x: x_position[i], y: y_position[i], selected: true};
+          points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
           points[i] = extend(points[i], dataFeatures[i]);
       }
     function extend(obj, src) {
@@ -588,7 +596,6 @@ function OverviewtSNE(points){
 
   // vertex shader source code
   var vertCode = 'attribute vec3 coordinates;'+
-    'attribute vec3 limitdist;'+
     'attribute vec3 color;'+
     'varying vec3 vColor;'+
     'void main(void) {' +
@@ -961,10 +968,10 @@ function click(){
                 }
                 if (SignStore[i][1] == correlationResults[j][1]) {
                   correlationResults[j][1] = parseInt(correlationResults[j][1] * 100);
+                  correlationResults[j].push(j);
                 }
               }
             }
-            
           /////////////////////////////////////////////////////////////
           ///////////////// Set-up SVG and wrappers ///////////////////
           /////////////////////////////////////////////////////////////
@@ -1070,7 +1077,8 @@ function click(){
           /////////////////////////////////////////////////////////////
           ///////////////////////// Create brush //////////////////////
           /////////////////////////////////////////////////////////////
-          var brushExtent = parseInt(Math.max( 2, Math.min( 20, Math.round(correlationResults.length*0.2 ) ) ));
+          var brushExtent = parseInt(Math.max( 1, Math.min( 20, Math.round(correlationResults.length * 0.75) ) ));
+
           //What should the first extent of the brush become - a bit arbitrary this
           //var brushExtent = Math.max( 1, Math.min( 20, Math.round(correlationResults.length*0.2) ) );
           //  console.log(brushExtent);
@@ -1110,8 +1118,8 @@ function click(){
           defs = svg.append("defs")
       
           //Create two separate gradients for the main and mini bar - just because it looks fun
-          createGradient("gradient-main", "65%");
-          createGradient("gradient-mini", "14%");
+          createGradient("gradient-main", "60%");
+          createGradient("gradient-mini", "13%");
       
           //Add the clip path for the main bar chart
           defs.append("clipPath")
@@ -1128,7 +1136,7 @@ function click(){
           //The mini brushable bar
           //DATA JOIN
           var mini_bar = d3v3.select(".miniGroup").selectAll(".bar")
-            .data(correlationResults, function(d) { return d[2]; });
+            .data(correlationResults, function(d) { return +d[2]; });
 
           //UDPATE
         mini_bar
@@ -1165,7 +1173,7 @@ function updateBarChart() {
   /////////////////////////////////////////////////////////////
 
   var bar = d3v3.select(".mainGroup").selectAll(".bar")
-      .data(correlationResults, function(d) { return d[2]; })
+      .data(correlationResults, function(d) { return +d[2]; })
   //, function(d) { return d.key; });
 
   bar
@@ -1173,7 +1181,7 @@ function updateBarChart() {
     .attr("width", function(d) { return Math.abs(main_xScale(d[1]) - main_xScale(0)); })
     .attr("y", function(d,i) { return main_yScale(d[0]); })
     .attr("height", main_yScale.rangeBand());
-
+  
   //ENTER
   bar.enter().append("rect")
     .attr("class", "bar")
@@ -1181,7 +1189,25 @@ function updateBarChart() {
     .attr("x", function (d) { return main_xScale(Math.min(0, d[1])); })
     .attr("width", function(d) { return Math.abs(main_xScale(d[1]) - main_xScale(0)); })
     .attr("y", function(d,i) { return main_yScale(d[0]); })
-    .attr("height", main_yScale.rangeBand());
+    .attr("height", main_yScale.rangeBand())
+    .on("mouseover", () => {
+      svg.select('.tooltip').style('display', 'none'); 
+    })
+    .on("mouseout", function(d){ 
+      points.forEach(function (p) {
+        p.DimON = null
+      })
+      BetatSNE(points);
+      svg.select('.tooltip').style('display', 'none'); 
+    })
+    .on("mousemove", function(d) {
+      points.forEach(function (p) {
+        if (p.selected == true) {
+          p.DimON = d[0];
+        }
+      })
+      BetatSNE(points);
+    });
 
   //EXIT
   bar.exit()
@@ -1398,7 +1424,6 @@ function mapOrder(array, order, key) {
     best = [best.x, best.y];
     best.distance = Math.sqrt(bestDistance);
     best.id = point[2];
-    //console.log(best);
     return best;
   
     function distance2(p) {
@@ -1443,6 +1468,23 @@ function dragmove(d) {
 }
 */
 
+function abbreviateNumber(value) {
+  var newValue = value;
+  if (value >= 1000) {
+      var suffixes = ["", "k", "m", "b","t"];
+      var suffixNum = Math.floor( (""+value).length/3 );
+      var shortValue = '';
+      for (var precision = 2; precision >= 1; precision--) {
+          shortValue = parseFloat( (suffixNum != 0 ? (value / Math.pow(1000,suffixNum) ) : value).toPrecision(precision));
+          var dotLessShortValue = (shortValue + '').replace(/[^a-zA-Z 0-9]+/g,'');
+          if (dotLessShortValue.length <= 2) { break; }
+      }
+      if (shortValue % 1 != 0)  shortNum = shortValue.toFixed(1);
+      newValue = shortValue+suffixes[suffixNum];
+  }
+  return newValue;
+}
+
 function BetatSNE(points){
   
   if(step_counter == max_counter || step_counter == 1){
@@ -1474,64 +1516,117 @@ function BetatSNE(points){
     return;
   }
 
-  max = (d3.max(final_dataset,function(d){ return d.beta; }));
-  min = (d3.min(final_dataset,function(d){ return d.beta; }));
-    // colors
-    let colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
-    let calcStep = (max-min)/7;
-    let colorScale = d3.scaleLinear()
-  .domain(d3.range(0, max+calcStep, calcStep))
-  .range(colorbrewer);
+  var ColSizeSelector = document.getElementById("param-neighborHood").value;
 
-  points = points.sort(function(a, b) {
-    return a.beta - b.beta;
-  })
+  if (ColSizeSelector == "color") {
+      var max = (d3.max(final_dataset,function(d){ return d.beta; }));
+      var min = (d3.min(final_dataset,function(d){ return d.beta; }));
+      // colors
+      var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
+      var calcStep = (max-min)/7;
+      var colorScale = d3.scaleLinear()
+        .domain(d3.range(0, max+calcStep, calcStep))
+        .range(colorbrewer);
+    
+      var maxSize1 = (d3.max(final_dataset,function(d){ return d.cost; }));
+      var minSize1 = (d3.min(final_dataset,function(d){ return d.cost; }));
 
-    function abbreviateNumber(value) {
-    var newValue = value;
-    if (value >= 1000) {
-        var suffixes = ["", "k", "m", "b","t"];
-        var suffixNum = Math.floor( (""+value).length/3 );
-        var shortValue = '';
-        for (var precision = 2; precision >= 1; precision--) {
-            shortValue = parseFloat( (suffixNum != 0 ? (value / Math.pow(1000,suffixNum) ) : value).toPrecision(precision));
-            var dotLessShortValue = (shortValue + '').replace(/[^a-zA-Z 0-9]+/g,'');
-            if (dotLessShortValue.length <= 2) { break; }
-        }
-        if (shortValue % 1 != 0)  shortNum = shortValue.toFixed(1);
-        newValue = shortValue+suffixes[suffixNum];
-    }
-    return newValue;
-}
-var labels_beta = [];
-var abbr_labels_beta = [];
-labels_beta = d3.range(0, max+calcStep, calcStep);
-for (var i=0; i<9; i++){
-  labels_beta[i] = parseInt(labels_beta[i]);
-  abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
-}
-  if(step_counter == 1){
-    var svg = d3.select("#legend1");
+      var rscale1 = d3.scaleLinear()
+        .domain([minSize1, maxSize1])
+        .range([5,10]);
 
-    svg.append("g")
-      .attr("class", "legendLinear")
-      .attr("transform", "translate(10,15)");
+      var colorScale = d3.scaleLinear()
+        .domain(d3.range(0, max+calcStep, calcStep))
+        .range(colorbrewer);
 
-    var legend = d3.legendColor()
-      .labelFormat(d3.format(",.0f"))
-      .cells(9)
-      .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-      .title("1 / sigma")
-      .scale(colorScale);
+      points = points.sort(function(a, b) {
+        return a.beta - b.beta;
+      })
+      var labels_beta = [];
+      var abbr_labels_beta = [];
+      labels_beta = d3.range(0, max+calcStep, calcStep);
+      for (var i=0; i<9; i++){
+        labels_beta[i] = parseInt(labels_beta[i]);
+        abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
+      }
+      var svg = d3.select("#legend1");
 
-    svg.select(".legendLinear")
-      .call(legend);
+        svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+    
+        var legend = d3.legendColor()
+          .labelFormat(d3.format(",.0f"))
+          .cells(9)
+          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
+          .title("1 / sigma")
+          .scale(colorScale);
+          
+        svg.select(".legendLinear")
+          .call(legend);
+  } else {
+    var max = (d3.max(final_dataset,function(d){ return d.cost; }));
+    var min = (d3.min(final_dataset,function(d){ return d.cost; }));
+
+    var maxSize2 = (d3.max(final_dataset,function(d){ return d.beta; }));
+    var minSize2 = (d3.min(final_dataset,function(d){ return d.beta; }));
+
+    var rscale2 = d3.scaleLinear()
+      .domain([minSize2, maxSize2])
+      .range([5,10]);
+
+    var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
+    var calcStep = (max-min)/9;
+    var colorScale = d3.scaleLinear()
+      .domain(d3.range(min, max, calcStep))
+      .range(colorbrewer);
+      
+      points = points.sort(function(a, b) {
+        return a.cost - b.cost;
+      })
+
+      var labels_cost = [];
+      var abbr_labels_cost = [];
+      labels_cost = d3.range(min, max, calcStep);
+      for (var i=0; i<9; i++){
+        labels_cost[i] = labels_cost[i].toFixed(5);
+        abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+      }
+
+      var svg = d3.select("#legend1");
+
+      svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+
+      var legend = d3.legendColor()
+        .labelFormat(d3.format(",.5f"))
+        .cells(9)
+        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+        .title("KLD(P||Q)")
+        .scale(colorScale);
+
+      svg.select(".legendLinear")
+        .call(legend);
   }
-
+  
   let vertices = [];
   let colors = [];
+  let sizes = new Float32Array(points.length);
+  let tempSort = -1;
 
-
+  for (var i=0; i<points.length; i++){
+    if (points[i].DimON != null) {
+      tempSort = points[i].DimON.match(/\d+/)[0];
+    }
+  }
+  
+  if (tempSort != -1){
+    points = points.sort(function(a, b) {
+        return a[tempSort] - b[tempSort];
+    })
+  }
+  
 
   for (var i=0; i<points.length; i++){
     let singleObj = {};
@@ -1553,8 +1648,18 @@ for (var i=0; i<9; i++){
     singleObj = 0.0;
     vertices.push(singleObj);
   }
+
   for (var i=0; i<points.length; i++){
     let singleCol = {};
+
+    if (ColSizeSelector == "color"){
+      let singleSizeCol = rscale1(points[i].cost);
+      sizes[i] = singleSizeCol;
+    } else {
+      let singleSizeCol = rscale2(points[i].beta);
+      sizes[i] = singleSizeCol;
+    }
+
     if (points[i].selected == false){
       let colval = d3.rgb(211,211,211);
       singleCol = colval.r/255;
@@ -1563,7 +1668,28 @@ for (var i=0; i<9; i++){
       colors.push(singleCol);
       singleCol = colval.b/255;
       colors.push(singleCol);
-    }else{
+    } else if (points[i].DimON != null) {
+      
+      let temp = points[i].DimON.match(/\d+/)[0];
+
+      var maxDim = (d3.max(points,function(d){ if(d.selected == true){return d[temp]}; }));
+      var minDim = (d3.min(points,function(d){ if(d.selected == true){return d[temp]}; }));  
+
+      let colorsBarChart = ['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
+      var calcStepDim = (maxDim-minDim)/8;
+      var colorScaleDim = d3.scaleLinear()
+        .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
+        .range(colorsBarChart);
+
+      let colval = d3.rgb(colorScaleDim(points[i][temp]));
+      singleCol = colval.r/255;
+      colors.push(singleCol);
+      singleCol = colval.g/255;
+      colors.push(singleCol);
+      singleCol = colval.b/255;
+      colors.push(singleCol);
+        
+    } else if (ColSizeSelector == "color") {
       let colval = d3.rgb(colorScale(points[i].beta));
       singleCol = colval.r/255;
       colors.push(singleCol);
@@ -1572,8 +1698,89 @@ for (var i=0; i<9; i++){
       singleCol = colval.b/255;
       colors.push(singleCol);
     }
+    else{
+      let colval = d3.rgb(colorScale(points[i].cost));
+      singleCol = colval.r/255;
+      colors.push(singleCol);
+      singleCol = colval.g/255;
+      colors.push(singleCol);
+      singleCol = colval.b/255;
+      colors.push(singleCol);
+    }
   }
-  
+
+  var temporal = 0;
+  for (var j=0; j < points.length; j++){
+    if(points[j].DimON != null) {
+          temporal = temporal + 1;
+          var labels_dim = [];
+          var abbr_labels_dim = [];
+          labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
+
+          for (var i=0; i<9; i++){
+            labels_dim[i] = labels_dim[i].toFixed(2);
+            abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
+          }
+          d3.select("#legend1").selectAll('*').remove();
+          var svg = d3.select("#legend1");
+
+          svg.append("g")
+            .attr("class", "legendLinear")
+            .attr("transform", "translate(10,15)");
+            
+          var legend = d3.legendColor()
+            .labelFormat(d3.format(",.0f"))
+            .cells(9)
+            .labels([abbr_labels_dim[0],abbr_labels_dim[1],abbr_labels_dim[2],abbr_labels_dim[3],abbr_labels_dim[4],abbr_labels_dim[5],abbr_labels_dim[6],abbr_labels_dim[7],abbr_labels_dim[8]])
+            .title(points[j].DimON)
+            .scale(colorScaleDim);
+
+          svg.select(".legendLinear")
+            .call(legend);
+          break;
+        } 
+  }
+  for (var j=0; j < points.length; j++){
+    if(temporal == 0 && points[j].DimON == null){
+        if (ColSizeSelector == "color"){
+          d3.select("#legend1").selectAll('*').remove();
+          var svg = d3.select("#legend1");
+      
+          svg.append("g")
+            .attr("class", "legendLinear")
+            .attr("transform", "translate(10,15)");
+      
+          var legend = d3.legendColor()
+            .labelFormat(d3.format(",.0f"))
+            .cells(9)
+            .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
+            .title("1 / sigma")
+            .scale(colorScale);
+      
+          svg.select(".legendLinear")
+            .call(legend);
+          break;
+        } else {
+          d3.select("#legend1").selectAll('*').remove();
+          var svg = d3.select("#legend1");
+
+          svg.append("g")
+            .attr("class", "legendLinear")
+            .attr("transform", "translate(10,15)");
+
+          var legend = d3.legendColor()
+            .labelFormat(d3.format(".4f"))
+            .cells(9)
+            .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+            .title("KLD(P||Q)")
+            .scale(colorScale);
+
+          svg.select(".legendLinear")
+            .call(legend);
+          break;
+        }
+      }
+    }
   // Create an empty buffer object and store vertex data
   var vertex_buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
@@ -1585,6 +1792,9 @@ for (var i=0; i<9; i++){
   gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
+  var size_buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, size_buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.STATIC_DRAW);
 
   // Increase/reduce size factor selected by the user
   var limitdist = document.getElementById("param-lim-value").value;
@@ -1592,12 +1802,13 @@ for (var i=0; i<9; i++){
 
   // vertex shader source code
   var vertCode = 'attribute vec3 coordinates;'+
+    'attribute float vSizes;'+
     'attribute vec3 color;'+
     'varying vec3 vColor;'+
     'void main(void) {' +
-       ' gl_Position = vec4(coordinates, 1.0);' +
+       'gl_Position = vec4(coordinates, 1.0);' +
        'vColor = color;'+
-       'gl_PointSize = ' + limitdist + ';'+
+       'gl_PointSize = '+ limitdist + '*vSizes;'+
     '}';
 
   // Create a vertex shader object
@@ -1680,13 +1891,18 @@ for (var i=0; i<9; i++){
   var color = gl.getAttribLocation(shaderProgram, "color");
 
   // point attribute to the volor buffer object
-  gl.vertexAttribPointer(color, 3, gl.FLOAT, false,0,0) ;
+  gl.vertexAttribPointer(color, 3, gl.FLOAT, false, 0, 0) ;
 
   // enable the color attribute
   gl.enableVertexAttribArray(color);
 
+  gl.bindBuffer(gl.ARRAY_BUFFER, size_buffer);
 
+  var vSize = gl.getAttribLocation(shaderProgram, "vSizes");
 
+  gl.vertexAttribPointer(vSize, 1, gl.FLOAT, false, 0, 0);
+
+  gl.enableVertexAttribArray(vSize);
 
   // Clear the canvas
   gl.clearColor(1.0, 1.0, 1.0, 1.0);
@@ -1701,10 +1917,11 @@ for (var i=0; i<9; i++){
 
   resize(gl.canvas);
 
-   gl.viewport(0, 0, dimensions, dimensions);
+  gl.viewport(0, 0, dimensions, dimensions);
+  
   //Draw the triangle
   gl.drawArrays(gl.POINTS, 0, points.length);
-
+/*
   selectedPoints = [];
   selectedPoints2d = [];
   var findNearestTable = [];
@@ -1713,7 +1930,7 @@ for (var i=0; i<9; i++){
       selectedPoints.push(points[m]);
       selectedPoints2d.push(points2d[m]);
    }
-  }
+  }*/
   /*
   for (k=2; k < 9; k++){
        var findNearest = kNearestNeighbors(k, selectedPoints,points2d);
