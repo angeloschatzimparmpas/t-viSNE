@@ -1,6 +1,6 @@
 // t-SNE.js object and other global variables
 
-var toggleValue = false; var k; var points = []; var all_fields; var pointsbeta = []; 
+var toggleValue = false; var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; 
 // These are the dimensions for the square shape of the main panel\
 var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
 
@@ -73,6 +73,57 @@ function setToggle(toggleVal){
   toggleValue = toggleVal;
 }
 
+function setContinue(){
+  d3v3.select("#SvgAnnotator").style("z-index", 2);
+}
+
+function setAnnotator(){
+
+  var viewport2 = getViewport();
+  var vw2 = viewport2[0];
+  var vh2 = viewport2[1];
+  var textarea = document.getElementById("comment").value;
+  var annotations = [
+  {
+  "cx": 232,
+  "cy": 123,
+  "r": 103,
+  "text": textarea,
+  "textOffset": [
+    114,
+    88
+  ]
+  }
+  ];
+
+  var ringNote = d3v3.ringNote()
+  .draggable(true);
+
+  var svgAnnotator = d3v3.select("#SvgAnnotator")
+  .attr("width", vw2 * 0.5)
+  .attr("height", vh2 * 0.872)
+  .style("z-index", 3);
+
+
+  var gAnnotations = svgAnnotator.append("g")
+  .attr("class", "annotations")
+  .call(ringNote, annotations);
+
+  // Styling individual annotations based on bound data
+  gAnnotations.selectAll(".annotation circle")
+  .classed("shaded", function(d) { return d.shaded; });
+
+  // Hide or show the controls
+  var draggable = true;
+  d3.select("input")
+  .on("change", function() {
+  ringNote.draggable(draggable = !draggable);
+  gAnnotations
+      .call(ringNote, annotations)
+    .selectAll(".annotation circle")
+      .classed("shaded", function(d) { return d.shaded; });
+  });
+}
 
 // function that executes after data is successfully loaded
 function init(data, results_all, fields) {
@@ -88,7 +139,7 @@ function init(data, results_all, fields) {
     tsne = new tsnejs.tSNE(opt);
     final_dataset = data;
     dataFeatures = results_all;
-    var temp, object;
+    var object;
     for (let k = 0; k < dataFeatures.length; k++){
       ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
       object = [];
@@ -99,7 +150,7 @@ function init(data, results_all, fields) {
       });
       ArrayContainsDataFeaturesCleared.push(object);
     }
-
+    $("#datasetDetails").html("Number of Dimensions: " + ArrayContainsDataFeaturesCleared[0].length + ", Number of Samples: " + final_dataset.length);
     dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
     tsne.initDataDist(dists);
     all_labels = [];
@@ -260,12 +311,11 @@ function updateEmbedding() {
     }
       return obj;
     }
-      if (step_counter == 1 || step_counter == max_counter){
+      if (step_counter == max_counter){
         ShepardHeatMap();
+        OverviewtSNE(points);
+        BetatSNE(points);
       }
-          OverviewtSNE(points);
-          BetatSNE(points);
-          //CosttSNE(points);
 }
 
 function ShepardHeatMap () {
@@ -285,12 +335,14 @@ function ShepardHeatMap () {
           .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
+
 var dist_list2d = [];
 var dist_list = [];
   for (var j=0; j<dists2d.length; j++){
     dists2d[j] = dists2d[j].slice(0,j);
     dists[j] = dists[j].slice(0,j);
   }
+
 for (var i=0; i<dists2d.length; i++){
   for (var j=0; j<dists2d.length; j++){
     let singleObj = {};
@@ -305,9 +357,6 @@ dist_list2d = dist_list2d.sort();
 dist_list = dist_list.sort();
 dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; });
 dist_list = dist_list.filter(function(val){ return val!==undefined; });
-
-
-
 d3.tsv("./modules/heat.tsv").then(function(data) {
 
   data.forEach(function(d) {
@@ -524,7 +573,6 @@ function OverviewtSNE(points){
   else{
     var colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(all_labels);
   }
-  if (step_counter == 1){
     d3.select("#legend3").select("svg").remove();
     var svg = d3.select("#legend3").append("svg");
 
@@ -539,7 +587,7 @@ function OverviewtSNE(points){
 
     svg.select(".legendOrdinal")
       .call(legendOrdinal);
-  }
+
   let vertices = [];
   let colors = [];
 
@@ -711,7 +759,7 @@ function redraw(repoints){
 
 function handleLassoEnd(lassoPolygon) {
   var countLassoFalse = 0;
-
+  KNNEnabled = true;
   if (toggleValue == false){
       for (var i = 0 ; i < points.length ; i ++) {
       x = points[i].x;
@@ -742,6 +790,7 @@ function handleLassoEnd(lassoPolygon) {
 function handleLassoStart(lassoPolygon) {
   if (toggleValue == true){
   } else{
+    KNNEnabled = false;
     for (var i = 0 ; i < points.length ; i ++) {
     points[i].selected = true;
     points2d[i].selected = true;
@@ -982,10 +1031,10 @@ function click(){
 
           var main_margin = {top: 0, right: 10, bottom: 30, left: 100},
               main_width = 500 - main_margin.left - main_margin.right,
-              main_height = 400 - main_margin.top - main_margin.bottom;
+              main_height = 320 - main_margin.top - main_margin.bottom;
       
           var mini_margin = {top: 0, right: 10, bottom: 30, left: 10},
-              mini_height = 400 - mini_margin.top - mini_margin.bottom;
+              mini_height = 320 - mini_margin.top - mini_margin.bottom;
               mini_width = 100 - mini_margin.left - mini_margin.right;
       
           svg = d3v3.select("#correlation").attr("class", "svgWrapper")
@@ -1498,7 +1547,6 @@ function BetatSNE(points){
         .style('position', 'absolute')
         .style('top', 0)
         .style('left', 0);
-
         var lassoInstance = lasso()
           .on('end', handleLassoEnd)
           .on('start', handleLassoStart);
@@ -1507,6 +1555,7 @@ function BetatSNE(points){
       }
      }
   }
+
   var canvas = document.getElementById('modtSNEcanvas');
   var gl = canvas.getContext('webgl');
   // If we don't have a GL context, give up now
@@ -1921,51 +1970,264 @@ function BetatSNE(points){
   
   //Draw the triangle
   gl.drawArrays(gl.POINTS, 0, points.length);
-/*
+
   selectedPoints = [];
-  selectedPoints2d = [];
   var findNearestTable = [];
   for (let m=0; m<points.length; m++){
    if (points[m].selected == true){
       selectedPoints.push(points[m]);
-      selectedPoints2d.push(points2d[m]);
    }
-  }*/
-  /*
-  for (k=2; k < 9; k++){
-       var findNearest = kNearestNeighbors(k, selectedPoints,points2d);
-       if (isNaN(findNearest)){
-        findNearest = 0; 
-       }
-       findNearestTable.push(findNearest * 65);
   }
+  if (KNNEnabled == true && selectedPoints.length != 0){
+    var distsFull = dists;
+    var dists2dFull = dists2d;
 
-  var barPadding = 5;
-  if (step_counter != 1){
-      d3.select("#knnBarChart").selectAll("rect").remove();
+    for (var i=0; i<dists.length; i++){
+      for (var j=0; j<dists.length; j++){
+        if(dists[i][j] != null) {
+          distsFull[j][i] = dists[i][j];
+          dists2dFull[j][i] = dists2d[i][j];
+        }
+      }
     }
 
-  var svg = d3.select('#knnBarChart')
-    .attr("class", "bar-chart");
+    var indexOrder = [];
+    var indexOrder2d = [];
+    var indices = new Array(selectedPoints.length);
+    var indices2d = new Array(selectedPoints.length);
 
-  var barWidth = (svgWidth / findNearestTable.length);
-  var knnBarChartSVG = svg.selectAll("rect")
-    .data(findNearestTable)
-    .enter()
-    .append("rect")
-    .attr("y", function(d) {
-        return Math.round(svgHeight - d)
-    })
-    .attr("height", function(d) {
+    var findNearest;
+    var counter1;
+    var counter2;
+
+    var temp = [];
+    var temp2 = [];
+
+    var viewport = getViewport();
+    var vw = viewport[0] * 0.5;
+    var vh = viewport[1] * 0.042;
+    var factor = Math.log10(points.length) * 4;
+    if (factor == 0){
+      factor = 1;
+    }
+    var maxKNN = Math.ceil(points.length / factor);
+
+    selectedPoints.sort(function(a, b) {
+      return parseFloat(a.id) - parseFloat(b.id);
+    });
+  
+  
+    for (k=maxKNN; k>1; k--){
+
+      findNearest = 0;
+      var indexOrderSliced = [];
+      var indexOrderSliced2d = [];
+      var count1 = new Array(selectedPoints.length).fill(0);
+      var count2 = new Array(selectedPoints.length).fill(0);
+      counter1 = 0;
+      counter2 = 0;
+
+      for (var i=0; i<selectedPoints.length; i++){
+        if (k == maxKNN){
+
+            temp[i] = 0;
+            temp2[i] = 0;
+            // temporary array holds objects with position and sort-value
+            indices[i] = dists[i].map(function(el, i) {
+                return [ i, el ];
+            })
+            var index = indices[i].indexOf(selectedPoints[i].id);
+            if (index > -1) {
+              indices[i].splice(index, 1);
+            }
+            // sorting the mapped array containing the reduced values
+            indices[i].sort(function(a, b) {
+              if (a[1] > b[1]) {
+                return 1;
+              }
+              if (a[1] < b[1]) {
+                return -1;
+              }
+              return 0;
+            });
+    
+            indexOrder[i] = indices[i].map(function(value) { return value[0]; });
+
+            // temporary array holds objects with position and sort-value
+            indices2d[i] = dists2d[i].map(function(el, i) {
+                return [ i, el ];
+            })
+            var index2d = indices2d[i].indexOf(selectedPoints[i].id);
+            if (index2d > -1) {
+              indices2d[i].splice(index2d, 1);
+            }
+            
+            // sorting the mapped array containing the reduced values
+            indices2d[i].sort(function(a, b) {
+              if (a[1] > b[1]) {
+                return 1;
+              }
+              if (a[1] < b[1]) {
+                return -1;
+              }
+              return 0;
+            });
+            indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
+          }
+          indexOrderSliced[i] = indexOrder[i].slice(0,k);
+          indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
+
+        for (var m=0; m < indexOrderSliced2d[i].length; m++){
+          if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){
+            count1[i] = count1[i] + 1;
+            temp[i] = temp[i] + 1;
+          }
+          if(indexOrderSliced[i][m] == indexOrderSliced2d[i][m]){
+            count2[i] = count2[i] + 1;
+            temp2[i] = temp2[i] + 1;
+          }
+        }  
+        if (count1[i] != 0){
+          counter1 = (count1[i] / temp[i]) + counter1;
+        }
+        if (count2[i] != 0){
+          counter2 = (count2[i] / temp2[i]) + counter2;
+        }
+
+      }
+
+        sumUnion = counter1 / selectedPoints.length;
+        sumIntersection = counter2 / selectedPoints.length;
+        if (sumUnion == 0){
+          findNearest = 0;
+        } else{
+          findNearest = sumIntersection / sumUnion;
+        }
+
+        if (isNaN(findNearest)){
+          findNearest = 0; 
+        }
+        findNearestTable.push(findNearest * vh * 2);
+    }
+    findNearestTable.reverse();
+    var barPadding = 5;
+        d3.select("#knnBarChart").selectAll("rect").remove();
+
+    var svg2 = d3.select('#knnBarChart')
+      .attr("class", "bar-chart");
+
+
+    var barWidth = (vw / findNearestTable.length);
+
+    var knnBarChartSVG = svg2.selectAll("rect")
+      .data(findNearestTable)
+      .enter()
+      .append("rect")
+      .attr("y", function(d) {
+          return Math.round(vh*2 - d)
+      })
+      .attr("height", function(d) {
         return d;
-    })
-    .attr("width", barWidth - barPadding)
-    .attr("transform", function (d, i) {
-         var translate = [barWidth * i, 0];
-         return "translate("+ translate +")";
-    });*/
+      })
+      .attr("width", barWidth - barPadding)
+      .attr("transform", function (d, i) {
+          var translate = [barWidth * i, 0];
+          return "translate("+ translate +")";
+      });
+    }
+
+    d3.select("#starPlot").selectAll('g').remove();
+
+    if(selectedPoints.length <= 10){
+      
+      var viewport3 = getViewport();
+      var vw3 = viewport3[0] * 0.2;
+
+      var margin = {top: 50, right: 100, bottom: 80, left: 150},
+      width = Math.min(vw3, window.innerWidth - 10) - margin.left - margin.right,
+      height = Math.min(width, window.innerHeight - margin.top - margin.bottom - 20);
+  
+      var FeatureWise = [];
+  
+      for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
+        for (var i=0;i<dataFeatures.length;i++){
+          if (!isNaN(Object.values(dataFeatures[i])[j])){
+            FeatureWise.push(Object.values(dataFeatures[i])[j]);
+          }
+        }
+      }
+  
+      var sum = new Array(Object.values(dataFeatures[0]).length).fill(0);
+  
+      for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
+        var FeatureWiseSliced = FeatureWise.slice(0+(j*dataFeatures.length),dataFeatures.length+j*dataFeatures.length);
+        for (var i=0; i<FeatureWiseSliced.length; i++){
+          sum[j] = FeatureWiseSliced[i] + sum[j];
+        }
+      }
+  
+      var wrapData = [];
+      for (var i=0; i<selectedPoints.length; i++){
+        var data = [];
+        for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
+          if (!isNaN(Object.values(dataFeatures[i])[j])){
+            if (Object.keys(dataFeatures[i])[j] == "name") {
+              
+            } else{
+              data.push({axis:Object.keys(dataFeatures[i])[j],value:Math.abs(Object.values(dataFeatures[i])[j]*100/sum[j])});
+            }
+          }
+        }
+        wrapData.push(data);
+      }
+    
+        ////////////////////////////////////////////////////////////// 
+        //////////////////// Draw the Chart ////////////////////////// 
+        ////////////////////////////////////////////////////////////// 
+
+        var color = d3v3.scale.category10()
+          
+        var radarChartOptions = {
+          w: width,
+          h: height,
+          margin: margin,
+          levels: 10,
+          roundStrokes: true,
+          color: color
+        };
+
+        //Call function to draw the Radar chart
+        RadarChart("#starPlot", wrapData, radarChartOptions);
+  }
 }
 
+  function getViewport() {
+
+    var viewPortWidth;
+    var viewPortHeight;
+  
+    // the more standards compliant browsers (mozilla/netscape/opera/IE7) use window.innerWidth and window.innerHeight
+    if (typeof window.innerWidth != 'undefined') {
+      viewPortWidth = window.innerWidth,
+      viewPortHeight = window.innerHeight
+    }
+  
+  // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
+    else if (typeof document.documentElement != 'undefined'
+    && typeof document.documentElement.clientWidth !=
+    'undefined' && document.documentElement.clientWidth != 0) {
+      viewPortWidth = document.documentElement.clientWidth,
+      viewPortHeight = document.documentElement.clientHeight
+    }
+  
+    // older versions of IE
+    else {
+      viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
+      viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
+    }
+    return [viewPortWidth, viewPortHeight];
+ }
+ 
 
 /*
 function CosttSNE(points){
@@ -2180,13 +2442,3 @@ function CosttSNE(points){
 
 }
 */
-
-// This function calls KNN and draw a bar chart.
-function knnBarChart(){
-
-}
-
-// This function draws the lines for the best distributions.
-function schemaCompare(){
-  
-}

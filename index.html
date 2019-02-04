@@ -6,8 +6,9 @@
   <!-- Importing D3 module -->
   <script src='./modules/d3v3/d3.min.js'></script>
   <script src='./modules/d3/d3.min.js'></script>
-
-
+  
+  <script src='./modules/d3-star/d3-starPlot.js'></script>
+  <script src='./modules/d3-annotations/d3-annotator.js'></script>
   <script src="./modules/d3-tip/tip.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.13.0/d3-legend.js"></script>
   <script src="./modules/savage.toggle-switch.js" type="text/javascript"></script>
@@ -17,7 +18,6 @@
 
   <!-- Basic scripts -->
 	<script src="./js/tsne.js"></script>
-  <script src="./js/k-nearest.js"></script>
   <script src="./js/checkbox.js"></script>
   <script src="./js/data_form_handler.js"></script>
   <script src="./lasso.js"></script>
@@ -62,6 +62,7 @@
         </div>
 		    </div>
     <div class="col-md-6">
+          <svg id="SvgAnnotator"></svg>
           <svg id="modtSNEcanvas_svg"></svg>
           <canvas id = "modtSNEcanvas" ></canvas>
     </div>
@@ -84,7 +85,10 @@
                       <input id="param-corr" type="range" min="0" max="750" value="150", step="50">
                       <output for="param-corr" id="param-corr-value">150</output>
                   </div>
+                  Type the text of the form: <textarea type="text" id="comment" name="textforAnnotator">Please, provide your comment.</textarea>
                 </div>
+                  <p><div id="toggleAnnotator"><button class="btn btn-primary btn-block" onclick="setAnnotator();">Add a new comment</button></div></p>
+                  <p><div id="continue"><button class="btn btn-primary btn-block" onclick="setContinue();">Continue with the analysis</button></div></p>
             </div>
         </div>
         </div>
@@ -162,19 +166,23 @@
 				<output for="param-transform" id="param-transform-value"></output>
 			    </div>
 			    <p><div id="run-button"><button class="btn btn-primary btn-block" onclick="getData();">Run New tSNE</button></div></p>
-			    <div id="cost"></div>
 			</div>
 			</div>
 		    </div>
-		</div>
+    </div>
+    <div class="col-md-3 col-md-offset-6">
+      <div id="starPlot"></div>
+  </div>
   </div>
 <div class="row">
 	<div class="col-md-3">
 		<div class="panel panel-default">
 			<div class="panel-heading">
- 			    <h3 class="panel-title">History Thumbnails</h3>
+ 			    <h3 class="panel-title">Switch Mode</h3>
 			</div>
 			<div class="panel-body">
+        <div id="cost"></div>
+        <div id="datasetDetails"></div>
         <div id="toggleLassoAndLine"></div> 
       </div>
     </div>

@@ -117,7 +117,7 @@ cursor: default;
 #knnBarChart {
     width: 50vw;
     height: 4.2vw;
-    margin-top: 3.6vw;
+    margin-top: 4.4vw;
     border: 1px solid black;
     position: absolute;
     display: block;
@@ -177,7 +177,7 @@ svg#legend4 {
 #ThumbNailsList{
   border: 1px solid black;
   width: 15.4vw;
-  height: 8vw;
+  height: 13vw;
   padding: 10px 10px 10px 10px;
 }
 
@@ -298,4 +298,26 @@ rect {
 
 .bar {
   /*shape-rendering: crispEdges;*/
+}
+
+
+.annotation circle {
+  fill: none;
+  stroke: black;
+}
+
+.annotation path {
+  fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+/* Styling of the main SVG behind canvas */
+#SvgAnnotator {
+  position: absolute; 
+  z-index: 3;
+}
+
+#toggleAnnotator {
+  color: darkgray;
 }
