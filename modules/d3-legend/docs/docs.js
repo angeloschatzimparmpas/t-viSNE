@@ -1,204 +1,303 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports = "d3.legend.**color()**\n\nConstructs a new color legend. The legend component expects a d3 scale as the basic input, but also has a number of optional parameters for changing the default display such as vertical or horizontal orientation, shape of the symbol next to the label, symbol sizing, and label formatting.\n\ncolor.**scale(d3.scale)**\n\nCreates a new d3 legend based on the scale. The code determines the type of scale and generates the appropriate symbol and label pairs.\n\ncolor.**cells(number or [numbers])**\n\nThis parameter is only valid for continuous scales (like linear and log). When there is no indication from the domain or range for the number of steps in the legend you may want to display, it defaults to five steps in equal increments. You can pass the cells function a single number which will create equal increments for that number of steps, or an array of the [specific steps](#color-linear-custom) you want the legend to display.\n\ncolor.**orient(string)**\n\nAccepts \"vertical\" or \"horizontal\" for legend orientation. Default set to \"vertical.\"\n\ncolor.**ascending(boolean)**\n\nIf you pass this a true, it will reverse the order of the scale.\n\ncolor.**shape(string[, path-string])**\n\nAccepts \"rect\", \"circle\", \"line\", or \"path\". If you choose \"path,\" you must also pass a second parameter as a path string. Defaults to \"rect.\" An example: [Color - Ordinal Scale Legend, custom shape](#color-ordinal).\n\ncolor.**shapeWidth(number)**\n\nOnly applies to shape of \"rect\" or \"line.\" Default set to 15px.\n\ncolor.**shapeHeight(number)**\n\nOnly applies to shape of \"rect.\" Default set to 15px.\n\ncolor.**shapeRadius(number)**\n\nOnly applies to shape of \"circle.\" Default set to 10px.\n\ncolor.**shapePadding(number)**\n\nApplies to all shapes. Determines vertical or horizontal spacing between shapes depending on the respective orient setting. Default set to 2px.\n\ncolor.**useClass(boolean)**\n\nThe default behavior is for the legend to set the fill of the legend's symbols (except for the \"line\" shape which uses stroke). If you set useClass to `true` then it will apply the scale's output as classes to the shapes instead of the fill or stroke. An example: [Color - Quantile Scale Legend](#color-quant).\n\ncolor.**classPrefix(string)**\n\nAdds this string to the beginning of all of the components of the legend that have a class. This allows for namespacing of the classes.\n\ncolor.**title(string)**\n\nSets the legend's title to the string. Automatically moves the legend cells down based on the size of the title. An example: [Symbol - Ordinal Scale](#symbol-ordinal).\n\ncolor.**labels([string])**\n\nSets the legend labels to the array of strings passed to the legend. If the array is not the same length as the array the legend calculates, it merges the values and gives the calculated labels for the remaining items. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\ncolor.**labelAlign(string)**\n\nOnly used if the legend's orient is set to \"horizontal.\" Accepts \"start\", \"middle\", or \"end\" as inputs to determine if the labels are aligned on the left, middle or right under the symbol in a horizontal legend. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\ncolor.**labelFormat(d3.format)**\n\nTakes a [d3.format](https://github.com/mbostock/d3/wiki/Formatting) and applies that styling to the legend labels. Default is set to `d3.format(\".01f\")`.\n\ncolor.**labelOffset(number)**\n\nA value that determines how far the label is from the symbol in each legend item. Default set to 10px.\n\ncolor.**labelDelimiter(string)**\n\nChange the default \"to\" text when working with a quant scale.\n\ncolor.**on(string, function)**\n\nThere are three custom event types you can bind to the legend: \"cellover\", \"cellout\", and \"cellclick\" An exampe: [Symbol - Ordinal Scale](#symbol-ordinal)\n";
+module.exports = "d3.**legendColor()**\n\nConstructs a new color legend. The legend component expects a d3 scale as the basic input, but also has a number of optional parameters for changing the default display such as vertical or horizontal orientation, shape of the symbol next to the label, symbol sizing, and label formatting.\n\nlegendColor.**scale(d3.scale)**\n\nCreates a new d3 legend based on the scale. The code determines the type of scale and generates the appropriate symbol and label pairs.\n\nlegendColor.**cells(number or [numbers])**\n\nThis parameter is only valid for continuous scales (like linear and log). When there is no indication from the domain or range for the number of steps in the legend you may want to display, it defaults to five steps in equal increments. You can pass the cells function a single number which will create equal increments for that number of steps, or an array of the [specific steps](#color-linear-custom) you want the legend to display.\n\nlegendColor.**cellFilter(function)**\n\nThis function is run as a filter function against the array of cells. If you have a function(d){ return true or false }, d has a .data and a .label property as it iterates over each cell it will display. Create a false condition for any cells you want to exclude from being displayed. An example: [Color - Ordinal Scale Legend, custom shape](#color-ordinal).\n\nlegendColor.**orient(string)**\n\nAccepts \"vertical\" or \"horizontal\" for legend orientation. Default set to \"vertical.\"\n\nlegendColor.**ascending(boolean)**\n\nIf you pass this a true, it will reverse the order of the scale.\n\nlegendColor.**shape(string[, path-string])**\n\nAccepts \"rect\", \"circle\", \"line\", or \"path\". If you choose \"path,\" you must also pass a second parameter as a path string. Defaults to \"rect.\" An example: [Color - Ordinal Scale Legend, custom shape](#color-ordinal).\n\nlegendColor.**shapeWidth(number)**\n\nOnly applies to shape of \"rect\" or \"line.\" Default set to 15px.\n\nlegendColor.**shapeHeight(number)**\n\nOnly applies to shape of \"rect.\" Default set to 15px.\n\nlegendColor.**shapeRadius(number)**\n\nOnly applies to shape of \"circle.\" Default set to 10px.\n\nlegendColor.**shapePadding(number)**\n\nApplies to all shapes. Determines vertical or horizontal spacing between shapes depending on the respective orient setting. Default set to 2px.\n\nlegendColor.**useClass(boolean)**\n\nThe default behavior is for the legend to set the fill of the legend's symbols (except for the \"line\" shape which uses stroke). If you set useClass to `true` then it will apply the scale's output as classes to the shapes instead of the fill or stroke. An example: [Color - Quantile Scale Legend](#color-quant).\n\nlegendColor.**classPrefix(string)**\n\nAdds this string to the beginning of all of the components of the legend that have a class. This allows for namespacing of the classes.\n\nlegendColor.**title(string)**\n\nSets the legend's title to the string. Automatically moves the legend cells down based on the size of the title. An example: [Symbol - Ordinal Scale](#symbol-ordinal).\n\nlegendColor.**titleWidth(number)**\n\nWill break the legend title into multiple lines based on the width in pixels. An example: [Color - Quantile Scale Legend](#color-quant).\n\nlegendColor.**labels([string] or function(options))**\n\nPassing a string:\nSets the legend labels to the array of strings passed to the legend. If the array is not the same length as the array the legend calculates, it merges the values and gives the calculated labels for the remaining items. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nPassing a function:\nThis function is called for each generated label and gives you the options:\n- i: current index\n- genLength: total length of generated labels\n- generatedLabels: array of generated labels\n- domain: array from input scale\n- range: array from input scale\nThis allows you to make any custom functions to handle labels. An example: [Color - Threshold Scale, Custom Labels](#color-threshold)\n\nList of [helper functions](#helpers).\n\nlegendColor.**labelAlign(string)**\n\nOnly used if the legend's orient is set to \"horizontal.\" Accepts \"start\", \"middle\", or \"end\" as inputs to determine if the labels are aligned on the left, middle or right under the symbol in a horizontal legend. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nlegendColor.**labelFormat(d3.format or d3.format string)**\n\nTakes a [d3.format](https://github.com/mbostock/d3/wiki/Formatting) and applies that styling to the legend labels. Default is set to `d3.format(\".01f\")`.\n\nlegendColor.**locale(d3.format locale)**\n\nTakes a [d3.format locale](https://github.com/d3/d3-format/tree/master/locale) and applies it to the legend labels. Default is set to [US english](https://github.com/d3/d3-format/blob/master/locale/en-US.json).\n\nlegendColor.**labelOffset(number)**\n\nA value that determines how far the label is from the symbol in each legend item. Default set to 10px.\n\nlegendColor.**labelDelimiter(string)**\n\nChange the default \"to\" text when working with a quant scale.\n\nlegendColor.**labelWrap(number)**\n\nAdd text wrapping to the cell labels. In orient horizontal you can use this in combination with shapePadding to get the desired spacing. An exampe: [Size - Linear Scale](#size-line). In orient vertical this will automatically scale the cells to fit the label.An example: [Symbol - Ordinal Scale](#symbol-ordinal) \n\nlegendColor.**on(string, function)**\n\nThere are three custom event types you can bind to the legend: \"cellover\", \"cellout\", and \"cellclick\" An example: [Symbol - Ordinal Scale](#symbol-ordinal)\n";
 
 },{}],2:[function(require,module,exports){
-module.exports = "- [Color Legend](#color)\n  - [Documentation](#color-doc)\n  - [Examples](#color-examples)\n    - [Quantile Scale Legend](#color-quant)\n    - [Linear Scale Legend - Horizontal](#color-linear)\n    - [Linear Scale Legend - 10 cells](#color-linear-10)\n    - [Linear Scale Legend - Custom cells](#color-linear-custom)\n    - [Ordinal Scale Legend - Custom shape](#color-ordinal)\n- [Size Legend](#size)\n  - [Documentation](#size-doc)\n  - [Examples](#size-examples)\n    - [Linear Scale Legend - Circles](#size-linear)\n    - [Linear Scale Legend - Lines](#size-line)\n\n- [Symbol Legend](#symbol)\n  - [Documentation](#symbol-doc)\n  - [Examples](#symbol-examples)\n    - [Ordinal Scale Legend - Custom Symbols](#symbol-ordinal)\n\n- [Summary of Functions](#summary) - table of which functions are shared across legend types";
+module.exports = "- [Color Legend](#color)\n  - [Documentation](#color-doc)\n  - [Examples](#color-examples)\n    - [Quantile Scale Legend](#color-quant)\n    - [Threshold Scale Legend](#color-threshold)\n    - [Linear Scale Legend - Horizontal](#color-linear)\n    - [Linear Scale Legend - 10 cells](#color-linear-10)\n    - [Linear Scale Legend - Custom cells](#color-linear-custom)\n    - [Ordinal Scale Legend - Custom shape](#color-ordinal)\n- [Size Legend](#size)\n  - [Documentation](#size-doc)\n  - [Examples](#size-examples)\n    - [Linear Scale Legend - Circles](#size-linear)\n    - [Linear Scale Legend - Lines](#size-line)\n\n- [Symbol Legend](#symbol)\n  - [Documentation](#symbol-doc)\n  - [Examples](#symbol-examples)\n    - [Ordinal Scale Legend - Custom Symbols](#symbol-ordinal)\n\n- [Summary of Functions](#summary) - table of which functions are shared across legend types\n";
 
 },{}],3:[function(require,module,exports){
+module.exports = "d3.**legendHelpers()**\n\nConvenience functions for using this module\n\nlegendHelpers.**thresholdLabels**\n\nChanges the labels so the first one label says \"Less than _first-threshold_\" and the last one says \"More than _last-threshold_\".\nExample: [Color - Threshold Scale, Custom Labels](#color-threshold)\n";
 
-
+},{}],4:[function(require,module,exports){
 //Color: Quantile #svg-color-quant
+var svg = d3.select("#svg-color-quant")
 
-var svg = d3.select("#svg-color-quant");
+var quantize = d3
+  .scaleQuantize()
+  .domain([0, 0.15])
+  .range(
+    d3.range(9).map(function(i) {
+      return "q" + i + "-9"
+    })
+  )
 
-var quantize = d3.scale.quantize()
-    .domain([ 0, 0.15 ])
-    .range(d3.range(9).map(function(i) { return "q" + i + "-9"; }));
-
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendQuant")
-  .attr("transform", "translate(20,20)");
+  .attr("transform", "translate(20,20)")
 
-var legend = d3.legend.color()
-    .labelFormat(d3.format(".2f"))
-    .useClass(true)
-    .scale(quantize);
+var legend = d3
+  .legendColor()
+  .labelFormat(d3.format(".2f"))
+  .useClass(true)
+  .title("A really really really really really long title")
+  .titleWidth(100)
+  .scale(quantize)
 
-svg.select(".legendQuant")
-  .call(legend);
+svg.select(".legendQuant").call(legend)
+
+//Color: Treshold #svg-color-threshold
+
+var svg = d3.select("#svg-color-threshold")
+
+var thresholdScale = d3
+  .scaleThreshold()
+  .domain([0, 1000, 2500, 5000, 10000])
+  .range(
+    d3.range(6).map(function(i) {
+      return "q" + i + "-9"
+    })
+  )
+
+svg
+  .append("g")
+  .attr("class", "legendThreshold")
+  .attr("transform", "translate(20,20)")
+
+var legend = d3
+  .legendColor()
+  .labelFormat(d3.format(".2f"))
+  .labels(d3.legendHelpers.thresholdLabels)
+  .useClass(true)
+  .shapeWidth(30)
+  .scale(thresholdScale)
+
+svg.select(".legendThreshold").call(legend)
 
 //Color: Log #svg-color-log
-var svg = d3.select("#svg-color-log");
+var svg = d3.select("#svg-color-log")
 
-var log = d3.scale.log()
-    .domain([ 0.1, 100, 1000 ])
-    .range(["rgb(46, 73, 123)", "rgb(71, 187, 94)"]);
+var log = d3
+  .scaleLog()
+  .domain([0.1, 100, 1000])
+  .range(["rgb(46, 73, 123)", "rgb(71, 187, 94)"])
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendLog")
-  .attr("transform", "translate(20,20)");
+  .attr("transform", "translate(20,20)")
 
-var logLegend = d3.legend.color()
-    .cells([0.1, 5, 10, 50, 100, 500, 1000])
-    .scale(log);
+var logLegend = d3
+  .legendColor()
+  .cells([0.1, 5, 10, 50, 100, 500, 1000])
+  .scale(log)
 
-svg.select(".legendLog")
-  .call(logLegend);
+svg.select(".legendLog").call(logLegend)
 
 //Color Linear #svg-color-linear
-var linear = d3.scale.linear().domain([0,10]).range(["rgb(46, 73, 123)", "rgb(71, 187, 94)"]);
+var linear = d3
+  .scaleLinear()
+  .domain([0, 10])
+  .range(["rgb(46, 73, 123)", "rgb(71, 187, 94)"])
 
-svg = d3.select("#svg-color-linear");
+svg = d3.select("#svg-color-linear")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendLinear")
-  .attr("transform", "translate(20,20)");
+  .attr("transform", "translate(20,20)")
 
-var legendLinear = d3.legend.color()
-    .shapeWidth(30)
-    .orient('horizontal')
-    .scale(linear);
+var legendLinear = d3
+  .legendColor()
+  .shapeWidth(30)
+  .orient("horizontal")
+  .scale(linear)
 
 //Color Linear #svg-color-linear-10
-svg.select(".legendLinear")
-  .call(legendLinear);
+svg.select(".legendLinear").call(legendLinear)
 
-svg = d3.select("#svg-color-linear-10");
+svg = d3.select("#svg-color-linear-10")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendLinear")
-  .attr("transform", "translate(20,20)");
+  .attr("transform", "translate(20,20)")
 
-legendLinear.cells(10);
+legendLinear.cells(10)
 
-svg.select(".legendLinear")
-  .call(legendLinear);
+svg.select(".legendLinear").call(legendLinear)
 
 //Linear #svg-color-linear-custom
-svg.select(".legendLinear")
-  .call(legendLinear);
+svg.select(".legendLinear").call(legendLinear)
 
-svg = d3.select("#svg-color-linear-custom");
+svg = d3.select("#svg-color-linear-custom")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendLinear")
-  .attr("transform", "translate(20,20)");
+  .attr("transform", "translate(20,20)")
 
-legendLinear.cells([1, 2, 3, 6, 8]);
+legendLinear.cells([1, 2, 3, 6, 8])
 
-svg.select(".legendLinear")
-  .call(legendLinear);
-
+svg.select(".legendLinear").call(legendLinear)
 
 //Ordinal #svg-color-ordinal
-var ordinal = d3.scale.ordinal()
+var ordinal = d3
+  .scaleOrdinal()
   .domain(["a", "b", "c", "d", "e"])
-  .range([ "rgb(153, 107, 195)", "rgb(56, 106, 197)", "rgb(93, 199, 76)", "rgb(223, 199, 31)", "rgb(234, 118, 47)"]);
+  .range([
+    "rgb(153, 107, 195)",
+    "rgb(56, 106, 197)",
+    "rgb(93, 199, 76)",
+    "rgb(223, 199, 31)",
+    "rgb(234, 118, 47)"
+  ])
 
-svg = d3.select("#svg-color-ordinal");
+svg = d3.select("#svg-color-ordinal")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendOrdinal")
-  .attr("transform", "translate(20,20)");
+  .attr("transform", "translate(20,20)")
 
-var legendOrdinal = d3.legend.color()
-  .shape("path", d3.svg.symbol().type("triangle-up").size(150)())
+var legendOrdinal = d3
+  .legendColor()
+  .shape(
+    "path",
+    d3
+      .symbol()
+      .type(d3.symbolTriangle)
+      .size(150)()
+  )
   .shapePadding(10)
-  .scale(ordinal);
+  .cellFilter(function(d) {
+    return d.label !== "e"
+  })
+  .scale(ordinal)
 
-svg.select(".legendOrdinal")
-  .call(legendOrdinal);
+svg.select(".legendOrdinal").call(legendOrdinal)
 
+var sequentialScale = d3.scaleSequential(d3.interpolateRainbow).domain([0, 10])
+svg = d3.select("#svg-color-sequential")
+
+svg
+  .append("g")
+  .attr("class", "legendSequential")
+  .attr("transform", "translate(20,20)")
+
+var legendSequential = d3
+  .legendColor()
+  .shapeWidth(30)
+  .cells(10)
+  .orient("horizontal")
+  .scale(sequentialScale)
+
+svg.select(".legendSequential").call(legendSequential)
 
 //Size: Linear Circle #svg-size-linear
-var linearSize = d3.scale.linear().domain([0,10]).range([10, 30]);
+var linearSize = d3
+  .scaleLinear()
+  .domain([0, 10])
+  .range([10, 30])
 
-svg = d3.select("#svg-size-linear");
+svg = d3.select("#svg-size-linear")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendSize")
-  .attr("transform", "translate(20, 40)");
+  .attr("transform", "translate(20, 40)")
 
+var legendSize = d3
+  .legendSize()
+  .scale(linearSize)
+  .shape("circle")
+  .shapePadding(15)
+  .labelOffset(20)
+  .orient("horizontal")
+  .on("cellover", function() {
+    console.log("cellover", d3.event, d3.event.type)
+  })
 
-var legendSize = d3.legend.size()
-    .scale(linearSize)
-    .shape('circle')
-    .shapePadding(15)
-    .labelOffset(20)
-   .orient('horizontal');
-
-svg.select(".legendSize")
-  .call(legendSize);
+svg.select(".legendSize").call(legendSize)
 
 //Size: Linear Line #svg-size-line
-var lineSize = d3.scale.linear().domain([0,10]).range([2, 10]);
+var lineSize = d3
+  .scaleLinear()
+  .domain([0, 10])
+  .range([2, 10])
 
-svg = d3.select("#svg-size-line");
+svg = d3.select("#svg-size-line")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendSizeLine")
-  .attr("transform", "translate(0, 20)");
+  .attr("transform", "translate(0, 20)")
 
-var legendSizeLine = d3.legend.size()
-      .scale(lineSize)
-      .shape("line")
-      .orient("horizontal")
-      .labels(["tiny", "small", "medium", "large", "grand"])
-      .shapeWidth(50)
-      .labelAlign("start")
-      .shapePadding(10);
+var legendSizeLine = d3
+  .legendSize()
+  .scale(lineSize)
+  .shape("line")
+  .orient("horizontal")
+  .labels([
+    "tiny testing at the beginning",
+    "small",
+    "medium",
+    "large",
+    "grand, all the way long label"
+  ])
+  .labelWrap(30)
+  .shapeWidth(50)
+  .labelAlign("start")
+  .shapePadding(10)
 
-svg.select(".legendSizeLine")
-  .call(legendSizeLine);
+svg.select(".legendSizeLine").call(legendSizeLine)
 
 //Symbol: Ordinal #svg-symbol-ordinal
-svg = d3.select("#svg-symbol-ordinal");
+svg = d3.select("#svg-symbol-ordinal")
 
-svg.append("g")
+svg
+  .append("g")
   .attr("class", "legendSymbol")
-  .attr("transform", "translate(20, 20)");
+  .attr("transform", "translate(20, 20)")
 
-var triangleU = d3.svg.symbol().type('triangle-up')(),
-  circle = d3.svg.symbol().type('circle')(),
-  cross = d3.svg.symbol().type('cross')(),
-  diamond = d3.svg.symbol().type('diamond')(),
-  triangleD = d3.svg.symbol().type('triangle-down')();
+var triangleU = d3.symbol().type(d3.symbolTriangle)(),
+  circle = d3.symbol().type(d3.symbolCircle)(),
+  cross = d3.symbol().type(d3.symbolCross)(),
+  diamond = d3.symbol().type(d3.symbolDiamond)(),
+  star = d3.symbol().type(d3.symbolStar)()
 
 //example output of d3.svg.symbol().type('circle')();
 //"M0,4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,
 //-4.51351666838205A4.51351666838205,4.51351666838205 0 1,1 0,4.51351666838205Z"
 
-var symbolScale =  d3.scale.ordinal()
-  .domain(['a','b','c', 'd', 'e'])
-  .range([ triangleU, circle, cross, diamond, triangleD] );
+var symbolScale = d3
+  .scaleOrdinal()
+  .domain(["a longer label", "b", "c", "d", "e"])
+  .range([triangleU, circle, cross, diamond, star])
 
-var legendPath = d3.legend.symbol()
+var legendPath = d3
+  .legendSymbol()
   .scale(symbolScale)
-  .orient("horizontal")
-  .title('Symbol Legend Title')
-  .on("cellclick", function(d){alert("clicked " + d);});
+  //.orient("horizontal")
+  .labelWrap(30)
+  .title("Symbol Legend Title")
+  .on("cellclick", function(d) {
+    alert("clicked " + d)
+  })
 
-svg.select(".legendSymbol")
-  .call(legendPath);
-},{}],4:[function(require,module,exports){
+svg.select(".legendSymbol").call(legendPath)
+
+},{}],5:[function(require,module,exports){
 var md = require('marked');
 
 var contents = require('./contents.md')
 var color = require('./color.md');
 var size = require('./size.md');
 var symbol = require('./symbol.md');
+var helpers = require('./helpers.md');
 
 document.getElementById('contents-md').innerHTML = md(contents);
 document.getElementById('color-md').innerHTML = md(color);
 document.getElementById('size-md').innerHTML = md(size);
 document.getElementById('symbol-md').innerHTML = md(symbol);
-},{"./color.md":1,"./contents.md":2,"./size.md":5,"./symbol.md":6,"marked":7}],5:[function(require,module,exports){
-module.exports = "d3.legend.**size()**\n\nConstructs a new size legend. The legend component expects a d3 scale as the basic input, but also has a number of optional parameters for changing the default display such as vertical or horizontal orientation, shape of the symbol next to the label, symbol sizing, and label formatting.\n\nsize.**scale(d3.scale)**\n\nCreates a new d3 legend based on the scale. The code determines the type of scale and generates the different symbol and label pairs. Expects a scale that has a numerical range.\n\nsize.**cells(number or [numbers])**\n\nThis parameter is only valid for continuous scales (like linear and log). When there is no indication from the domain or range for the number of steps in the legend you may want to display, it defaults to five steps in equal increments. You can pass the cells function a single number which will create equal increments for that number of steps, or an array of the [specific steps](#color-linear-custom) you want the legend to display.\n\nsize.**orient(string)**\n\nAccepts \"vertical\" or \"horizontal\" for legend orientation. Default set to \"vertical.\"\n\nsize.**ascending(boolean)**\n\nIf you pass this a true, it will reverse the order of the scale.\n\nsize.**shape(string)**\n\nAccepts \"rect\", \"circle\", or \"line\". Defaults to \"rect.\" The assumption is that the scale's output will be used for the width and height if you select \"rect,\" the radius if you select \"circle,\" and the stroke-width if you select \"line.\" If you want to have a custom shape of different sizes in your legend, use the symbol legend and make each path string for the sizes you want as the range array.\n\nsize.**shapeWidth(number)**\n\nOnly applies to shape \"line.\" Default set to 15px.\n\nsize.**shapePadding(number)**\n\nApplies to all shapes. Determines vertical or horizontal spacing between shapes depending on the respective orient setting. Default set to 2px.\n\nsize.**classPrefix(string)**\n\nAdds this string to the beginning of all of the components of the legend that have a class. This allows for namespacing of the classes.\n\nsize.**title(string)**\n\nSets the legend's title to the string. Automatically moves the legend cells down based on the size of the title. An example: [Symbol - Ordinal Scale](#symbol-ordinal).\n\nsize.**labels([string])**\n\nSets the legend labels to the array of strings passed to the legend. If the array is not the same length as the array the legend calculates, it merges the values and gives the calculated labels for the remaining items. An example: [Size - Linear Scale Legend, Lines](#size-line)\n\nsize.**labelAlign(string)**\n\nOnly used if the legend's orient is set to \"horizontal.\" Accepts \"start\", \"middle\", or \"end\" as inputs to determine if the labels are aligned on the left, middle or right under the symbol in a horizontal legend. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nsize.**labelFormat(d3.format)**\n\nTakes a [d3.format](https://github.com/mbostock/d3/wiki/Formatting) and applies that styling to the legend labels. Default is set to `d3.format(\".01f\")`.\n\nsize.**labelOffset(number)**\n\nA value that determines how far the label is from the symbol in each legend item. Default set to 10px.\n\nsize.**labelDelimiter(string)**\n\nChange the default \"to\" text when working with a quant scale.\n\nsize.**on(string, function)**\n\nThere are three custom event types you can bind to the legend: \"cellover\", \"cellout\", and \"cellclick\" An exampe: [Symbol - Ordinal Scale](#symbol-ordinal)\n";
+document.getElementById('helpers-md').innerHTML = md(helpers);
 
-},{}],6:[function(require,module,exports){
-module.exports = "d3.legend.**symbol()**\n\nConstructs a new symbol legend. The legend component expects a d3 scale as the basic input, but also has a number of optional parameters for changing the default display such as vertical or horizontal orientation, shape of the symbol next to the label, symbol sizing, and label formatting.\n\nsymbol.**scale()**\n\nCreates a new d3 legend based on the scale. The code determines the type of scale and generates the different symbol and label pairs. The scale's range will be used as the d-attribute in an svg path for each symbol in the legend.\n\nsymbol.**cells()**\n\nThis parameter is only valid for continuous scales (like linear and log). When there is no indication from the domain or range for the number of steps in the legend you may want to display, it defaults to five steps in equal increments. You can pass the cells function a single number which will create equal increments for that number of steps, or an array of the [specific steps](#color-linear-custom) you want the legend to display.\n\nsymbol.**orient(string)**\n\nAccepts \"vertical\" or \"horizontal\" for legend orientation. Default set to \"vertical.\"\n\nsymbol.**ascending(boolean)**\n\nIf you pass this a true, it will reverse the order of the scale.\n\nsymbol.**shapePadding()**\n\nApplies to all shapes. Determines vertical or horizontal spacing between shapes depending on the respective orient setting. Default set to 2px.\n\nsymbol.**classPrefix(string)**\n\nAdds this string to the beginning of all of the components of the legend that have a class. This allows for namespacing of the classes.\n\nsymbol.**title(string)**\n\nSets the legend's title to the string. Automatically moves the legend cells down based on the size of the title. An example: [Symbol - Ordinal Scale](#symbol-ordinal).\n\nsymbol.**labels([string])**\n\nSets the legend labels to the array of strings passed to the legend. If the array is not the same length as the array the legend calculates, it merges the values and gives the calculated labels for the remaining items. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nsymbol.**labelAlign(string)**\n\nOnly used if the legend's orient is set to \"horizontal.\" Accepts \"start\", \"middle\", or \"end\" as inputs to determine if the labels are aligned on the left, middle or right under the symbol in a horizontal legend. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nsymbol.**labelFormat(d3.format)**\n\nTakes a [d3.format](https://github.com/mbostock/d3/wiki/Formatting) and applies that styling to the legend labels. Default is set to `d3.format(\".01f\")`.\n\nsymbol.**labelOffset(number)**\n\nA value that determines how far the label is from the symbol in each legend item. Default set to 10px.\n\nsymbol.**labelDelimiter(string)**\n\nChange the default \"to\" text when working with a quant scale.\n\nsymbol.**on(string, function)**\n\nThere are three custom event types you can bind to the legend: \"cellover\", \"cellout\", and \"cellclick\" An exampe: [Symbol - Ordinal Scale](#symbol-ordinal)\n";
+},{"./color.md":1,"./contents.md":2,"./helpers.md":3,"./size.md":6,"./symbol.md":7,"marked":8}],6:[function(require,module,exports){
+module.exports = "d3.**legendSize()**\n\nConstructs a new size legend. The legend component expects a d3 scale as the basic input, but also has a number of optional parameters for changing the default display such as vertical or horizontal orientation, shape of the symbol next to the label, symbol sizing, and label formatting.\n\nlegendSize.**scale(d3.scale)**\n\nCreates a new d3 legend based on the scale. The code determines the type of scale and generates the different symbol and label pairs. Expects a scale that has a numerical range.\n\nlegendSize.**cells(number or [numbers])**\n\nThis parameter is only valid for continuous scales (like linear and log). When there is no indication from the domain or range for the number of steps in the legend you may want to display, it defaults to five steps in equal increments. You can pass the cells function a single number which will create equal increments for that number of steps, or an array of the [specific steps](#color-linear-custom) you want the legend to display.\n\nlegendSize.**cellFilter(function)**\n\nThis function is run as a filter function against the array of cells. If you have a function(d){ return true or false }, d has a .data and a .label property as it iterates over each cell it will display. Create a false condition for any cells you want to exclude from being displayed. An example: [Color - Ordinal Scale Legend, custom shape](#color-ordinal).\n\nlegendSize.**orient(string)**\n\nAccepts \"vertical\" or \"horizontal\" for legend orientation. Default set to \"vertical.\"\n\nlegendSize.**ascending(boolean)**\n\nIf you pass this a true, it will reverse the order of the scale.\n\nlegendSize.**shape(string)**\n\nAccepts \"rect\", \"circle\", or \"line\". Defaults to \"rect.\" The assumption is that the scale's output will be used for the width and height if you select \"rect,\" the radius if you select \"circle,\" and the stroke-width if you select \"line.\" If you want to have a custom shape of different sizes in your legend, use the symbol legend and make each path string for the sizes you want as the range array.\n\nlegendSize.**shapeWidth(number)**\n\nOnly applies to shape \"line.\" Default set to 15px.\n\nlegendSize.**shapePadding(number)**\n\nApplies to all shapes. Determines vertical or horizontal spacing between shapes depending on the respective orient setting. Default set to 2px.\n\nlegendSize.**classPrefix(string)**\n\nAdds this string to the beginning of all of the components of the legend that have a class. This allows for namespacing of the classes.\n\nlegendSize.**title(string)**\n\nSets the legend's title to the string. Automatically moves the legend cells down based on the size of the title. An example: [Symbol - Ordinal Scale](#symbol-ordinal).\n\nlegendSize.**titleWidth(number)**\n\nWill break the legend title into multiple lines based on the width in pixels. An example: [Color - Quantile Scale Legend](#color-quant).\n\nlegendSize.**labels([string] or function(options))**\n\nPassing a string:\nSets the legend labels to the array of strings passed to the legend. If the array is not the same length as the array the legend calculates, it merges the values and gives the calculated labels for the remaining items. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nPassing a function:\nThis function is called for each generated label and gives you the options:\n- i: current index\n- genLength: total length of generated labels\n- generatedLabels: array of generated labels\n- domain: array from input scale\n- range: array from input scale\nThis allows you to make any custom functions to handle labels. An example: [Color - Threshold Scale, Custom Labels](#color-threshold)\n\nList of [helper functions](#helpers).\n\n\nlegendSize.**labelAlign(string)**\n\nOnly used if the legend's orient is set to \"horizontal.\" Accepts \"start\", \"middle\", or \"end\" as inputs to determine if the labels are aligned on the left, middle or right under the symbol in a horizontal legend. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nlegendSize.**labelFormat(d3.format or d3.format string)**\n\n\nTakes a [d3.format](https://github.com/mbostock/d3/wiki/Formatting) and applies that styling to the legend labels. Default is set to `d3.format(\".01f\")`.\n\nlegendSize.**locale(d3.format locale)**\n\nTakes a [d3.format locale](https://github.com/d3/d3-format/tree/master/locale) and applies it to the legend labels. Default is set to [US english](https://github.com/d3/d3-format/blob/master/locale/en-US.json).\n\nlegendSize.**labelOffset(number)**\n\nA value that determines how far the label is from the symbol in each legend item. Default set to 10px.\n\nlegendSize.**labelDelimiter(string)**\n\nChange the default \"to\" text when working with a quant scale.\n\nlegendColor.**labelWrap(number)**\n\nAdd text wrapping to the cell labels. In orient horizontal you can use this in combination with shapePadding to get the desired spacing. An exampe: [Size - Linear Scale](#size-line). In orient vertical this will automatically scale the cells to fit the label.An example: [Symbol - Ordinal Scale](#symbol-ordinal) \n\nlegendSize.**on(string, function)**\n\nThere are three custom event types you can bind to the legend: \"cellover\", \"cellout\", and \"cellclick\" An exampe: [Symbol - Ordinal Scale](#symbol-ordinal)\n";
 
 },{}],7:[function(require,module,exports){
+module.exports = "d3.**legendSymbol()**\n\nConstructs a new symbol legend. The legend component expects a d3 scale as the basic input, but also has a number of optional parameters for changing the default display such as vertical or horizontal orientation, shape of the symbol next to the label, symbol sizing, and label formatting.\n\nlegendSymbol.**scale()**\n\nCreates a new d3 legend based on the scale. The code determines the type of scale and generates the different symbol and label pairs. The scale's range will be used as the d-attribute in an svg path for each symbol in the legend.\n\nlegendSymbol.**cells()**\n\nThis parameter is only valid for continuous scales (like linear and log). When there is no indication from the domain or range for the number of steps in the legend you may want to display, it defaults to five steps in equal increments. You can pass the cells function a single number which will create equal increments for that number of steps, or an array of the [specific steps](#color-linear-custom) you want the legend to display.\n\nlegendSymbol.**cellFilter(function)**\n\nThis function is run as a filter function against the array of cells. If you have a function(d){ return true or false }, d has a .data and a .label property as it iterates over each cell it will display. Create a false condition for any cells you want to exclude from being displayed. An example: [Color - Ordinal Scale Legend, custom shape](#color-ordinal).\n\nlegendSymbol.**orient(string)**\n\nAccepts \"vertical\" or \"horizontal\" for legend orientation. Default set to \"vertical.\"\n\nlegendSymbol.**ascending(boolean)**\n\nIf you pass this a true, it will reverse the order of the scale.\n\nlegendSymbol.**shapePadding()**\n\nApplies to all shapes. Determines vertical or horizontal spacing between shapes depending on the respective orient setting. Default set to 2px.\n\nlegendSymbol.**classPrefix(string)**\n\nAdds this string to the beginning of all of the components of the legend that have a class. This allows for namespacing of the classes.\n\nlegendSymbol.**title(string)**\n\nSets the legend's title to the string. Automatically moves the legend cells down based on the size of the title. An example: [Symbol - Ordinal Scale](#symbol-ordinal).\n\nlegendSymbol.**titleWidth(number)**\n\nWill break the legend title into multiple lines based on the width in pixels. An example: [Color - Quantile Scale Legend](#color-quant).\n\nlegendSymbol.**labels([string] or function(options))**\n\nPassing a string:\nSets the legend labels to the array of strings passed to the legend. If the array is not the same length as the array the legend calculates, it merges the values and gives the calculated labels for the remaining items. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nPassing a function:\nThis function is called for each generated label and gives you the options:\n- i: current index\n- genLength: total length of generated labels\n- generatedLabels: array of generated labels\n- domain: array from input scale\n- range: array from input scale\nThis allows you to make any custom functions to handle labels. An example: [Color - Threshold Scale, Custom Labels](#color-threshold)\n\nList of [helper functions](#helpers).\n\nlegendSymbol.**labelAlign(string)**\n\nOnly used if the legend's orient is set to \"horizontal.\" Accepts \"start\", \"middle\", or \"end\" as inputs to determine if the labels are aligned on the left, middle or right under the symbol in a horizontal legend. An example: [Size - Linear Scale Legend, Lines](#size-line).\n\nlegendSymbol.**labelFormat(d3.format or d3.format string)**\n\nTakes a [d3.format](https://github.com/mbostock/d3/wiki/Formatting) and applies that styling to the legend labels. Default is set to `d3.format(\".01f\")`.\n\nlegendSymbol.**locale(d3.format locale)**\n\nTakes a [d3.format locale](https://github.com/d3/d3-format/tree/master/locale) and applies it to the legend labels. Default is set to [US english](https://github.com/d3/d3-format/blob/master/locale/en-US.json).\n\nlegendSymbol.**labelOffset(number)**\n\nA value that determines how far the label is from the symbol in each legend item. Default set to 10px.\n\nlegendSymbol.**labelDelimiter(string)**\n\nChange the default \"to\" text when working with a quant scale.\n\nlegendColor.**labelWrap(number)**\n\nAdd text wrapping to the cell labels. In orient horizontal you can use this in combination with shapePadding to get the desired spacing. An exampe: [Size - Linear Scale](#size-line). In orient vertical this will automatically scale the cells to fit the label.An example: [Symbol - Ordinal Scale](#symbol-ordinal) \n\nlegendSymbol.**on(string, function)**\n\nThere are three custom event types you can bind to the legend: \"cellover\", \"cellout\", and \"cellclick\" An exampe: [Symbol - Ordinal Scale](#symbol-ordinal)\n";
+
+},{}],8:[function(require,module,exports){
 (function (global){
 /**
  * marked - a markdown parser
@@ -239,10 +338,6 @@ block.list = replace(block.list)
   (/bull/g, block.bullet)
   ('hr', '\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))')
   ('def', '\\n+(?=' + block.def.source + ')')
-  ();
-
-block.blockquote = replace(block.blockquote)
-  ('def', block.def)
   ();
 
 block._tag = '(?!(?:'
@@ -659,7 +754,7 @@ var inline = {
   nolink: /^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/,
   strong: /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/,
   em: /^\b_((?:[^_]|__)+?)_\b|^\*((?:\*\*|[\s\S])+?)\*(?!\*)/,
-  code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
+  code: /^(`+)([\s\S]*?[^`])\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
@@ -780,9 +875,11 @@ InlineLexer.prototype.output = function(src) {
     if (cap = this.rules.autolink.exec(src)) {
       src = src.substring(cap[0].length);
       if (cap[2] === '@') {
-        text = cap[1].charAt(6) === ':'
+        text = escape(
+          cap[1].charAt(6) === ':'
           ? this.mangle(cap[1].substring(7))
-          : this.mangle(cap[1]);
+          : this.mangle(cap[1])
+        );
         href = this.mangle('mailto:') + text;
       } else {
         text = escape(cap[1]);
@@ -863,7 +960,7 @@ InlineLexer.prototype.output = function(src) {
     // code
     if (cap = this.rules.code.exec(src)) {
       src = src.substring(cap[0].length);
-      out += this.renderer.codespan(escape(cap[2], true));
+      out += this.renderer.codespan(escape(cap[2].trim(), true));
       continue;
     }
 
@@ -1077,9 +1174,12 @@ Renderer.prototype.link = function(href, title, text) {
     } catch (e) {
       return '';
     }
-    if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0) {
+    if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
       return '';
     }
+  }
+  if (this.options.baseUrl && !originIndependentUrl.test(href)) {
+    href = resolveUrl(this.options.baseUrl, href);
   }
   var out = '<a href="' + href + '"';
   if (title) {
@@ -1090,6 +1190,9 @@ Renderer.prototype.link = function(href, title, text) {
 };
 
 Renderer.prototype.image = function(href, title, text) {
+  if (this.options.baseUrl && !originIndependentUrl.test(href)) {
+    href = resolveUrl(this.options.baseUrl, href);
+  }
   var out = '<img src="' + href + '" alt="' + text + '"';
   if (title) {
     out += ' title="' + title + '"';
@@ -1296,7 +1399,8 @@ function escape(html, encode) {
 }
 
 function unescape(html) {
-  return html.replace(/&([#\w]+);/g, function(_, n) {
+	// explicitly match decimal, hex, and named HTML entities
+  return html.replace(/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/ig, function(_, n) {
     n = n.toLowerCase();
     if (n === 'colon') return ':';
     if (n.charAt(0) === '#') {
@@ -1319,6 +1423,30 @@ function replace(regex, opt) {
     return self;
   };
 }
+
+function resolveUrl(base, href) {
+  if (!baseUrls[' ' + base]) {
+    // we can ignore everything in base after the last slash of its path component,
+    // but we might need to add _that_
+    // https://tools.ietf.org/html/rfc3986#section-3
+    if (/^[^:]+:\/*[^/]*$/.test(base)) {
+      baseUrls[' ' + base] = base + '/';
+    } else {
+      baseUrls[' ' + base] = base.replace(/[^/]*$/, '');
+    }
+  }
+  base = baseUrls[' ' + base];
+
+  if (href.slice(0, 2) === '//') {
+    return base.replace(/:[^]*/, ':') + href;
+  } else if (href.charAt(0) === '/') {
+    return base.replace(/(:\/*[^/]*)[^]*/, '$1') + href;
+  } else {
+    return base + href;
+  }
+}
+baseUrls = {};
+originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
 
 function noop() {}
 noop.exec = noop;
@@ -1454,7 +1582,8 @@ marked.defaults = {
   smartypants: false,
   headerPrefix: '',
   renderer: new Renderer,
-  xhtml: false
+  xhtml: false,
+  baseUrl: null
 };
 
 /**
@@ -1487,4 +1616,4 @@ if (typeof module !== 'undefined' && typeof exports === 'object') {
 }());
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}]},{},[3,4]);
+},{}]},{},[4,5]);

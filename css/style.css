@@ -1,8 +1,13 @@
+/* Custom styling */
+
 /* Main html/body configurations */
 html, body {
     max-width: 100%;
-    margin-top: 15px;
     font: serif;
+}
+
+.container-fluid {
+  margin-top: 5px;
 }
 
 #param-correlation {
@@ -103,6 +108,7 @@ cursor: default;
     border: 1px solid black;
     position: absolute;
     display: block;
+    z-index: 2;
 }
 
 /* Styling of the overview canvas */
@@ -117,7 +123,7 @@ cursor: default;
 #knnBarChart {
     width: 50vw;
     height: 4.2vw;
-    margin-top: 4.4vw;
+    margin-top: 7.2vw;
     border: 1px solid black;
     position: absolute;
     display: block;
@@ -153,6 +159,7 @@ cursor: default;
   width: 11vw;
   height: 11vw;
   position: absolute;
+  border: 1px solid black;
 }
 
 /* Number of Points font-size */
@@ -171,14 +178,6 @@ svg#legend4 {
   width: 11vw;
   text-align: left;
   overflow: auto;
-}
-
-/* This is the styling for the thumbnails list*/
-#ThumbNailsList{
-  border: 1px solid black;
-  width: 15.4vw;
-  height: 13vw;
-  padding: 10px 10px 10px 10px;
 }
 
 /* ShepardHeatmap Styling for the different rectangles used there */
@@ -269,6 +268,12 @@ rect {
 .show {display:block;}
 
 /* This is for the Correlation bar chart */
+#correlation{
+  margin-left: 10px;
+  margin-top: -20px;
+  border: 1px solid black;
+}
+
 .y.axis line {
   fill: none;
 }
@@ -300,7 +305,7 @@ rect {
   /*shape-rendering: crispEdges;*/
 }
 
-
+/* Styling for the annotation circle */
 .annotation circle {
   fill: none;
   stroke: black;
@@ -320,4 +325,29 @@ rect {
 
 #toggleAnnotator {
   color: darkgray;
+}
+
+#selectionLabel{
+  border: 1px solid grey;
+}
+
+#starPlot{
+  border: 1px solid grey;
+  margin-left:10px;
+}
+
+.parent-row{
+  display: flex;
+ }
+ .children-columns{
+   display: flex;
+ }
+
+#extra-information {
+  margin-top: 25px;
+  margin-left: 10px;
+}
+
+#kNNInfo {
+  margin-top: 40px;
 }

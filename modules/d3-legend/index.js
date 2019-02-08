@@ -1,5 +1,13 @@
-var d3 = require('d3');
+import legendColor from './src/color'
+import legendSize from './src/size'
+import legendSymbol from './src/symbol'
+import legendHelpers from './src/helpers'
 
-d3.legend = require('./no-extend');
+export { legendColor, legendSize, legendSymbol, legendHelpers }
 
-module.exports = d3;
+export default {
+  legendColor,
+  legendSize,
+  legendSymbol,
+  legendHelpers
+};

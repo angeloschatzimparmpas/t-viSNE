@@ -5,21 +5,20 @@
 /////////// Inspired by the code of alangrafu ///////////
 /////////////////////////////////////////////////////////
 	
-function RadarChart(id, data, options) {
+function RadarChart(id, data, color, IDS, options) {
 	var cfg = {
 	 w: 600,				//Width of the circle
 	 h: 600,				//Height of the circle
 	 margin: {top: 20, right: 20, bottom: 20, left: 20}, //The margins of the SVG
 	 levels: 3,				//How many levels or inner circles should there be drawn
 	 maxValue: 0, 			//What is the value that the biggest circle will represent
-	 labelFactor: 1.25, 	//How much farther than the radius of the outer circle should the labels be placed
+	 labelFactor: 1.3, 	//How much farther than the radius of the outer circle should the labels be placed
 	 wrapWidth: 60, 		//The number of pixels after which a label needs to be given a new line
 	 opacityArea: 0.35, 	//The opacity of the area of the blob
 	 dotRadius: 4, 			//The size of the colored circles of each blog
 	 opacityCircles: 0.1, 	//The opacity of the circles of each blob
 	 strokeWidth: 2, 		//The width of the stroke around each blob
 	 roundStrokes: false,	//If true the area and stroke will follow a round path (cardinal-closed)
-	 color: d3v3.scale.category10()	//Color function
 	};
 
 	//Put all of the options into a variable called cfg
@@ -28,20 +27,22 @@ function RadarChart(id, data, options) {
 		if('undefined' !== typeof options[i]){ cfg[i] = options[i]; }
 	  }//for i
 	}//if
-	
+
 	//If the supplied maxValue is smaller than the actual one, replace by the max in the data
 	var maxValue = Math.max(cfg.maxValue, d3v3.max(data, function(i){return d3v3.max(i.map(function(o){return o.value;}))}));
-
-	var allAxis = (data[0].map(function(i, j){return i.axis})),	//Names of each axis
+	if (data.length != 0){
+			var allAxis = (data[0].map(function(i, j){return i.axis})),	//Names of each axis
 		total = allAxis.length,					//The number of different axes
 		radius = Math.min(cfg.w/2, cfg.h/2), 	//Radius of the outermost circle
 		Format = d3v3.format('%'),			 	//Percentage formatting
 		angleSlice = Math.PI * 2 / total;		//The width in radians of each "slice"
 	
-	//Scale for the radius
-	var rScale = d3v3.scale.linear()
-		.range([0, radius])
-		.domain([0, maxValue]);
+		//Scale for the radius
+		var rScale = d3v3.scale.linear()
+			.range([0, radius])
+			.domain([0, maxValue]);
+
+	}
 		
 	/////////////////////////////////////////////////////////
 	//////////// Create the container SVG and g /////////////
@@ -62,7 +63,7 @@ function RadarChart(id, data, options) {
 	/////////////////////////////////////////////////////////
 	////////// Glow filter for some extra pizzazz ///////////
 	/////////////////////////////////////////////////////////
-	
+	if (data.length != 0){
 	//Filter for the outside glow
 	var filter = g.append('defs').append('filter').attr('id','glow'),
 		feGaussianBlur = filter.append('feGaussianBlur').attr('stdDeviation','2.5').attr('result','coloredBlur'),
@@ -128,7 +129,7 @@ function RadarChart(id, data, options) {
 		.attr("text-anchor", "middle")
 		.attr("dy", "0.35em")
 		.attr("x", function(d, i){ return rScale(maxValue * cfg.labelFactor) * Math.cos(angleSlice*i - Math.PI/2); })
-		.attr("y", function(d, i){ return rScale(maxValue * cfg.labelFactor) * Math.sin(angleSlice*i - Math.PI/2); })
+		.attr("y", function(d, i){ return rScale(maxValue * cfg.labelFactor) * Math.sin(angleSlice*i - Math.PI/2) - 16; })
 		.text(function(d){return d})
 		.call(wrap, cfg.wrapWidth);
 
@@ -145,7 +146,7 @@ function RadarChart(id, data, options) {
 	if(cfg.roundStrokes) {
 		radarLine.interpolate("cardinal-closed");
 	}
-				
+
 	//Create a wrapper for the blobs	
 	var blobWrapper = g.selectAll(".radarWrapper")
 		.data(data)
@@ -157,7 +158,7 @@ function RadarChart(id, data, options) {
 		.append("path")
 		.attr("class", "radarArea")
 		.attr("d", function(d,i) { return radarLine(d); })
-		.style("fill", function(d,i) { return cfg.color(i); })
+		.style("fill", function(d,i) { return color(IDS[i]); })
 		.style("fill-opacity", cfg.opacityArea)
 		.on('mouseover', function (d,i){
 			//Dim all blobs
@@ -175,13 +176,13 @@ function RadarChart(id, data, options) {
 				.transition().duration(200)
 				.style("fill-opacity", cfg.opacityArea);
 		});
-		
+
 	//Create the outlines	
 	blobWrapper.append("path")
 		.attr("class", "radarStroke")
 		.attr("d", function(d,i) { return radarLine(d); })
 		.style("stroke-width", cfg.strokeWidth + "px")
-		.style("stroke", function(d,i) { return cfg.color(i); })
+		.style("stroke", function(d,i) { return color(IDS[i]); })
 		.style("fill", "none")
 		.style("filter" , "url(#glow)");		
 	
@@ -193,7 +194,7 @@ function RadarChart(id, data, options) {
 		.attr("r", cfg.dotRadius)
 		.attr("cx", function(d,i){ return rScale(d.value) * Math.cos(angleSlice*i - Math.PI/2); })
 		.attr("cy", function(d,i){ return rScale(d.value) * Math.sin(angleSlice*i - Math.PI/2); })
-		.style("fill", function(d,i,j) { return cfg.color(j); })
+		.style("fill", function(d,i,j) { return color(IDS[j]); })
 		.style("fill-opacity", 0.8);
 
 	/////////////////////////////////////////////////////////
@@ -240,7 +241,7 @@ function RadarChart(id, data, options) {
 	/////////////////////////////////////////////////////////
 	/////////////////// Helper Function /////////////////////
 	/////////////////////////////////////////////////////////
-
+}
 	//Taken from http://bl.ocks.org/mbostock/7555321
 	//Wraps SVG text	
 	function wrap(text, width) {
