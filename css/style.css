@@ -134,10 +134,18 @@ cursor: default;
   width: 50vw;
   height: 50vw;
   opacity: 1.0;
-  margin-left: 15px;
   position:absolute; 
   z-index: 2;
 }
+
+#modtSNEcanvas_svg_Schema {
+  width: 50vw;
+  height: 50vw;
+  opacity: 1.0;
+  position:absolute; 
+  z-index: 2;
+}
+
 
 /* Legend of the Overview t-SNE canvas */
  div#legend3 {

@@ -60,9 +60,9 @@
               </div>
               <div id="control-panel">
                 <div class="param">
-                  <label for="param-lim">Points radius scaling factor</label>
-                  <input id="param-lim" type="range" min="0.25" max="4" value="2", step="0.25">
-                  <output for="param-lim" id="param-lim-value">2</output>
+                  <label for="param-lim" >Points radius scaling factor</label>
+                  <input id="param-lim" type="range" min="1" max="4" value="2", step="0.25" onchange="setReInitialize();">
+                  <output for="param-lim" id="param-lim-value" >2</output>
                 </div>
               </div>
             </div>
@@ -70,6 +70,7 @@
           <div class="col-md-6">
             <svg id="SvgAnnotator"></svg>
             <svg id="modtSNEcanvas_svg"></svg>
+            <svg id="modtSNEcanvas_svg_Schema"></svg>
             <div id="modtSNEDiv">
               <canvas id = "modtSNEcanvas" ></canvas>
             </div>
@@ -80,7 +81,7 @@
           <div class="col-md-2" style="width: 21.499999995%">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select different modes</h3>
+                    <h3 class="panel-title">Select Different Modes</h3>
                 </div>
                 <div class="panel-body">
                   <div id="resetAllFilters" style="margin-bottom: 40px">
@@ -190,7 +191,7 @@
                     <div class="col-md-12">
                       <div id="ThumbNailsList">
                         <label for="male">Neighborhood Preservation</label>
-                        <select id="param-neighborHood" name ="param-neighborHood">
+                        <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize();">
                           <option selected="selected" value="color">Color</option>
                           <option value="size">Size</option>
                         </select>
@@ -200,17 +201,17 @@
                         <div id="param-correlation">
                           <div class="param">
                             <label for="param-corr">Correlation threshold</label>
-                            <input id="param-corr" type="range" min="0" max="750" value="150", step="50">
+                            <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel();">
                             <output for="param-corr" id="param-corr-value">150</output>
                           </div>
                           Visualization annotating form: <textarea type="text" id="comment" name="textforAnnotator" style="margin-top:4px" placeholder="Please, provide your comment."></textarea>
                         </div>
                         <div id="commBtn">
                           <div class="param" style="margin-top:4px">
-                            <div id="toggleAnnotator"><button class="btn btn-default btn-block" onclick="setAnnotator();">Add a new comment</button></div>
+                            <div id="toggleAnnotator"><button class="btn btn-default btn-block" onclick="setAnnotator();">Addition of a new comment</button></div>
                           </div>
                           <div class="param" style="margin-top:4px">
-                            <div id="continue"><button class="btn btn-default btn-block active" onclick="setContinue();">Continue with the analysis</button></div>
+                            <div id="continue"><button class="btn btn-default btn-block active" onclick="setContinue();">Continuation of the analysis</button></div>
                           </div>
                         </div>
                       </div>
@@ -225,7 +226,7 @@
         <div class="col-md-3" id="extra-information" style="width: 24.5999995%">
             <div class="panel panel-default">
               <div class="panel-heading">
-                  <h3 class="panel-title">t-SNE and data set's extra information</h3>
+                  <h3 class="panel-title">t-SNE and Data Set's Extra Information</h3>
               </div>
               <div class="panel-body">
                 <div id="cost"></div>
@@ -235,12 +236,10 @@
             </div>
             <div class="panel panel-default" id="kNNInfo">
                 <div class="panel-heading">
-                    <h3 class="panel-title">kNN barchart information</h3>
+                    <h3 class="panel-title">kNN Barchart Information</h3>
                 </div>
                 <div class="panel-body">
-                  <div id="cost"></div>
-                  <br>
-                  <div id="datasetDetails"></div>
+                  <div id="kNNDetails"></div>
                 </div>
               </div>
           </div>
@@ -265,7 +264,6 @@
       for (var i = 0; i < btns.length; i++) {
         btns[i].addEventListener("click", function() {
         let current = document.getElementById("commBtn").getElementsByClassName("active");
-        console.log(current);
         current[0].className = current[0].className.replace("btn btn-default btn-block active", "btn btn-default btn-block");
         this.className += " active";
         });
@@ -280,7 +278,6 @@
       for (var i = 0; i < btns2.length; i++) {
         btns2[i].addEventListener("click", function() {
         let current = document.getElementsByClassName("active");
-        console.log(current);
         current[0].className = current[0].className.replace("btn btn-info btn-block active", "btn btn-info btn-block");
         this.className += " active";
         });

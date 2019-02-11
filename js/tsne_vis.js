@@ -1,8 +1,9 @@
 // t-SNE.js object and other global variables
 
-var toggleValue = false; var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; 
+var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; 
 // These are the dimensions for the square shape of the main panel\
 var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
+var prevRightClick;
 
 // These are the dimensions for the overview panel
 var dim = document.getElementById('tSNEcanvas').offsetWidth;
@@ -71,7 +72,7 @@ function parseData(url) {
 }
 
 function setContinue(){
-  d3v3.select("#SvgAnnotator").style("z-index", 2);
+  d3v3.select("#SvgAnnotator").style("z-index", 1);
 }
 
 var ringNotes = [];
@@ -80,11 +81,35 @@ var AnnotationsAll = [];
 var draggable = [];
 
 function setReset(){
-  d3.selectAll("#SvgAnnotator > *").remove(); 
-  d3.selectAll("#OverviewtSNE > *").remove(); 
   d3.selectAll("#correlation > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
-  d3.selectAll("#kNNBar > *").remove(); 
+  lassoEnable();
+  flag = false;
+  d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
+  d3.selectAll("#SvgAnnotator > *").remove(); 
+  Arrayx = [];
+  Arrayy = [];
+  XYDistId = [];
+  Arrayxy = [];
+  DistanceDrawing1D = [];
+  allTransformPoints = [];
+  p;
+  pFinal = [];
+  paths;
+  path;
+  ArrayLimit = [];
+  minimum;
+  correlationResults = [];
+  ArrayContainsDataFeaturesLimit = [];
+  prevRightClick = false;
+  for (var i=0; i < InitialStatePoints.length; i++){
+    InitialStatePoints[i].selected = true;
+    InitialStatePoints[i].starplot = false;
+  }
+  redraw(InitialStatePoints);
+}
+
+function setReInitialize(){
   for (var i=0; i < InitialStatePoints.length; i++){
     InitialStatePoints[i].selected = true;
   }
@@ -94,18 +119,39 @@ function setReset(){
 function setLayerProj(){
   d3.select("#modtSNEcanvas").style("z-index", 2);
   d3.select("#modtSNEcanvas_svg").style("z-index", 1);
+  d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
 }
 
 function setLayerComp(){
-  d3.select("#modtSNEcanvas_svg").style("z-index", 3);
+  d3.select("#modtSNEcanvas_svg").style("z-index", 2);
+  d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
+  d3.select("#modtSNEcanvas").style("z-index", 1);
+  lassoEnable();
 }
 
 function setLayerSche(){
-  d3.select("#modtSNEcanvas_svg").style("z-index", 3);
-  toggleValue = true;
+  d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 2);
+  d3.select("#modtSNEcanvas").style("z-index", 1);
+  d3.select("#modtSNEcanvas_svg").style("z-index", 1);
+  click();
 }
 
+function lassoEnable(){
 
+  var interactionSvg = d3.select("#modtSNEcanvas_svg")
+  .attr("width", dimensions)
+  .attr("height", dimensions)
+  .style('position', 'absolute')
+  .style('top', 0)
+  .style('left', 0);
+
+  var lassoInstance = lasso()
+    .on('end', handleLassoEnd)
+    .on('start', handleLassoStart);
+
+  interactionSvg.call(lassoInstance);  
+
+}
 
 
 function setAnnotator(){
@@ -135,7 +181,6 @@ function setAnnotator(){
   .attr("width", vw2 * 0.5)
   .attr("height", vh2 * 0.888)
   .style("z-index", 3);
-
 
   var gAnnotations = svgAnnotator.append("g")
   .attr("class", "annotations")
@@ -184,19 +229,18 @@ function setAnnotator(){
     var camera;
     var scene;
 
-// function that executes after data is successfully loaded
-function init(data, results_all, fields) {
-
     MainCanvas = document.getElementById('modtSNEcanvas');
     Child = document.getElementById('modtSNEDiv');
 
+
     // Add canvas
-    renderer = new THREE.WebGLRenderer({ canvas: MainCanvas});
+    renderer = new THREE.WebGLRenderer({ canvas: MainCanvas });
     renderer.setSize(dimensions, dimensions);
     Child.append(renderer.domElement);
+
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
-    
+
     // Set up camera and scene
     camera = new THREE.PerspectiveCamera(
       fov,
@@ -205,6 +249,11 @@ function init(data, results_all, fields) {
       far 
     );
     animate();
+
+
+// function that executes after data is successfully loaded
+function init(data, results_all, fields) {
+    prevRightClick = false;
     step_counter = 0;
     max_counter = document.getElementById("param-maxiter-value").value;
     opt = {};
@@ -399,6 +448,7 @@ function updateEmbedding() {
 }
 
 function ShepardHeatMap () {
+  d3.selectAll("#sheparheat > *").remove();
   var margin = { top: 35, right: 15, bottom: 15, left: 35 },
   dim2 = Math.min(parseInt(d3.select("#sheparheat").style("width")), parseInt(d3.select("#sheparheat").style("height")))
   width = dim2- margin.left - margin.right,
@@ -620,10 +670,11 @@ var correlationResults = [];
 var ArrayContainsDataFeaturesLimit = [];
 
 function OverviewtSNE(points){
-  if (step_counter == 1){
-    d3.select("#OverviewtSNE").select("g").remove();
-    d3.select("#correlation").select("g").remove();
+    d3.selectAll("#correlation > *").remove(); 
     d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
+    lassoEnable();
+    d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
+    d3.selectAll("#SvgAnnotator > *").remove(); 
     Arrayx = [];
     Arrayy = [];
     XYDistId = [];
@@ -638,7 +689,6 @@ function OverviewtSNE(points){
     minimum;
     correlationResults = [];
     ArrayContainsDataFeaturesLimit = [];
-  }
   var canvas = document.getElementById('tSNEcanvas');
   gl = canvas.getContext('experimental-webgl');
 
@@ -833,26 +883,24 @@ function OverviewtSNE(points){
 }
 
 function redraw(repoints){
-  //OverviewtSNE(repoints);
+ // OverviewtSNE(repoints);
   BetatSNE(repoints);
-  //CosttSNE(repoints);
 }
 
 function handleLassoEnd(lassoPolygon) {
   var countLassoFalse = 0;
   KNNEnabled = true;
-  if (toggleValue == false){
       for (var i = 0 ; i < points.length ; i ++) {
-      x = points[i].x;
-      y = points[i].y;
-      if (d3.polygonContains(lassoPolygon, [x, y])){
-          points[i].selected = true;
+        x = points[i].x;
+        y = points[i].y;
+        if (d3.polygonContains(lassoPolygon, [x, y])){
+            points[i].selected = true;
+            points2d[i].selected = true;
+        } else{
+          countLassoFalse = countLassoFalse + 1;
+          points[i].selected = false;
           points2d[i].selected = true;
-      } else{
-        countLassoFalse = countLassoFalse + 1;
-        points[i].selected = false;
-        points2d[i].selected = true;
-      }
+        }
     }
     if (countLassoFalse == points.length){
       for (var i = 0 ; i < points.length ; i ++) {
@@ -872,25 +920,20 @@ function handleLassoEnd(lassoPolygon) {
       }
     }
     redraw(points);
-  } else{
-    click();
-  }
  
 }
 
 // reset selected points when starting a new polygon
 function handleLassoStart(lassoPolygon) {
-  if (toggleValue == true){
-  } else{
+
     KNNEnabled = false;
     for (var i = 0 ; i < points.length ; i ++) {
-    points[i].selected = true;
-    points[i].starplot = false;
-    points2d[i].selected = true;
-  }
+      points[i].selected = true;
+      points[i].starplot = false;
+      points2d[i].selected = true;
+    }
 
   redraw(points);
-  }
 }
 
 
@@ -929,9 +972,12 @@ var svg,
              .on("touchmove.zoom", null)
              .on("touchend.zoom", null);
 
-function click(){
+var svgClick;
+var flag = false; 
 
-    let svgClick = d3.select('#modtSNEcanvas_svg');
+function click(){
+  
+    svgClick = d3.select('#modtSNEcanvas_svg_Schema');
 
     function drawCircle(x, y, size) {
       svgClick.append("circle")
@@ -943,367 +989,391 @@ function click(){
         Arrayy.push(y); 
     }
     svgClick.on('click', function() {
-      var coords = d3.mouse(this);
-      drawCircle(coords[0], coords[1], 4);
+      if (prevRightClick == false){
+        var coords = d3.mouse(this);
+        drawCircle(coords[0], coords[1], 3);
+      }
+      for (var k = 0; k < Arrayx.length ; k++){
+        Arrayxy[k] = [Arrayx[k], Arrayy[k]];
+      }
+
+      for (var k = 0; k < Arrayxy.length - 1 ; k++){
+        d3.select('#modtSNEcanvas_svg_Schema').append('line')
+        .attr("x1", Arrayxy[k][0])
+        .attr("y1", Arrayxy[k][1])
+        .attr("x2", Arrayxy[k+1][0])
+        .attr("y2", Arrayxy[k+1][1])
+        .style("stroke","black")
+        .style("stroke-width",1);
+      } 
   });
 
-  //if (Arrayx.length == 1){
-  //}
-  svgClick.on("contextmenu", function (d) {
+    svgClick.on("contextmenu", function (d) {
 
-            // Prevent the default mouse action. Allow right click to be used for the confirmation of our schema.
-            d3.event.preventDefault();
+            if (prevRightClick == true){
 
-            var line = d3.line().curve(d3.curveCardinal);
-
-            for (var k = 0; k < Arrayx.length ; k++){
-              Arrayxy[k] = [Arrayx[k], Arrayy[k]];
-            }
-
-            for (var loop = 0; loop < points.length ; loop++){
-                allTransformPoints[loop] = [points[loop].x, points[loop].y, points[loop].id, points[loop].beta, points[loop].cost, points[loop].selected];
-            }
-          
-            for (var k = 0; k < Arrayxy.length - 1; k++){
-              path = svgClick.append("path")
-              .datum(Arrayxy.slice(k, k+2))
-              .attr("class", "SchemaCheck")
-              .attr("d", line);
-            }
-
-            var line = svgClick.append("line");
-
-            paths = svgClick.selectAll("path").filter(".SchemaCheck");
-
-            var correlLimit = document.getElementById("param-corr-value").value;
-            correlLimit = parseInt(correlLimit);
-            if (paths.nodes().length == 0){
-              alert("Please, provide one more point in order to create a line (i.e., path)!")
-            } else{
-              for (var m = 0; m < paths.nodes().length; m++) {
-              for (var j = 0; j < allTransformPoints.length; j++){
-                p = closestPoint(paths.nodes()[m], allTransformPoints[j]);
-                XYDistId.push(p);
-              }
-            }
-
-              for (var j = 0; j < allTransformPoints.length; j++){
-                for (var m = 0; m < paths.nodes().length; m++) {
-                if (m == 0){
-                  minimum = XYDistId[j].distance;
-                }
-                else if (minimum > XYDistId[(m * allTransformPoints.length) + j].distance) {
-                  minimum = XYDistId[(m * allTransformPoints.length) + j].distance;
-                }
-              }
-
-              for (var l = 0; l < paths.nodes().length ; l++) {
-                if (XYDistId[(l * allTransformPoints.length) + j].distance == minimum){
-                  allTransformPoints[j].bucketID = l;
-                }
-              }
-            }
-
-            var arrays = [], size = allTransformPoints.length;
-            while (XYDistId.length > 0) {
-                arrays.push(XYDistId.splice(0, size));
-            }
-            
-            var arraysCleared = [];
-            for (var j = 0; j < allTransformPoints.length; j++){
-              for (var m=0; m < arrays.length; m++) {
-                if (allTransformPoints[j].bucketID == m){
-                  arraysCleared.push(arrays[m][j].concat(allTransformPoints[j].bucketID, Arrayxy[m], arrays[m][j].distance, arrays[m][j].id));
-                }
-              }
-            }
-        
-            for (var i=0; i<arraysCleared.length; i++) {
-              if (arraysCleared[i][5] < correlLimit) {
-                ArrayLimit.push(arraysCleared[i]);
-              }
-            }
-            
-            var temparray = [];
-            var count = new Array(paths.nodes().length).fill(0);
-            for (var m=0; m < paths.nodes().length; m++) {
-              for (var i=0; i<ArrayLimit.length; i++) {
-                if (ArrayLimit[i][2] == m){
-                    count[m] = count[m] + 1;
-                  temparray.push(ArrayLimit[i]);
-                }
-                // do whatever
-              }
-            }
-            var arraysSplitted = [];
-              for (var m=0; m < paths.nodes().length; m++) {
-                    arraysSplitted.push(temparray.splice(0, count[m]));
-            }
-            
-  
-
-            for (var m=0; m < paths.nodes().length; m++) {
-              arraysSplitted[m] = arraysSplitted[m].sort(function(a, b){
-                      var dist = (a[0]-a[3]) * (a[0]-a[3]) + (a[1]-a[4]) * (a[1]-a[4]);
-                      var distAgain = (b[0]-b[3]) * (b[0]-b[3]) + (b[1]-b[4]) * (b[1]-b[4]);
-                      // Compare the 2 dates
-                      if(dist < distAgain) return -1;
-                      if(distAgain > dist) return 1;
-                      return 0;
-              });
-            }
-
-            var arraysConnected = [];
-            if (paths.nodes().length == 1) {
-                arraysConnected = arraysSplitted[0];
             } else {
-              for (var m=0; m < paths.nodes().length - 1; m++) {
-                arraysConnected = arraysSplitted[m].concat(arraysSplitted[m+1]);
-              }
-            }
-            
-            var Order = [];
-            for (var temp = 0; temp < arraysConnected.length; temp++) {
-              Order.push(arraysConnected[temp][6]);
-            }
-            
-            for (var i = 0; i < points.length; i++){
-              points[i].selected = false;
-              for (var j = 0; j < ArrayLimit.length; j++){
-                if (ArrayLimit[j][6] == points[i].id){
-                  points[i].selected = true;
-                }
-              }
-            }
-            redraw(points);
 
-            ArrayContainsDataFeatures = mapOrder(ArrayContainsDataFeatures, Order, 5);
+              var line = d3.line().curve(d3.curveCardinal);
 
-            for (var i = 0; i < ArrayContainsDataFeatures.length; i++){
-              for (var j = 0; j < arraysConnected.length; j++){
-                if (ArrayContainsDataFeatures[i][5] == arraysConnected[j][6]){
-                  ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeatures[i]);
-                }
+              for (var k = 0; k < Arrayxy.length - 1; k++){
+                path = svgClick.append("path")
+                .datum(Arrayxy.slice(k, k+2))
+                .attr("class", "SchemaCheck")
+                .attr("d", line);
               }
-            }
-            
-            for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
-              ArrayContainsDataFeaturesLimit[loop].push(loop);
-            }
+              // Prevent the default mouse action. Allow right click to be used for the confirmation of our schema.
+              d3.event.preventDefault();
 
-            for (var k = 0; k < Arrayxy.length - 1 ; k++){
-              d3.select('#modtSNEcanvas_svg').append('line')
-              .attr("x1", Arrayxy[k][0])
-              .attr("y1", Arrayxy[k][1])
-              .attr("x2", Arrayxy[k+1][0])
-              .attr("y2", Arrayxy[k+1][1])
-              .style("stroke","black")
-              .style("stroke-width",2);
-            } 
-
-            var SignStore = [];
-            const arrayColumn = (arr, n) => arr.map(x => x[n]);
-            for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
-              var tempData = new Array(
-                arrayColumn(ArrayContainsDataFeaturesLimit, temp),
-                arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
-              );
-              if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
-              } else{
-                SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]);
-                correlationResults.push(["Dimension "+temp, Math.abs(pearsonCorrelation(tempData, 0, 1))]);
-              }
+              flag = true;
+              CalculateCorrel();
             }
-            correlationResults = correlationResults.sort(
-              function(a,b) {
-              if (a[1] == b[1])
-              return a[0] < b[0] ? -1 : 1;
-              return a[1] < b[1] ? 1 : -1;
-              }
-            );
+      });
+}
 
-            for (var j = 0; j < correlationResults.length; j++) {
-              for (var i = 0; i < SignStore.length; i++) {
-                if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-                  correlationResults[j][1] = parseInt(correlationResults[j][1] * 100) * (-1);
-                  correlationResults[j].push(j);
-                  //correlationResults[j][1] = correlationResults[j][1].toFixed(2)*(-1);
-                }
-                if (SignStore[i][1] == correlationResults[j][1]) {
-                  correlationResults[j][1] = parseInt(correlationResults[j][1] * 100);
-                  correlationResults[j].push(j);
-                }
-              }
-            }
+function CalculateCorrel(){
+
+  if (flag == false){
+    alert("Please, draw a schema first!");
+  } else{
+    var correlLimit = document.getElementById("param-corr-value").value;
+  correlLimit = parseInt(correlLimit);
+
+    allTransformPoints = [];
+    for (var loop = 0; loop < points.length ; loop++){
+        allTransformPoints[loop] = [points[loop].x, points[loop].y, points[loop].id, points[loop].beta, points[loop].cost, points[loop].selected];
+    }
+
+    var line = svgClick.append("line");
+
+    paths = svgClick.selectAll("path").filter(".SchemaCheck");
+    XYDistId = [];
+    if (paths.nodes().length == 0){
+      alert("Please, provide one more point in order to create a line (i.e., path)!")
+    } else{
+      for (var m = 0; m < paths.nodes().length; m++) {
+      for (var j = 0; j < allTransformPoints.length; j++){
+        p = closestPoint(paths.nodes()[m], allTransformPoints[j]);
+        XYDistId.push(p);
+      }
+    }
+
+      for (var j = 0; j < allTransformPoints.length; j++){
+        for (var m = 0; m < paths.nodes().length; m++) {
+        if (m == 0){
+          minimum = XYDistId[j].distance;
+        }
+        else if (minimum > XYDistId[(m * allTransformPoints.length) + j].distance) {
+          minimum = XYDistId[(m * allTransformPoints.length) + j].distance;
+        }
+      }
+
+      for (var l = 0; l < paths.nodes().length ; l++) {
+        if (XYDistId[(l * allTransformPoints.length) + j].distance == minimum){
+          allTransformPoints[j].bucketID = l;
+        }
+      }
+    }
+
+    var arrays = [], size = allTransformPoints.length;
+    while (XYDistId.length > 0) {
+        arrays.push(XYDistId.splice(0, size));
+    }
+
+    var arraysCleared = [];
+    for (var j = 0; j < allTransformPoints.length; j++){
+      for (var m=0; m < arrays.length; m++) {
+        if (allTransformPoints[j].bucketID == m){
+          arraysCleared.push(arrays[m][j].concat(allTransformPoints[j].bucketID, Arrayxy[m], arrays[m][j].distance, arrays[m][j].id));
+        }
+      }
+    }
+
+    ArrayLimit = [];
+    for (var i=0; i<arraysCleared.length; i++) {
+      if (arraysCleared[i][5] < correlLimit) {
+        ArrayLimit.push(arraysCleared[i]);
+      }
+    }
+
+    var temparray = [];
+    var count = new Array(paths.nodes().length).fill(0);
+    for (var m=0; m < paths.nodes().length; m++) {
+      for (var i=0; i<ArrayLimit.length; i++) {
+        if (ArrayLimit[i][2] == m){
+            count[m] = count[m] + 1;
+          temparray.push(ArrayLimit[i]);
+        }
+        // do whatever
+      }
+    }
+    var arraysSplitted = [];
+      for (var m=0; m < paths.nodes().length; m++) {
+            arraysSplitted.push(temparray.splice(0, count[m]));
+    }
+
+
+
+    for (var m=0; m < paths.nodes().length; m++) {
+      arraysSplitted[m] = arraysSplitted[m].sort(function(a, b){
+              var dist = (a[0]-a[3]) * (a[0]-a[3]) + (a[1]-a[4]) * (a[1]-a[4]);
+              var distAgain = (b[0]-b[3]) * (b[0]-b[3]) + (b[1]-b[4]) * (b[1]-b[4]);
+              // Compare the 2 dates
+              if(dist < distAgain) return -1;
+              if(distAgain > dist) return 1;
+              return 0;
+      });
+    }
+
+    var arraysConnected = [];
+    if (paths.nodes().length == 1) {
+        arraysConnected = arraysSplitted[0];
+    } else {
+      for (var m=0; m < paths.nodes().length - 1; m++) {
+        arraysConnected = arraysSplitted[m].concat(arraysSplitted[m+1]);
+      }
+    }
+    var Order = [];
+    for (var temp = 0; temp < arraysConnected.length; temp++) {
+      Order.push(arraysConnected[temp][6]);
+    }
+
+    for (var i = 0; i < points.length; i++){
+      points[i].selected = false;
+      for (var j = 0; j < ArrayLimit.length; j++){
+        if (ArrayLimit[j][6] == points[i].id){
+          points[i].selected = true;
+        }
+      }
+    }
+    redraw(points);
+
+    for (let k = 0; k < dataFeatures.length; k++){
+      ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
+    }
+    
+    ArrayContainsDataFeatures = mapOrder(ArrayContainsDataFeatures, Order, 5);
+    ArrayContainsDataFeaturesLimit = [];
+    for (var i = 0; i < ArrayContainsDataFeatures.length; i++){
+      for (var j = 0; j < arraysConnected.length; j++){
+        if (ArrayContainsDataFeatures[i][5] == arraysConnected[j][6]){
+          ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeatures[i]);
+        }
+      }
+    }
+
+    for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
+      ArrayContainsDataFeaturesLimit[loop].push(loop);
+    }
+
+    var SignStore = [];
+    correlationResults = [];
+    const arrayColumn = (arr, n) => arr.map(x => x[n]);
+    for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
+      var tempData = new Array(
+        arrayColumn(ArrayContainsDataFeaturesLimit, temp),
+        arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
+      );
+      if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
+      } else{
+        SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]);
+        correlationResults.push(["Dimension "+temp, Math.abs(pearsonCorrelation(tempData, 0, 1))]);
+      }
+    }
+    correlationResults = correlationResults.sort(
+      function(a,b) {
+      if (a[1] == b[1])
+      return a[0] < b[0] ? -1 : 1;
+      return a[1] < b[1] ? 1 : -1;
+      }
+    );
+
+    for (var j = 0; j < correlationResults.length; j++) {
+      for (var i = 0; i < SignStore.length; i++) {
+        if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
+          correlationResults[j][1] = parseInt(correlationResults[j][1] * 100) * (-1);
+          correlationResults[j].push(j);
+        }
+        if (SignStore[i][1] == correlationResults[j][1]) {
+          correlationResults[j][1] = parseInt(correlationResults[j][1] * 100);
+          correlationResults[j].push(j);
+        }
+      }
+    }
+  }
+  drawBarChart();
+  }
+}
+
+function drawBarChart(){
+          d3.selectAll("#correlation > *").remove(); 
           /////////////////////////////////////////////////////////////
           ///////////////// Set-up SVG and wrappers ///////////////////
           /////////////////////////////////////////////////////////////
   
 
-              var mainGroup = svg.append("g")
-              .attr("class","mainGroupWrapper")
-              .attr("transform","translate(" + main_margin.left + "," + main_margin.top + ")")
-              .append("g") //another one for the clip path - due to not wanting to clip the labels
-              .attr("clip-path", "url(#clip)")
-              .style("clip-path", "url(#clip)")
-              .attr("class","mainGroup")
+          var mainGroup = svg.append("g")
+          .attr("class","mainGroupWrapper")
+          .attr("transform","translate(" + main_margin.left + "," + main_margin.top + ")")
+          .append("g") //another one for the clip path - due to not wanting to clip the labels
+          .attr("clip-path", "url(#clip)")
+          .style("clip-path", "url(#clip)")
+          .attr("class","mainGroup")
+
+          var miniGroup = svg.append("g")
+                  .attr("class","miniGroup")
+                  .attr("transform","translate(" + (main_margin.left + main_width + main_margin.right + mini_margin.left) + "," + mini_margin.top + ")");
+      
+          var brushGroup = svg.append("g")
+                  .attr("class","brushGroup")
+                  .attr("transform","translate(" + (main_margin.left + main_width + main_margin.right + mini_margin.left) + "," + mini_margin.top + ")");
   
-              var miniGroup = svg.append("g")
-                      .attr("class","miniGroup")
-                      .attr("transform","translate(" + (main_margin.left + main_width + main_margin.right + mini_margin.left) + "," + mini_margin.top + ")");
-          
-              var brushGroup = svg.append("g")
-                      .attr("class","brushGroup")
-                      .attr("transform","translate(" + (main_margin.left + main_width + main_margin.right + mini_margin.left) + "," + mini_margin.top + ")");
+      /////////////////////////////////////////////////////////////
+      ////////////////////// Initiate scales //////////////////////
+      /////////////////////////////////////////////////////////////
+
+      main_xScale = d3v3.scale.linear().range([0, main_width]);
+      mini_xScale = d3v3.scale.linear().range([0, mini_width]);
+  
+      main_yScale = d3v3.scale.ordinal().rangeBands([0, main_height], 0.4, 0);
+      mini_yScale = d3v3.scale.ordinal().rangeBands([0, mini_height], 0.4, 0);
+      //Based on the idea from: http://stackoverflow.com/questions/21485339/d3-brushing-on-grouped-bar-chart
+      main_yZoom = d3v3.scale.linear()
+      .range([0, main_height])
+      .domain([0, main_height]);
+
+      //Create x axis object
+      main_xAxis = d3v3.svg.axis()
+      .scale(main_xScale)
+      .orient("bottom")
+      .ticks(8)
+      .outerTickSize(0);
+
+      //Add group for the x axis
+      d3v3.select(".mainGroupWrapper").append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(" + 0 + "," + (main_height + 5) + ")");
+
+      //Create y axis object
+      main_yAxis = d3v3.svg.axis()
+      .scale(main_yScale)
+      .orient("left")
+      .tickSize(0)
+      .outerTickSize(0);
+
+      //Add group for the y axis
+      mainGroup.append("g")
+      .attr("class", "y axis")
+      .attr("transform", "translate(-5,0)");
+
+      /////////////////////////////////////////////////////////////
+      /////////////////////// Update scales ///////////////////////
+      /////////////////////////////////////////////////////////////
+      //Update the scales
+      main_xScale.domain([-100, 100]);
+      mini_xScale.domain([-100, 100]);     
+      main_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
+      mini_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
       
-          /////////////////////////////////////////////////////////////
-          ////////////////////// Initiate scales //////////////////////
-          /////////////////////////////////////////////////////////////
+      //Create the visual part of the y axis
+      d3v3.select(".mainGroup").select(".y.axis").call(main_yAxis);
+      d3v3.select(".mainGroupWrapper").select(".x.axis").call(main_xAxis);
+  
+      /////////////////////////////////////////////////////////////
+      ///////////////////// Label axis scales /////////////////////
+      /////////////////////////////////////////////////////////////
+  
+      textScale = d3v3.scale.linear()
+        .domain([15,50])
+        .range([12,6])
+        .clamp(true);
+        
+      /////////////////////////////////////////////////////////////
+      ///////////////////////// Create brush //////////////////////
+      /////////////////////////////////////////////////////////////
+     
+      //What should the first extent of the brush become - a bit arbitrary this
+      var brushExtent = parseInt(Math.max( 1, Math.min( 20, Math.round(correlationResults.length * 0.75) ) ));
 
-          main_xScale = d3v3.scale.linear().range([0, main_width]);
-          mini_xScale = d3v3.scale.linear().range([0, mini_width]);
+      brush = d3v3.svg.brush()
+        .y(mini_yScale)
+        .extent([mini_yScale(correlationResults[0][0]), mini_yScale(correlationResults[brushExtent][0])])
+        .on("brush", brushmove)
+
+      //Set up the visual part of the brush
+      gBrush = d3v3.select(".brushGroup").append("g")
+      .attr("class", "brush")
+      .call(brush);
       
-          main_yScale = d3v3.scale.ordinal().rangeBands([0, main_height], 0.4, 0);
-          mini_yScale = d3v3.scale.ordinal().rangeBands([0, mini_height], 0.4, 0);
-          //Based on the idea from: http://stackoverflow.com/questions/21485339/d3-brushing-on-grouped-bar-chart
-          main_yZoom = d3v3.scale.linear()
-          .range([0, main_height])
-          .domain([0, main_height]);
+      gBrush.selectAll(".resize")
+        .append("line")
+        .attr("x2", mini_width);
 
-          //Create x axis object
-          main_xAxis = d3v3.svg.axis()
-          .scale(main_xScale)
-          .orient("bottom")
-          .ticks(8)
-          .outerTickSize(0);
+      gBrush.selectAll(".resize")
+        .append("path")
+        .attr("d", d3v3.svg.symbol().type("triangle-up").size(20))
+        .attr("transform", function(d,i) { 
+          return i ? "translate(" + (mini_width/2) + "," + 4 + ") rotate(180)" : "translate(" + (mini_width/2) + "," + -4 + ") rotate(0)"; 
+        });
 
-          //Add group for the x axis
-          d3v3.select(".mainGroupWrapper").append("g")
-          .attr("class", "x axis")
-          .attr("transform", "translate(" + 0 + "," + (main_height + 5) + ")");
+      gBrush.selectAll("rect")
+        .attr("width", mini_width);
 
-          //Create y axis object
-          main_yAxis = d3v3.svg.axis()
-          .scale(main_yScale)
-          .orient("left")
-          .tickSize(0)
-          .outerTickSize(0);
+      //On a click recenter the brush window
+      gBrush.select(".background")
+        .on("mousedown.brush", brushcenter)
+        .on("touchstart.brush", brushcenter);
+      ///////////////////////////////////////////////////////////////////////////
+      /////////////////// Create a rainbow gradient - for fun ///////////////////
+      ///////////////////////////////////////////////////////////////////////////
+  
+      defs = svg.append("defs")
+  
+      //Create two separate gradients for the main and mini bar - just because it looks fun
+      createGradient("gradient-main", "60%");
+      createGradient("gradient-mini", "13%");
+  
+      //Add the clip path for the main bar chart
+      defs.append("clipPath")
+        .attr("id", "clip")
+        .append("rect")
+        .attr("x", -main_margin.left)
+        .attr("width", main_width + main_margin.left)
+        .attr("height", main_height);
+  
+      /////////////////////////////////////////////////////////////
+      /////////////// Set-up the mini bar chart ///////////////////
+      /////////////////////////////////////////////////////////////
+  
+      //The mini brushable bar
+      //DATA JOIN
+      var mini_bar = d3v3.select(".miniGroup").selectAll(".bar")
+        .data(correlationResults, function(d) { return +d[2]; });
 
-          //Add group for the y axis
-          mainGroup.append("g")
-          .attr("class", "y axis")
-          .attr("transform", "translate(-5,0)");
+      //UDPATE
+    mini_bar
+      .attr("width", function(d) { return Math.abs(mini_xScale(d[1]) - mini_xScale(0)); })
+      .attr("y", function(d,i) { return mini_yScale(d[0]); })
+      .attr("height", mini_yScale.rangeBand())
 
-          /////////////////////////////////////////////////////////////
-          /////////////////////// Update scales ///////////////////////
-          /////////////////////////////////////////////////////////////
-          //Update the scales
-          main_xScale.domain([-100, 100]);
-          mini_xScale.domain([-100, 100]);     
-          main_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
-          mini_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
-          
-          //Create the visual part of the y axis
-          d3v3.select(".mainGroup").select(".y.axis").call(main_yAxis);
-          d3v3.select(".mainGroupWrapper").select(".x.axis").call(main_xAxis);
-      
-          /////////////////////////////////////////////////////////////
-          ///////////////////// Label axis scales /////////////////////
-          /////////////////////////////////////////////////////////////
-      
-          textScale = d3v3.scale.linear()
-            .domain([15,50])
-            .range([12,6])
-            .clamp(true);
-            
-          /////////////////////////////////////////////////////////////
-          ///////////////////////// Create brush //////////////////////
-          /////////////////////////////////////////////////////////////
-         
-          //What should the first extent of the brush become - a bit arbitrary this
-          var brushExtent = parseInt(Math.max( 1, Math.min( 20, Math.round(correlationResults.length * 0.75) ) ));
+    //ENTER
+    mini_bar.enter().append("rect")
+      .attr("class", "bar")
+      .attr("x", function (d) { return mini_xScale(Math.min(0, d[1])); })
+      .attr("width", function(d) { return Math.abs(mini_xScale(d[1]) - mini_xScale(0)); })
+      .attr("y", function(d,i) { return mini_yScale(d[0]); })
+      .attr("height", mini_yScale.rangeBand())
+      .style("fill", "url(#gradient-mini)");
 
-          brush = d3v3.svg.brush()
-            .y(mini_yScale)
-            .extent([mini_yScale(correlationResults[0][0]), mini_yScale(correlationResults[brushExtent][0])])
-            .on("brush", brushmove)
+      //EXIT
+      mini_bar.exit()
+        .remove();
 
-          //Set up the visual part of the brush
-          gBrush = d3v3.select(".brushGroup").append("g")
-          .attr("class", "brush")
-          .call(brush);
-          
-          gBrush.selectAll(".resize")
-            .append("line")
-            .attr("x2", mini_width);
-
-          gBrush.selectAll(".resize")
-            .append("path")
-            .attr("d", d3v3.svg.symbol().type("triangle-up").size(20))
-            .attr("transform", function(d,i) { 
-              return i ? "translate(" + (mini_width/2) + "," + 4 + ") rotate(180)" : "translate(" + (mini_width/2) + "," + -4 + ") rotate(0)"; 
-            });
- 
-          gBrush.selectAll("rect")
-            .attr("width", mini_width);
-
-          //On a click recenter the brush window
-          gBrush.select(".background")
-            .on("mousedown.brush", brushcenter)
-            .on("touchstart.brush", brushcenter);
-          ///////////////////////////////////////////////////////////////////////////
-          /////////////////// Create a rainbow gradient - for fun ///////////////////
-          ///////////////////////////////////////////////////////////////////////////
-      
-          defs = svg.append("defs")
-      
-          //Create two separate gradients for the main and mini bar - just because it looks fun
-          createGradient("gradient-main", "60%");
-          createGradient("gradient-mini", "13%");
-      
-          //Add the clip path for the main bar chart
-          defs.append("clipPath")
-            .attr("id", "clip")
-            .append("rect")
-            .attr("x", -main_margin.left)
-            .attr("width", main_width + main_margin.left)
-            .attr("height", main_height);
-      
-          /////////////////////////////////////////////////////////////
-          /////////////// Set-up the mini bar chart ///////////////////
-          /////////////////////////////////////////////////////////////
-      
-          //The mini brushable bar
-          //DATA JOIN
-          var mini_bar = d3v3.select(".miniGroup").selectAll(".bar")
-            .data(correlationResults, function(d) { return +d[2]; });
-
-          //UDPATE
-        mini_bar
-          .attr("width", function(d) { return Math.abs(mini_xScale(d[1]) - mini_xScale(0)); })
-          .attr("y", function(d,i) { return mini_yScale(d[0]); })
-          .attr("height", mini_yScale.rangeBand())
-
-        //ENTER
-        mini_bar.enter().append("rect")
-          .attr("class", "bar")
-          .attr("x", function (d) { return mini_xScale(Math.min(0, d[1])); })
-          .attr("width", function(d) { return Math.abs(mini_xScale(d[1]) - mini_xScale(0)); })
-          .attr("y", function(d,i) { return mini_yScale(d[0]); })
-          .attr("height", mini_yScale.rangeBand())
-          .style("fill", "url(#gradient-mini)");
-
-          //EXIT
-          mini_bar.exit()
-            .remove();
-
-          //Start the brush
-          //gBrush.call(brush.event);
-          gBrush.call(brush.event);
-        }
-      });
-            
-}
+      //Start the brush
+      //gBrush.call(brush.event);
+      gBrush.call(brush.event);
+      prevRightClick = true;
+    }
 
 //Function runs on a brush move - to update the big bar chart
 function updateBarChart() {
@@ -1708,7 +1778,8 @@ function BetatSNE(points){
       return parseFloat(a.id) - parseFloat(b.id);
     });
   
-  
+    $("#kNNDetails").html("Purity of the cluster was checked for k values starting from " + (1) + " to " + maxKNN + ".");
+
     for (k=maxKNN; k>0; k--){
 
       findNearest = 0;
@@ -1814,7 +1885,7 @@ function BetatSNE(points){
     var svg2 = d3v3.select('#knnBarChart')
       .attr("class", "bar-chart");
 
-
+      
     var barWidth = (vw / findNearestTable.length);
 
     var knnBarChartSVG = svg2.selectAll("rect")
@@ -1895,25 +1966,6 @@ function BetatSNE(points){
         RadarChart("#starPlot", wrapData, colorScl, IDS, radarChartOptions);
   }
 
-  if(step_counter == max_counter || step_counter == 1){
-    if (step_counter == 1){
-      d3.select("#modtSNEcanvas_svg").select("g").remove();
-    }else{
-      if (toggleValue == false){ 
-        interactionSvg = d3.select("#modtSNEcanvas_svg")
-        .attr("width", dimensions)
-        .attr("height", dimensions)
-        .style('position', 'absolute')
-        .style('top', 0)
-        .style('left', 0);
-        var lassoInstance = lasso()
-          .on('end', handleLassoEnd)
-          .on('start', handleLassoStart);
-
-        interactionSvg.call(lassoInstance);  
-      }
-     }
-  }
   
  var ColSizeSelector = document.getElementById("param-neighborHood").value;
 
@@ -2009,11 +2061,8 @@ var colorScale = d3.scaleLinear()
     .call(legend);
 }
 
-let viz_width = dimensions;
-
 window.addEventListener('resize', () => {
   dimensions = window.innerWidth;
-  viz_width = dimensions;
   dimensions = window.innerHeight;
 
   renderer.setSize(dimensions, dimensions);
@@ -2032,10 +2081,11 @@ view = d3.select(renderer.domElement);
 function setUpZoom() {
   view.call(zoom);    
   let initial_scale = getScaleFromZ(far);
-  var initial_transform = d3.zoomIdentity.translate(viz_width/2, dimensions/2).scale(initial_scale);    
+  var initial_transform = d3.zoomIdentity.translate(dimensions/2, dimensions/2).scale(initial_scale);    
   zoom.transform(view, initial_transform);
   camera.position.set(0, 0, far);
 }
+
 setUpZoom();
 
 var circle_sprite= new THREE.TextureLoader().load(
@@ -2198,7 +2248,7 @@ if(temporal == 0 && points[j].DimON == null){
 
 function zoomHandler(d3_transform) {
   let scale = d3_transform.k;
-  let x = -(d3_transform.x - viz_width/2) / scale;
+  let x = -(d3_transform.x - dimensions/2) / scale;
   let y = (d3_transform.y - dimensions/2) / scale;
   let z = getZFromScale(scale);
   camera.position.set(x, y, z);
@@ -2238,7 +2288,7 @@ checkIntersects(mouse_position);
 
 function mouseToThree(mouseX, mouseY) {
   return new THREE.Vector3(
-    mouseX / viz_width * 2 - 1,
+    mouseX / dimensions * 2 - 1,
     -(mouseY / dimensions) * 2 + 1,
     1
   );
