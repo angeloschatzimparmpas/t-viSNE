@@ -134,6 +134,7 @@ cursor: default;
   width: 50vw;
   height: 50vw;
   opacity: 1.0;
+  margin-left:15px;
   position:absolute; 
   z-index: 2;
 }

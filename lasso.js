@@ -8,7 +8,7 @@ function distance(pt1, pt2) {
   return Math.sqrt(Math.pow( (pt2[0] - pt1[0]), 2 ) + Math.pow( (pt2[1] - pt1[1]), 2 ));
 }
 
-function lasso() {
+function lasso(camera) {
   var dispatch = d3.dispatch('start', 'end');
 
   // distance last point has to be to first point before it auto closes when mouse is released

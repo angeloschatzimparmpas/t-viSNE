@@ -426,6 +426,7 @@ function updateEmbedding() {
             .range([10, +dimensions-10]);
 
     for(var i = 0; i < final_dataset.length; i++) {
+
       x_position[i] = x(Y[i][0]);
       y_position[i] = y(Y[i][1]);
           points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, DimON: null, starplot: false};
@@ -636,7 +637,9 @@ function step() {
     else {
         clearInterval(runner);
     }
-    updateEmbedding();
+    if (step_counter == max_counter){
+      updateEmbedding();
+    }
 }
 
 function resize(canvas) {
@@ -891,6 +894,7 @@ function handleLassoEnd(lassoPolygon) {
   var countLassoFalse = 0;
   KNNEnabled = true;
       for (var i = 0 ; i < points.length ; i ++) {
+
         x = points[i].x;
         y = points[i].y;
         if (d3.polygonContains(lassoPolygon, [x, y])){
@@ -1989,10 +1993,9 @@ function BetatSNE(points){
   var colorScale = d3.scaleLinear()
     .domain(d3.range(0, max+calcStep, calcStep))
     .range(colorbrewer);
-
-  /*points = points.sort(function(a, b) {
+  points = points.sort(function(a, b) {
     return a.beta - b.beta;
-  })*/
+  })
   var labels_beta = [];
   var abbr_labels_beta = [];
   labels_beta = d3.range(0, max+calcStep, calcStep);
@@ -2031,10 +2034,10 @@ var calcStep = (max-min)/9;
 var colorScale = d3.scaleLinear()
   .domain(d3.range(min, max, calcStep))
   .range(colorbrewer);
-  
-  /*points = points.sort(function(a, b) {
+
+  points = points.sort(function(a, b) {
     return a.cost - b.cost;
-  })*/
+  })
 
   var labels_cost = [];
   var abbr_labels_cost = [];
@@ -2078,6 +2081,7 @@ let zoom = d3.zoom()
   });
 
 view = d3.select(renderer.domElement);
+
 function setUpZoom() {
   view.call(zoom);    
   let initial_scale = getScaleFromZ(far);
@@ -2086,7 +2090,9 @@ function setUpZoom() {
   camera.position.set(0, 0, far);
 }
 
+//if(step_counter == max_counter){
 setUpZoom();
+//}
 
 var circle_sprite= new THREE.TextureLoader().load(
   "./textures/circle-sprite.png"
@@ -2167,9 +2173,9 @@ if (points[i].DimON != null) {
 }
 
 if (tempSort != -1){
-/*points = points.sort(function(a, b) {
+points = points.sort(function(a, b) {
     return a[tempSort] - b[tempSort];
-})*/
+})
 }
 
 var temporal = 0;
@@ -2298,6 +2304,15 @@ function checkIntersects(mouse_position) {
   raycaster.setFromCamera(mouse_vector, camera);
   let intersects = raycaster.intersectObject(particles);
   if (intersects[0]) {
+    if (ColSizeSelector == "color"){
+      points = points.sort(function(a, b) {
+      return a.beta - b.beta;
+    })
+    } else{
+        points = points.sort(function(a, b) {
+        return a.cost - b.cost;
+      })
+    }
     let sorted_intersects = sortIntersectsByDistanceToRay(intersects);
     let intersect = sorted_intersects[0];
     let index = intersect.index;
@@ -2321,6 +2336,7 @@ function highlightPoint(datum) {
   removeHighlights();
   
   let geometry = new THREE.Geometry();
+
   geometry.vertices.push(
     new THREE.Vector3(
       (((datum.x/dimensions)*2) - 1)*dimensions,
@@ -2445,422 +2461,3 @@ function hideTooltip() {
     }
     return [viewPortWidth, viewPortHeight];
  }
-
- 
-
- /*
-  var canvas = document.getElementById('modtSNEcanvas');
-  var gl = canvas.getContext('webgl');
-  // If we don't have a GL context, give up now
-
-  if (!gl) {
-    alert('Unable to initialize WebGL. Your browser or machine may not support it.');
-    return;
-  }
-
-  var ColSizeSelector = document.getElementById("param-neighborHood").value;
-
-  if (ColSizeSelector == "color") {
-      var max = (d3.max(final_dataset,function(d){ return d.beta; }));
-      var min = (d3.min(final_dataset,function(d){ return d.beta; }));
-      // colors
-      var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
-      var calcStep = (max-min)/7;
-      var colorScale = d3.scaleLinear()
-        .domain(d3.range(0, max+calcStep, calcStep))
-        .range(colorbrewer);
-    
-      var maxSize1 = (d3.max(final_dataset,function(d){ return d.cost; }));
-      var minSize1 = (d3.min(final_dataset,function(d){ return d.cost; }));
-
-      var rscale1 = d3.scaleLinear()
-        .domain([minSize1, maxSize1])
-        .range([5,10]);
-
-      var colorScale = d3.scaleLinear()
-        .domain(d3.range(0, max+calcStep, calcStep))
-        .range(colorbrewer);
-
-      points = points.sort(function(a, b) {
-        return a.beta - b.beta;
-      })
-      var labels_beta = [];
-      var abbr_labels_beta = [];
-      labels_beta = d3.range(0, max+calcStep, calcStep);
-      for (var i=0; i<9; i++){
-        labels_beta[i] = parseInt(labels_beta[i]);
-        abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
-      }
-      var svg = d3.select("#legend1");
-
-        svg.append("g")
-          .attr("class", "legendLinear")
-          .attr("transform", "translate(10,15)");
-    
-        var legend = d3.legendColor()
-          .labelFormat(d3.format(",.0f"))
-          .cells(9)
-          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-          .title("1 / sigma")
-          .scale(colorScale);
-          
-        svg.select(".legendLinear")
-          .call(legend);
-  } else {
-    var max = (d3.max(final_dataset,function(d){ return d.cost; }));
-    var min = (d3.min(final_dataset,function(d){ return d.cost; }));
-
-    var maxSize2 = (d3.max(final_dataset,function(d){ return d.beta; }));
-    var minSize2 = (d3.min(final_dataset,function(d){ return d.beta; }));
-
-    var rscale2 = d3.scaleLinear()
-      .domain([minSize2, maxSize2])
-      .range([5,10]);
-
-    var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
-    var calcStep = (max-min)/9;
-    var colorScale = d3.scaleLinear()
-      .domain(d3.range(min, max, calcStep))
-      .range(colorbrewer);
-      
-      points = points.sort(function(a, b) {
-        return a.cost - b.cost;
-      })
-
-      var labels_cost = [];
-      var abbr_labels_cost = [];
-      labels_cost = d3.range(min, max, calcStep);
-      for (var i=0; i<9; i++){
-        labels_cost[i] = labels_cost[i].toFixed(5);
-        abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
-      }
-
-      var svg = d3.select("#legend1");
-
-      svg.append("g")
-          .attr("class", "legendLinear")
-          .attr("transform", "translate(10,15)");
-
-      var legend = d3.legendColor()
-        .labelFormat(d3.format(",.5f"))
-        .cells(9)
-        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-        .title("KLD(P||Q)")
-        .scale(colorScale);
-
-      svg.select(".legendLinear")
-        .call(legend);
-  }
-  
-  let vertices = [];
-  let colors = [];
-  let sizes = new Float32Array(points.length);
-  let tempSort = -1;
-
-  for (var i=0; i<points.length; i++){
-    if (points[i].DimON != null) {
-      tempSort = points[i].DimON.match(/\d+/)[0];
-    }
-  }
-  
-  if (tempSort != -1){
-    points = points.sort(function(a, b) {
-        return a[tempSort] - b[tempSort];
-    })
-  }
-  
-
-  for (var i=0; i<points.length; i++){
-    let singleObj = {};
-    // convert the position from pixels to 0.0 to 1.0
-   let zeroToOne = points[i].x / dimensions;
-   let zeroToOne2 = points[i].y / dimensions;
-
-   // convert from 0->1 to 0->2
-   let zeroToTwo = zeroToOne * 2.0;
-   let zeroToTwo2 = zeroToOne2 * 2.0;
-
-   // convert from 0->2 to -1->+1 (clipspace)
-   let clipSpace = zeroToTwo - 1.0;
-   let clipSpace2 = zeroToTwo2 - 1.0;
-    singleObj = clipSpace;
-    vertices.push(singleObj);
-    singleObj = clipSpace2 * -1;
-    vertices.push(singleObj);
-    singleObj = 0.0;
-    vertices.push(singleObj);
-  }
-
-  for (var i=0; i<points.length; i++){
-    let singleCol = {};
-
-    if (ColSizeSelector == "color"){
-      let singleSizeCol = rscale1(points[i].cost);
-      sizes[i] = singleSizeCol;
-    } else {
-      let singleSizeCol = rscale2(points[i].beta);
-      sizes[i] = singleSizeCol;
-    }
-
-    if (points[i].selected == false){
-      let colval = d3.rgb(211,211,211);
-      singleCol = colval.r/255;
-      colors.push(singleCol);
-      singleCol = colval.g/255;
-      colors.push(singleCol);
-      singleCol = colval.b/255;
-      colors.push(singleCol);
-    } else if (points[i].DimON != null) {
-      
-      let temp = points[i].DimON.match(/\d+/)[0];
-
-      var maxDim = (d3.max(points,function(d){ if(d.selected == true){return d[temp]}; }));
-      var minDim = (d3.min(points,function(d){ if(d.selected == true){return d[temp]}; }));  
-
-      let colorsBarChart = ['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
-      var calcStepDim = (maxDim-minDim)/8;
-      var colorScaleDim = d3.scaleLinear()
-        .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
-        .range(colorsBarChart);
-
-      let colval = d3.rgb(colorScaleDim(points[i][temp]));
-      singleCol = colval.r/255;
-      colors.push(singleCol);
-      singleCol = colval.g/255;
-      colors.push(singleCol);
-      singleCol = colval.b/255;
-      colors.push(singleCol);
-        
-    } else if (ColSizeSelector == "color") {
-      let colval = d3.rgb(colorScale(points[i].beta));
-      singleCol = colval.r/255;
-      colors.push(singleCol);
-      singleCol = colval.g/255;
-      colors.push(singleCol);
-      singleCol = colval.b/255;
-      colors.push(singleCol);
-    }
-    else{
-      let colval = d3.rgb(colorScale(points[i].cost));
-      singleCol = colval.r/255;
-      colors.push(singleCol);
-      singleCol = colval.g/255;
-      colors.push(singleCol);
-      singleCol = colval.b/255;
-      colors.push(singleCol);
-    }
-  }
-
-  var temporal = 0;
-  for (var j=0; j < points.length; j++){
-    if(points[j].DimON != null) {
-          temporal = temporal + 1;
-          var labels_dim = [];
-          var abbr_labels_dim = [];
-          labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
-
-          for (var i=0; i<9; i++){
-            labels_dim[i] = labels_dim[i].toFixed(2);
-            abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
-          }
-          d3.select("#legend1").selectAll('*').remove();
-          var svg = d3.select("#legend1");
-
-          svg.append("g")
-            .attr("class", "legendLinear")
-            .attr("transform", "translate(10,15)");
-            
-          var legend = d3.legendColor()
-            .labelFormat(d3.format(",.0f"))
-            .cells(9)
-            .labels([abbr_labels_dim[0],abbr_labels_dim[1],abbr_labels_dim[2],abbr_labels_dim[3],abbr_labels_dim[4],abbr_labels_dim[5],abbr_labels_dim[6],abbr_labels_dim[7],abbr_labels_dim[8]])
-            .title(points[j].DimON)
-            .scale(colorScaleDim);
-
-          svg.select(".legendLinear")
-            .call(legend);
-          break;
-        } 
-  }
-  for (var j=0; j < points.length; j++){
-    if(temporal == 0 && points[j].DimON == null){
-        if (ColSizeSelector == "color"){
-          d3.select("#legend1").selectAll('*').remove();
-          var svg = d3.select("#legend1");
-      
-          svg.append("g")
-            .attr("class", "legendLinear")
-            .attr("transform", "translate(10,15)");
-      
-          var legend = d3.legendColor()
-            .labelFormat(d3.format(",.0f"))
-            .cells(9)
-            .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-            .title("1 / sigma")
-            .scale(colorScale);
-      
-          svg.select(".legendLinear")
-            .call(legend);
-          break;
-        } else {
-          d3.select("#legend1").selectAll('*').remove();
-          var svg = d3.select("#legend1");
-
-          svg.append("g")
-            .attr("class", "legendLinear")
-            .attr("transform", "translate(10,15)");
-
-          var legend = d3.legendColor()
-            .labelFormat(d3.format(".4f"))
-            .cells(9)
-            .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-            .title("KLD(P||Q)")
-            .scale(colorScale);
-
-          svg.select(".legendLinear")
-            .call(legend);
-          break;
-        }
-      }
-    }
-  // Create an empty buffer object and store vertex data
-  var vertex_buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-  // Create an empty buffer object and store color data
-  var color_buffer = gl.createBuffer ();
-  gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-  var size_buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, size_buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, sizes, gl.STATIC_DRAW);
-
-  // Increase/reduce size factor selected by the user
-  var limitdist = document.getElementById("param-lim-value").value;
-  limitdist = parseFloat(limitdist).toFixed(1);
-
-  // vertex shader source code
-  var vertCode = 'attribute vec3 coordinates;'+
-    'attribute float vSizes;'+
-    'attribute vec3 color;'+
-    'varying vec3 vColor;'+
-    'void main(void) {' +
-       'gl_Position = vec4(coordinates, 1.0);' +
-       'vColor = color;'+
-       'gl_PointSize = '+ limitdist + '*vSizes;'+
-    '}';
-
-  // Create a vertex shader object
-  var vertShader = gl.createShader(gl.VERTEX_SHADER);
-
-  // Attach vertex shader source code
-  gl.shaderSource(vertShader, vertCode);
-
-  // Compile the vertex shader
-  gl.compileShader(vertShader);
-
-  // fragment shader source code
-    var fragCode = `
-    #ifdef GL_OES_standard_derivatives
-    #extension GL_OES_standard_derivatives : enable
-    #endif
-
-    precision mediump float;
-    varying  vec3 vColor;
-
-    void main()
-    {
-        float r = 0.0, delta = 0.0, alpha = 1.0;
-        vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-        r = dot(cxy, cxy);
-    #ifdef GL_OES_standard_derivatives
-        delta = fwidth(r);
-        alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
-    #endif
-
-    gl_FragColor = vec4(vColor, alpha);
-    gl_FragColor.rgb *= gl_FragColor.a;
-    }`;
-
-    gl.getExtension('OES_standard_derivatives');
-
-  // Create fragment shader object
-  var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-  // Attach fragment shader source code
-  gl.shaderSource(fragShader, fragCode);
-
-  // Compile the fragmentt shader
-  gl.compileShader(fragShader);
-
-  // Create a shader program object to
-  // store the combined shader program
-  var shaderProgram = gl.createProgram();
-
-  // Attach a vertex shader
-  gl.attachShader(shaderProgram, vertShader);
-
-  // Attach a fragment shader
-  gl.attachShader(shaderProgram, fragShader);
-
-  // Link both the programs
-  gl.linkProgram(shaderProgram);
-
-  // Use the combined shader program object
-  gl.useProgram(shaderProgram);
-
-
-
-  // Bind vertex buffer object
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-
-  // Get the attribute location
-  var coord = gl.getAttribLocation(shaderProgram, "coordinates");
-
-  // point an attribute to the currently bound VBO
-  gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-
-  // Enable the attribute
-  gl.enableVertexAttribArray(coord);
-
-  // bind the color buffer
-  gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-
-  // get the attribute location
-  var color = gl.getAttribLocation(shaderProgram, "color");
-
-  // point attribute to the volor buffer object
-  gl.vertexAttribPointer(color, 3, gl.FLOAT, false, 0, 0) ;
-
-  // enable the color attribute
-  gl.enableVertexAttribArray(color);
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, size_buffer);
-
-  var vSize = gl.getAttribLocation(shaderProgram, "vSizes");
-
-  gl.vertexAttribPointer(vSize, 1, gl.FLOAT, false, 0, 0);
-
-  gl.enableVertexAttribArray(vSize);
-
-  // Clear the canvas
-  gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
-  gl.enable( gl.BLEND );
-  gl.blendFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA );
-
-  gl.disable(gl.DEPTH_TEST);
-
-  // Clear the color buffer bit
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  resize(gl.canvas);
-
-  gl.viewport(0, 0, dimensions, dimensions);
-  
-  //Draw the triangle
-  gl.drawArrays(gl.POINTS, 0, points.length);
-*/
