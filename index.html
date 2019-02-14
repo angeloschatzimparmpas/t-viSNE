@@ -17,7 +17,7 @@
     <script src='./modules/d3-annotations/d3-annotator.js'></script>
     <script src="./modules/d3-tip/tip.js"></script>
     <script src="./modules/d3-legend/d3-legend.min.js"></script>
-    <script src="./modules/savage.toggle-switch.js" type="text/javascript"></script>
+    <script src="./modules/d3-lasso/lasso.js"></script>
     
     <script src="./modules/papa/papaparse.min.js"></script>
     <script src="./modules/jquery/jquery.min.js"></script>
@@ -26,7 +26,7 @@
     <script src="./js/tsne.js"></script>
     <script src="./js/checkbox.js"></script>
     <script src="./js/data_form_handler.js"></script>
-    <script src="./lasso.js"></script>
+    <script src="./modules/pca/pca.js"></script>
 
     <!-- CSS - Styling -->
     <link rel="stylesheet" href="./css/style.css"/>
@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     
     <!-- Bootstrap -->
-    <script src="./modules/bootstrap.min.js"></script>
+    <script src="./modules/bootstrap/bootstrap.min.js"></script>
   
   </head>
 
@@ -150,8 +150,8 @@
                     </div>
                     <div class="param">
                   <label for="param-maxiter">Max iterations</label>
-                  <input id="param-maxiter" type="range" min="10" max="1000" value="10", step="10">
-                  <output for="param-maxiter" id="param-maxiter-value">10</output>
+                  <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10">
+                  <output for="param-maxiter" id="param-maxiter-value">500</output>
                     </div>
                     <div class="param">
                   <label for="param-distance">Distance metric</label>

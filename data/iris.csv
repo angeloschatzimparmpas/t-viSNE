@@ -1,4 +1,4 @@
-"sepalLength","sepalWidth","petalLength","petalWidth","name"
+"sepalLen","sepalWid","petalLen","petalWid","name*"
 5.1,3.5,1.4,.2,"Setosa"
 4.9,3,1.4,.2,"Setosa"
 4.7,3.2,1.3,.2,"Setosa"

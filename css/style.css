@@ -173,12 +173,12 @@ cursor: default;
 
 /* Number of Points font-size */
 text.legendtitle {
-  font-size: 12px;
+  font-size: 15px;
 }
 
 /* Number of Points font-size */
 text.label {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* Styling of the ShepardHeatmap */
@@ -343,6 +343,7 @@ rect {
 #starPlot{
   border: 1px solid grey;
   margin-left:10px;
+  margin-top:10px;
 }
 
 .parent-row{
@@ -353,10 +354,10 @@ rect {
  }
 
 #extra-information {
-  margin-top: 25px;
+  margin-top: 40px;
   margin-left: 10px;
 }
 
 #kNNInfo {
-  margin-top: 40px;
+  margin-top: 35px;
 }

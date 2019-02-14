@@ -3,7 +3,7 @@
 var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; 
 // These are the dimensions for the square shape of the main panel\
 var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
-var prevRightClick;
+var prevRightClick; var ColorsCategorical; var Category;
 
 // These are the dimensions for the overview panel
 var dim = document.getElementById('tSNEcanvas').offsetWidth;
@@ -133,6 +133,18 @@ function setLayerSche(){
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 2);
   d3.select("#modtSNEcanvas").style("z-index", 1);
   d3.select("#modtSNEcanvas_svg").style("z-index", 1);
+  let c = 0;
+  for (var i=0; i < points.length; i++){
+    points[i].selected = true;
+    if (points[i].starplot == true){
+      c = c + 1;
+      if (c == 1){
+        alert("The starplot visualization will be lost!");
+      }
+      points[i].starplot = false;
+    }
+  }
+  redraw(points);
   click();
 }
 
@@ -250,9 +262,58 @@ function setAnnotator(){
     );
     animate();
 
+    var Arrayx = [];
+    var Arrayy = [];
+    var XYDistId = [];
+    var Arrayxy = [];
+    var DistanceDrawing1D = [];
+    var allTransformPoints = [];
+    var p;
+    var pFinal = [];
+    var paths;
+    var path;
+    var ArrayLimit = [];
+    var minimum;
+    var correlationResults = [];
+    var ArrayContainsDataFeaturesLimit = [];
 
 // function that executes after data is successfully loaded
 function init(data, results_all, fields) {
+
+    d3.selectAll("#correlation > *").remove(); 
+    d3.selectAll("#modtSNEcanvas_svg > *").remove();
+    d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
+    d3.selectAll("#SvgAnnotator > *").remove(); 
+    d3.selectAll("#sheparheat > *").remove(); 
+
+    var oldcanvOver = document.getElementById('tSNEcanvas');
+    var contxOver = oldcanvOver.getContext('experimental-webgl');
+    contxOver.clear(contxOver.COLOR_BUFFER_BIT);
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+
+    d3.selectAll("#legend1 > *").remove();
+    d3.selectAll("#legend3 > *").remove();
+    d3.selectAll("#legend4 > *").remove();
+
+    lassoEnable();
+
+    Arrayx = [];
+    Arrayy = [];
+    XYDistId = [];
+    Arrayxy = [];
+    DistanceDrawing1D = [];
+    allTransformPoints = [];
+    p;
+    pFinal = [];
+    paths;
+    path;
+    ArrayLimit = [];
+    minimum;
+    correlationResults = [];
+    ArrayContainsDataFeaturesLimit = [];
+
     prevRightClick = false;
     step_counter = 0;
     max_counter = document.getElementById("param-maxiter-value").value;
@@ -277,14 +338,35 @@ function init(data, results_all, fields) {
       });
       ArrayContainsDataFeaturesCleared.push(object);
     }
+
+    all_labels = [];
+    dataFeatures.filter(function(obj) { 
+
+      var temp = []; 
+      temp.push(Object.keys(obj)); 
+      for (var object in temp[0]){
+        if(temp[0][object].indexOf("*") != -1){
+          Category = temp[0][object];
+          return Category;
+        }
+      }
+
+    });
     
-    $("#datasetDetails").html("Number of Dimensions: " + (ArrayContainsDataFeatures[0].length - 1) + ", Number of Samples: " + final_dataset.length);
+    var valCategExists = 0;
+    for (var i=0; i<Object.keys(dataFeatures[0]).length; i++){
+      if (Object.keys(dataFeatures[0])[i] == Category){
+
+        valCategExists = valCategExists + 1;
+      }
+    }
+    $("#datasetDetails").html("Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Samples: " + final_dataset.length);
     dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
     tsne.initDataDist(dists);
-    all_labels = [];
-    for(var i = 0; i < data.length; i++) {
-      if (final_dataset[i]["name"] != "" || final_dataset[i]["name"] != "undefined"){
-        all_labels[i] = final_dataset[i]["name"];
+
+    for(var i = 0; i < dataFeatures.length; i++) {
+      if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){
+        all_labels[i] = dataFeatures[i][Category];
       }
       else{
         all_labels[i];
@@ -532,7 +614,7 @@ d3.tsv("./modules/heat.tsv").then(function(data) {
 
   var maxNum = Math.round(d3.max(data,function(d){ return d.value; }));
   var minNum = Math.round(d3.min(data,function(d){ return d.value; }));
-  var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
+  var colors = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#525252','#252525','#000000'];
   let calcStep = (maxNum-minNum)/colors.length;
   var colorScale = d3.scaleLinear()
       .domain(d3.range(0, maxNum+calcStep,calcStep))
@@ -657,41 +739,8 @@ function resize(canvas) {
   }
 }
 
-var Arrayx = [];
-var Arrayy = [];
-var XYDistId = [];
-var Arrayxy = [];
-var DistanceDrawing1D = [];
-var allTransformPoints = [];
-var p;
-var pFinal = [];
-var paths;
-var path;
-var ArrayLimit = [];
-var minimum;
-var correlationResults = [];
-var ArrayContainsDataFeaturesLimit = [];
-
 function OverviewtSNE(points){
-    d3.selectAll("#correlation > *").remove(); 
-    d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
-    lassoEnable();
-    d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
-    d3.selectAll("#SvgAnnotator > *").remove(); 
-    Arrayx = [];
-    Arrayy = [];
-    XYDistId = [];
-    Arrayxy = [];
-    DistanceDrawing1D = [];
-    allTransformPoints = [];
-    p;
-    pFinal = [];
-    paths;
-    path;
-    ArrayLimit = [];
-    minimum;
-    correlationResults = [];
-    ArrayContainsDataFeaturesLimit = [];
+   
   var canvas = document.getElementById('tSNEcanvas');
   gl = canvas.getContext('experimental-webgl');
 
@@ -700,11 +749,14 @@ function OverviewtSNE(points){
     alert('Unable to initialize WebGL. Your browser or machine may not support it.');
     return;
   }
+
+  ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a'];
+
   if (all_labels[0] == undefined){
-    var colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(["No Category"]).range(["#0000ff"]);
+    var colorScale = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
   }
   else{
-    var colorScale = d3.scaleOrdinal(d3.schemeCategory10).domain(all_labels);
+    var colorScale = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
   }
     d3.select("#legend3").select("svg").remove();
     var svg = d3.select("#legend3").append("svg");
@@ -755,7 +807,7 @@ function OverviewtSNE(points){
       singleCol = colval.b/255;
       colors.push(singleCol);
     }else{
-      let colval = d3.rgb(colorScale(points[i].name));
+      let colval = d3.rgb(colorScale(points[i][Category]));
       singleCol = colval.r/255;
       colors.push(singleCol);
       singleCol = colval.g/255;
@@ -1172,6 +1224,7 @@ function CalculateCorrel(){
 
     var SignStore = [];
     correlationResults = [];
+
     const arrayColumn = (arr, n) => arr.map(x => x[n]);
     for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
       var tempData = new Array(
@@ -1181,7 +1234,7 @@ function CalculateCorrel(){
       if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
       } else{
         SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]);
-        correlationResults.push(["Dimension "+temp, Math.abs(pearsonCorrelation(tempData, 0, 1))]);
+        correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))]);
       }
     }
     correlationResults = correlationResults.sort(
@@ -1264,6 +1317,8 @@ function drawBarChart(){
       .orient("left")
       .tickSize(0)
       .outerTickSize(0);
+
+     
 
       //Add group for the y axis
       mainGroup.append("g")
@@ -1658,7 +1713,6 @@ function mapOrder(array, order, key) {
     .on('mousemove', function() {
       x = d3.event.pageX;
       y = d3.event.pageY;
-      console.log( d3.event.pageX, d3.event.pageY ) // log the mouse x,y position
     });
 
 
@@ -1736,7 +1790,7 @@ height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
   RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
 
 function BetatSNE(points){
-  
+
   selectedPoints = [];
   var findNearestTable = [];
   for (let m=0; m<points.length; m++){
@@ -1744,6 +1798,7 @@ function BetatSNE(points){
       selectedPoints.push(points[m]);
    }
   }
+
   if (KNNEnabled == true && selectedPoints.length != 0){
     var distsFull = dists;
     var dists2dFull = dists2d;
@@ -1800,7 +1855,6 @@ function BetatSNE(points){
         temp2[i] = 0;
 
         if (k == maxKNN){
-
 
             // temporary array holds objects with position and sort-value
             indices[i] = dists[i].map(function(el, i) {
@@ -1909,12 +1963,15 @@ function BetatSNE(points){
       });
     }
 
-
-
-
     d3.select("#starPlot").selectAll('g').remove();
+    var coun = 0;
+    for (var i=0; i < selectedPoints.length; i++){
+      if (selectedPoints[i].starplot == true){
+        coun = coun + 1;
+      } 
+    }
 
-    if(selectedPoints.length <= 10){
+    if(selectedPoints.length <= 10 && coun > 0){
   
       var FeatureWise = [];
   
@@ -1925,32 +1982,60 @@ function BetatSNE(points){
           }
         }
       }
-  
-      var sum = new Array(Object.values(dataFeatures[0]).length).fill(0);
-  
+      
+      var max = [];
+      var min = [];
+      var vectors = [];
+      var FeatureWiseSlicedArray = [];
       for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
         var FeatureWiseSliced = FeatureWise.slice(0+(j*dataFeatures.length),dataFeatures.length+j*dataFeatures.length);
+        if (FeatureWiseSliced != ""){
+          FeatureWiseSlicedArray.push(FeatureWiseSliced);
+        }
+
+        max[j] = FeatureWiseSliced[0];
+        min[j] = FeatureWiseSliced[0];
         for (var i=0; i<FeatureWiseSliced.length; i++){
-          sum[j] = FeatureWiseSliced[i] + sum[j];
+          if (max[j] < FeatureWiseSliced[i]){
+            max[j] = FeatureWiseSliced[i];
+          }
+          if (min[j] > FeatureWiseSliced[i]){
+            min[j] = FeatureWiseSliced[i];
+          }
         }
       }
-  
+
+      var vectors = PCA.getEigenVectors(ArrayContainsDataFeaturesCleared);
+      var PCAResults = PCA.computeAdjustedData(ArrayContainsDataFeaturesCleared,vectors[0]);
+      var PCASelVec = [];
+      PCASelVec = PCAResults.selectedVectors[0];
+
+      var len = PCASelVec.length;
+      var indices = new Array(len);
+      for (var i = 0; i < len; ++i) indices[i] = i;
+      indices = indices.sort(function (a, b) { return PCASelVec[a] < PCASelVec[b] ? -1 : PCASelVec[a] > PCASelVec[b] ? 1 : 0; });
+      //const list = dataFeatures.sort((a,b) => a.index - b.index).map((dataFeatures, index, array) => dataFeatures[Category])
+
       var wrapData = [];
       var IDS = [];
       for (var i=0; i<selectedPoints.length; i++){
         var data = [];
         for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
-          if (!isNaN(Object.values(dataFeatures[i])[j])){
-            if (Object.keys(dataFeatures[i])[j] == "name") {
-              
-            } else{
-              data.push({axis:Object.keys(dataFeatures[i])[j],value:Math.abs(Object.values(dataFeatures[i])[j]*100/sum[j])});
+          if (!isNaN(Object.values(dataFeatures[selectedPoints[i].id])[j])){
+                  for (m=0; m < len; m++){
+                    if (indices[m] == j){
+                      if (Object.keys(dataFeatures[selectedPoints[i].id])[m] == Category) {
+                      } else{
+                        data.push({axis:Object.keys(dataFeatures[selectedPoints[i].id])[m],value:Math.abs((Object.values(dataFeatures[selectedPoints[i].id])[m] - min[m])/(max[m] - min[m]))});
+                      }
+                    }
+                  }
             }
           }
-        }
         wrapData.push(data);
         IDS.push(selectedPoints[i].id);
-      }
+      } 
+
         ////////////////////////////////////////////////////////////// 
         //////////////////// Draw the Chart ////////////////////////// 
         ////////////////////////////////////////////////////////////// 
@@ -1985,10 +2070,9 @@ function BetatSNE(points){
 
   var maxSize1 = (d3.max(final_dataset,function(d){ return d.cost; }));
   var minSize1 = (d3.min(final_dataset,function(d){ return d.cost; }));
-
   var rscale1 = d3.scaleLinear()
     .domain([minSize1, maxSize1])
-    .range([5,10]);
+    .range([3,10]);
 
   var colorScale = d3.scaleLinear()
     .domain(d3.range(0, max+calcStep, calcStep))
@@ -2024,10 +2108,9 @@ var min = (d3.min(final_dataset,function(d){ return d.cost; }));
 
 var maxSize2 = (d3.max(final_dataset,function(d){ return d.beta; }));
 var minSize2 = (d3.min(final_dataset,function(d){ return d.beta; }));
-
 var rscale2 = d3.scaleLinear()
   .domain([minSize2, maxSize2])
-  .range([5,10]);
+  .range([3,10]);
 
 var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
 var calcStep = (max-min)/9;
@@ -2098,7 +2181,7 @@ var circle_sprite= new THREE.TextureLoader().load(
   "./textures/circle-sprite.png"
 )
 
-let pointsGeometry = new THREE.Geometry();
+
 
 clearThree(scene);
 
@@ -2107,12 +2190,12 @@ var limitdist = document.getElementById("param-lim-value").value;
 limitdist = parseFloat(limitdist).toFixed(1);
 
 let pointsMaterial = [];
-let factorPlusSize = [];
+let factorPlusSize;
+let pointsGeometry = [];
 for (var i=0; i<points.length; i++) {
-
+  pointsGeometry[i] = new THREE.Geometry();
   let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
-  pointsGeometry.vertices.push(vertex);
-
+  pointsGeometry[i].vertices.push(vertex);
   if (points[i].selected == false){
     var color = new THREE.Color("rgb(211, 211, 211)");
   } else if (points[i].DimON != null) {
@@ -2139,28 +2222,29 @@ for (var i=0; i<points.length; i++) {
   }
   if (ColSizeSelector == "color") {
     let sizePoint = rscale1(points[i].cost);
-    factorPlusSize[i] = limitdist * sizePoint;
-    pointsGeometry.colors.push(color);
+    factorPlusSize = limitdist * sizePoint;
+    pointsGeometry[i].colors.push(color);
     pointsMaterial[i] = new THREE.PointsMaterial({
-      size: factorPlusSize[i],
       sizeAttenuation: false,
+      size: Number(factorPlusSize.toFixed(1)),
       vertexColors: THREE.VertexColors,
       map: circle_sprite,
       transparent: true
     });
   } else{
     let sizePoint = rscale2(points[i].beta);
-    factorPlusSize[i] = limitdist * sizePoint;
-    pointsGeometry.colors.push(color);
+    factorPlusSize = limitdist * sizePoint;
+    pointsGeometry[i].colors.push(color);
     pointsMaterial[i] = new THREE.PointsMaterial({
-      size: factorPlusSize[i],
       sizeAttenuation: false,
+      size: Number(factorPlusSize.toFixed(1)),
       vertexColors: THREE.VertexColors,
       map: circle_sprite,
       transparent: true
     });
   }
-  var particles = new THREE.Points(pointsGeometry, pointsMaterial[i]);
+  console.log(Number(factorPlusSize.toFixed(1)));
+  var particles = new THREE.Points(pointsGeometry[i], pointsMaterial[i]);
   scene.add(particles);
 }
 
@@ -2346,13 +2430,13 @@ function highlightPoint(datum) {
   );
 
   if (all_labels[0] == undefined){
-    var colorScaleCat = d3.scaleOrdinal(d3.schemeCategory10).domain(["No Category"]).range(["#0000ff"]);
+    var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
   }
   else{
-    var colorScaleCat = d3.scaleOrdinal(d3.schemeCategory10).domain(all_labels);
+    var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
   }
 
-  geometry.colors = [ new THREE.Color(colorScaleCat(datum.name)) ];
+  geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
 
   let material = new THREE.PointsMaterial({
     size: 26,
@@ -2389,17 +2473,31 @@ let $group_tip = document.querySelector('#group_tip');
 
 function updateTooltip() {
   if (all_labels[0] == undefined){
-    var colorScaleCat = d3.scaleOrdinal(d3.schemeCategory10).domain(["No Category"]).range(["#0000ff"]);
+    var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
   }
   else{
-    var colorScaleCat = d3.scaleOrdinal(d3.schemeCategory10).domain(all_labels);
+    var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
   }
   $tooltip.style.display = tooltip_state.display;
   $tooltip.style.left = tooltip_state.left + 'px';
   $tooltip.style.top = tooltip_state.top + 'px';
-  $point_tip.innerText = tooltip_state.name;
+  $point_tip.innerText = tooltip_state[Category];
   $point_tip.style.background = colorScaleCat(tooltip_state.color);
-  $group_tip.innerText = `Data set's features: ${tooltip_dimensions}`;
+  var tooltipComb = [];
+  tooltipComb = "Data set's features: " + "\n";
+  if (tooltip_dimensions){
+    for (var i=0; i<tooltip_dimensions[0].length; i++){
+      if (tooltip_dimensions[0][i][0] == Category){
+  
+      } else{
+        tooltipComb = tooltipComb + tooltip_dimensions[0][i];
+        tooltipComb = tooltipComb + "\n";
+      }
+    }
+  } else{
+    tooltipComb = "-";
+  }
+  $group_tip.innerText = tooltipComb;
 }
 
 function showTooltip(mouse_position, datum) {
@@ -2410,18 +2508,16 @@ function showTooltip(mouse_position, datum) {
   tooltip_state.left = mouse_position[0] + x_offset;
   tooltip_state.top = mouse_position[1] + y_offset;
   if (all_labels[0] == undefined){
-    tooltip_state.name = datum.id;
+    tooltip_state[Category] = "Point ID: " + datum.id;
     tooltip_state.color = datum.id;
   } else{
-    tooltip_state.name = datum.name + " (" + datum.id + ")";
-    tooltip_state.color = datum.name;
+    tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
+    tooltip_state.color = datum[Category];
   }
   tooltip_dimensions = [];
-  for (var i=0; i < ArrayContainsDataFeaturesCleared.length; i++){
+  for (var i=0; i < dataFeatures.length - 1; i++){
     if (datum.id == i){
-      for (var j=0; j < ArrayContainsDataFeaturesCleared[i].length; j++){
-        tooltip_dimensions.push(ArrayContainsDataFeaturesCleared[i][j]);
-      }
+        tooltip_dimensions.push(Object.entries(dataFeatures[i]));
     }
   }
   updateTooltip();
