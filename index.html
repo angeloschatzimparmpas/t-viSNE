@@ -46,7 +46,7 @@
           <div class="col-md-3">
             <div class="panel panel-default">
               <div class="panel-heading">
-                  <h3 class="panel-title">t-SNE Overview</h3>
+                  <h2 class="panel-title">t-SNE Overview</h2>
               </div>
               <div class="row">
                 <div class="panel-body">
@@ -81,13 +81,13 @@
           <div class="col-md-2" style="width: 21.499999995%">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Select Different Modes</h3>
+                    <h2 class="panel-title">Select Different Modes</h2>
                 </div>
                 <div class="panel-body">
                   <div id="resetAllFilters" style="margin-bottom: 40px">
-                      <button class="btn btn-info btn-block active" onclick="setLayerProj();">Layer: t-SNE projection</button>
-                      <button class="btn btn-info btn-block" onclick="setLayerComp();">Layer: kNN limiter and data features comparison</button>
-                      <button class="btn btn-info btn-block" onclick="setLayerSche();">Layer: Schema investigation</button>
+                      <button class="btn btn-info btn-block active" onclick="setLayerProj();">t-SNE points exploration</button>
+                      <button class="btn btn-info btn-block" onclick="setLayerComp();">Points selection and data features comparison</button>
+                      <button class="btn btn-info btn-block" onclick="setLayerSche();">Schema investigation</button>
                   </div>
                       <button class="btn btn-info btn-block" onclick="setReset();">Reset all filters</button>
                   <label style="margin-top: 15px">
@@ -102,7 +102,7 @@
           <div class="col-md-3">
             <div class="panel panel-default">
               <div class="panel-heading">
-                <h3 class="panel-title">Shepard Heatmap</h3>
+                <h2 class="panel-title">Shepard Heatmap</h2>
               </div>
             <div class="panel-body">
               <div class="row">
@@ -124,7 +124,7 @@
           <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                  <h3 class="panel-title">t-SNE Parameters</h3>
+                  <h2 class="panel-title">t-SNE Parameters</h2>
                 </div>
               <div class="panel-body">
                 <div id="control-panel" data-sr="enter left over 8s">
@@ -137,6 +137,7 @@
                     <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
                     <option value="empty">Add New File</option>
                   </select>
+                  <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
                     </div>
                     <div class="param">
                   <label for="param-perplexity">Perplexity</label>
@@ -159,19 +160,20 @@
                       <option value="euclideanDist" selected>Euclidean distance</option>
                       <option value="jaccardDist">Jaccard dissimilarity</option>
                   </select>
-                  <output for="param-distance" id="param-distance-value"></output>
+                  <input id="file-input" type="file" name="name" style="display: none;" />
+                  <button type="button" class="button" onclick='loadAnalysis();'>Load Execut.</button>
                     </div>
                     <div class="param">
                   <label for="param-transform">Data transform</label>
                   <select id="param-transform" name="param-transform">
                       <option value="noTrans" selected>No transform</option>
                       <option value="logTrans">Log10</option>
-                      <option value="asinhTrans">asinh</option>
+                      <option value="asinhTrans">Asinh</option>
                       <option value="binTrans">Binarize</option>
                   </select>
-                  <output for="param-transform" id="param-transform-value"></output>
+                  <button type="button" class="button" onclick="SaveAnalysis()">Save Execut.</button>
                     </div>
-                    <p><div id="run-button"><button class="btn btn-primary btn-block" onclick="getData();">Run New t-SNE</button></div></p>
+                    <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis">Execute new t-SNE analysis</button></div></p>
                 </div>
               </div>
             </div>
@@ -184,7 +186,7 @@
         <div class="col-md-3">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Visual Mapping Parameters</h3>
+                    <h2 class="panel-title">Visual Mapping Parameters</h2>
                 </div>
                 <div class="row">
                   <div class="panel-body">
@@ -197,14 +199,14 @@
                         </select>
                         <output for="param-neighborHood" id="param-neighborHood-value"></output>
                         <label for="male">Final Cost (Kullback-Leibler)</label>
-                        <label id="selectionLabel" style="margin-top:4px">Vice versa</label>
+                        <label id="selectionLabel" style="margin-top:4px">Size</label>
                         <div id="param-correlation">
                           <div class="param">
                             <label for="param-corr">Correlation threshold</label>
                             <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel();">
                             <output for="param-corr" id="param-corr-value">150</output>
                           </div>
-                          Visualization annotating form: <textarea type="text" id="comment" name="textforAnnotator" style="margin-top:4px" placeholder="Please, provide your comment."></textarea>
+                          Annotation: <textarea type="text" id="comment" name="textforAnnotator" style="margin-top:4px" placeholder="Please, provide your comment."></textarea>
                         </div>
                         <div id="commBtn">
                           <div class="param" style="margin-top:4px">
@@ -226,7 +228,7 @@
         <div class="col-md-3" id="extra-information" style="width: 24.5999995%">
             <div class="panel panel-default">
               <div class="panel-heading">
-                  <h3 class="panel-title">t-SNE and Data Set's Extra Information</h3>
+                  <h2 class="panel-title">t-SNE and Data Set's Additional Information</h2>
               </div>
               <div class="panel-body">
                 <div id="cost"></div>
@@ -236,7 +238,7 @@
             </div>
             <div class="panel panel-default" id="kNNInfo">
                 <div class="panel-heading">
-                    <h3 class="panel-title">kNN Barchart Information</h3>
+                    <h2 class="panel-title">k Nearest Neighborhood Cluster Purity Preservation</h2>
                 </div>
                 <div class="panel-body">
                   <div id="kNNDetails"></div>

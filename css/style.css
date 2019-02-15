@@ -3,7 +3,7 @@
 /* Main html/body configurations */
 html, body {
     max-width: 100%;
-    font: serif;
+    font-family: sans-serif !important;
 }
 
 .container-fluid {
@@ -197,7 +197,6 @@ rect {
 
 .axis text {
   font-size: 9pt;
-  font-family: Consolas, courier;
   fill: #000;
 }
 
@@ -209,7 +208,7 @@ rect {
 
 .d3-tip {
   line-height: 1;
-  font: 14px sans-serif;
+  font-size: 14px;
   padding: 12px;
   background: rgba(0, 0, 0, 0.8);
   color: rgb(185, 185, 185);
@@ -360,4 +359,17 @@ rect {
 
 #kNNInfo {
   margin-top: 35px;
+}
+
+/* Load and Save Analysis Buttons Styling */
+.button {
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin-left:10px;
+}
+
+#FactRes{
+  color: red;
 }

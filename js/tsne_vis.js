@@ -1,6 +1,8 @@
 // t-SNE.js object and other global variables
 
-var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; 
+var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; var cost = []; var ParametersSet = []; var overallCost;
+// form controls
+var input;
 // These are the dimensions for the square shape of the main panel\
 var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
 var prevRightClick; var ColorsCategorical; var Category;
@@ -12,21 +14,148 @@ var format; var new_file; var opt; var step_counter; var final_dataset; var max_
 var points2d = []; var ArrayContainsDataFeatures = []; var ArrayContainsDataFeaturesCleared = [];
 var InitialStatePoints = [];
 
+function FactoryReset(){
+  lassoEnable();
+  flag = false;
+  d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
+  d3.selectAll("#SvgAnnotator > *").remove(); 
+  Arrayx = [];
+  Arrayy = [];
+  XYDistId = [];
+  Arrayxy = [];
+  DistanceDrawing1D = [];
+  allTransformPoints = [];
+  p;
+  pFinal = [];
+  paths;
+  path;
+  ArrayLimit = [];
+  minimum;
+  correlationResults = [];
+  ArrayContainsDataFeaturesLimit = [];
+  prevRightClick = false;
+  for (var i=0; i < InitialStatePoints.length; i++){
+    InitialStatePoints[i].selected = true;
+    InitialStatePoints[i].starplot = false;
+  }
+  redraw(InitialStatePoints);
+
+  d3.selectAll("#correlation > *").remove(); 
+  d3.selectAll("#modtSNEcanvas_svg > *").remove();
+  d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
+  d3.selectAll("#SvgAnnotator > *").remove(); 
+  d3.selectAll("#sheparheat > *").remove(); 
+  d3.selectAll("#knnBarChart > *").remove(); 
+
+  var oldcanvOver = document.getElementById('tSNEcanvas');
+  var contxOver = oldcanvOver.getContext('experimental-webgl');
+  contxOver.clear(contxOver.COLOR_BUFFER_BIT);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xffffff);
+
+  d3.selectAll("#legend1 > *").remove();
+  d3.selectAll("#legend3 > *").remove();
+  d3.selectAll("#legend4 > *").remove();
+
+  lassoEnable();
+
+  Arrayx = [];
+  Arrayy = [];
+  XYDistId = [];
+  Arrayxy = [];
+  DistanceDrawing1D = [];
+  allTransformPoints = [];
+  p;
+  pFinal = [];
+  paths;
+  path;
+  ArrayLimit = [];
+  minimum;
+  correlationResults = [];
+  ArrayContainsDataFeaturesLimit = [];
+
+  document.getElementById("param-dataset").value = "iris.csv";
+  document.getElementById('file-input').value = "";
+  document.getElementById("ExecuteBut").innerHTML = "Execute new t-SNE analysis";
+  
+  $("#cost").html("");
+  $("#datasetDetails").html("");
+  $("#kNNDetails").html("");
+
+  document.getElementById("param-perplexity-value").value = 30;
+  document.getElementById("param-learningrate-value").value = 10;
+  document.getElementById("param-maxiter-value").value = 500;
+  document.getElementById("param-lim-value").value = 2;
+  document.getElementById("param-corr-value").value = 150;
+  document.getElementById("param-neighborHood").value = "color";
+  document.getElementById('selectionLabel').innerHTML = 'Size';
+  document.getElementById("param-distance").value = "euclideanDist";
+  document.getElementById("param-transform").value = "noTrans";
+  
+  
+
+}
+
+function loadAnalysis(){
+  document.getElementById('file-input').click();
+  document.getElementById("ExecuteBut").innerHTML = "Execute previous t-SNE analysis";
+}
+
 function getfile(file){
   new_file = file;   //uploaded file data
 }
 
+function fetchVal(callback) {
+  var file, fr;
+  file = input.files[0];
+  fr = new FileReader();
+  fr.onload = function (e) {
+    lines = e.target.result;
+    callback(lines);
+};  
+  fr.readAsText(file);
+}
+
 // Parse data
 var getData = function() {
-  // form controls
-    var value = document.getElementById("param-dataset").value;
-
-    format = document.getElementById("param-dataset").value.split("."); //get the actual format
-    if (format[value.split(".").length-1] == "csv") {
-      parseData("./data/"+value);
-    }else{
-      parseData(new_file, init);
-    }
+  
+        if (typeof window.FileReader !== 'function') {
+          alert("The file API isn't supported on this browser yet.");
+        }
+        
+        var value;
+        input = document.getElementById("file-input");
+        if (!input) {
+          alert("Um, couldn't find the fileinput element.");
+        }
+        else if (!input.files) {
+          alert("This browser doesn't seem to support the `files` property of file inputs.");
+        }
+        else if (!input.files[0]) {
+          value = document.getElementById("param-dataset").value;
+          format = document.getElementById("param-dataset").value.split("."); //get the actual format
+          if (format[value.split(".").length-1] == "csv") {
+            parseData("./data/"+value);
+          }else{
+            parseData(new_file, init);
+          }
+        }
+        else {
+        fetchVal(function(lines){
+          AnalaysisResults = JSON.parse(lines); 
+          length = (AnalaysisResults.length - 7) / 2;
+          ParametersSet = AnalaysisResults.slice(length*2+1, length*2+7);
+          value = document.getElementById("param-dataset").value = ParametersSet[0];
+          format = document.getElementById("param-dataset").value.split("."); //get the actual format
+          if (format[value.split(".").length-1] == "csv") {
+            parseData("./data/"+value);
+          }else{
+            parseData(new_file, init);
+          }
+         
+      });
+      }
 };
 
 function parseData(url) {
@@ -65,7 +194,7 @@ function parseData(url) {
             }
           });
           function doStuff(results_all){
-          init(results.data, results_all, results.meta.fields);
+            init(results.data, results_all, results.meta.fields);
           }
         }
     });
@@ -110,6 +239,12 @@ function setReset(){
 }
 
 function setReInitialize(){
+  if (document.getElementById('selectionLabel').innerHTML == 'Size'){
+    document.getElementById('selectionLabel').innerHTML = 'Color';
+  } else{
+    document.getElementById('selectionLabel').innerHTML = 'Size';
+  }
+
   for (var i=0; i < InitialStatePoints.length; i++){
     InitialStatePoints[i].selected = true;
   }
@@ -277,6 +412,9 @@ function setAnnotator(){
     var correlationResults = [];
     var ArrayContainsDataFeaturesLimit = [];
 
+
+
+
 // function that executes after data is successfully loaded
 function init(data, results_all, fields) {
 
@@ -285,6 +423,7 @@ function init(data, results_all, fields) {
     d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
     d3.selectAll("#SvgAnnotator > *").remove(); 
     d3.selectAll("#sheparheat > *").remove(); 
+    d3.selectAll("#knnBarChart > *").remove(); 
 
     var oldcanvOver = document.getElementById('tSNEcanvas');
     var contxOver = oldcanvOver.getContext('experimental-webgl');
@@ -328,16 +467,6 @@ function init(data, results_all, fields) {
     final_dataset = data;
     dataFeatures = results_all;
     var object;
-    for (let k = 0; k < dataFeatures.length; k++){
-      ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
-      object = [];
-      Object.values(dataFeatures[k]).forEach(function(dataFeature){
-        if(typeof(dataFeature) == "number"){
-          object.push(dataFeature);
-        }
-      });
-      ArrayContainsDataFeaturesCleared.push(object);
-    }
 
     all_labels = [];
     dataFeatures.filter(function(obj) { 
@@ -352,6 +481,18 @@ function init(data, results_all, fields) {
       }
 
     });
+
+    for (let k = 0; k < dataFeatures.length; k++){
+      ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
+      object = [];
+      Object.values(dataFeatures[k]).forEach(function(dataFeature){
+          if(typeof(dataFeature) == "number"){
+            object.push(dataFeature);
+          }
+      });
+      ArrayContainsDataFeaturesCleared.push(object);
+    }
+
     
     var valCategExists = 0;
     for (var i=0; i<Object.keys(dataFeatures[0]).length; i++){
@@ -373,7 +514,28 @@ function init(data, results_all, fields) {
       }
     }
     for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];}
-    runner = setInterval(step, 0);
+
+    if (typeof window.FileReader !== 'function') {
+      alert("The file API isn't supported on this browser yet.");
+    }
+    
+    input = document.getElementById("file-input");
+    if (!input) {
+      alert("Um, couldn't find the fileinput element.");
+    }
+    else if (!input.files) {
+      alert("This browser doesn't seem to support the `files` property of file inputs.");
+    }
+    else if (!input.files[0]) {
+      AnalaysisResults = [];
+      runner = setInterval(step, 0);
+    }
+    else {
+      fetchVal(function(lines){
+        AnalaysisResults = JSON.parse(lines); 
+        updateEmbedding(AnalaysisResults);
+    });
+    }
 }
 
 // initialize distance matrix
@@ -493,7 +655,8 @@ function computeDistances(data, distFunc, transFunc) {
 }
 
 // function that updates embedding
-function updateEmbedding() {
+function updateEmbedding(AnalaysisResults) {
+  if (AnalaysisResults == ""){
     var Y = tsne.getSolution(); // here we get the solution from the actual t-sne 
     var xExt = d3.extent(Y, d => d[0]);
     var yExt = d3.extent(Y, d => d[1]);
@@ -506,16 +669,27 @@ function updateEmbedding() {
     var y = d3.scaleLinear()
             .domain(maxExt)
             .range([10, +dimensions-10]);
+      for(var i = 0; i < final_dataset.length; i++) {
 
-    for(var i = 0; i < final_dataset.length; i++) {
-
-      x_position[i] = x(Y[i][0]);
-      y_position[i] = y(Y[i][1]);
-          points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, DimON: null, starplot: false};
-          points2d[i] = {id: i, x: x_position[i], y: y_position[i], selected: true};
-          points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
-          points[i] = extend(points[i], dataFeatures[i]);
-      }
+        x_position[i] = x(Y[i][0]);
+        y_position[i] = y(Y[i][1]);
+            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, DimON: null, starplot: false};
+            points2d[i] = {id: i, x: x_position[i], y: y_position[i], selected: true};
+            points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
+            points[i] = extend(points[i], dataFeatures[i]);
+        }
+    } else{
+      points = AnalaysisResults.slice(0,dataFeatures.length);
+      points2d = AnalaysisResults.slice(dataFeatures.length,2*dataFeatures.length);
+      overallCost = AnalaysisResults.slice(dataFeatures.length*2,dataFeatures.length*2+1);
+      ParametersSet = AnalaysisResults.slice(dataFeatures.length*2+1, dataFeatures.length*2+7);
+      $("#cost").html("Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost);
+      $('#param-perplexity-value').text(ParametersSet[1]);
+      $('#param-learningrate-value').text(ParametersSet[2]);
+      $('#param-maxiter-value').text(ParametersSet[3]);
+      document.getElementById("param-distance").value = ParametersSet[4];
+      document.getElementById("param-transform").value = ParametersSet[5];
+    }
     InitialStatePoints = points;
     function extend(obj, src) {
     for (var key in src) {
@@ -523,11 +697,9 @@ function updateEmbedding() {
     }
       return obj;
     }
-      if (step_counter == max_counter){
         ShepardHeatMap();
         OverviewtSNE(points);
         BetatSNE(points);
-      }
 }
 
 function ShepardHeatMap () {
@@ -694,7 +866,7 @@ d3.tsv("./modules/heat.tsv").then(function(data) {
 
   heatleg.append("g")
     .attr("class", "legendLinear")
-    .attr("transform", "translate(0,10)");
+    .attr("transform", "translate(0,14)");
 
   var legend = d3.legendColor()
     .labelFormat(d3.format(",.0f"))
@@ -709,19 +881,19 @@ d3.tsv("./modules/heat.tsv").then(function(data) {
 
 // perform single t-SNE iteration
 function step() {
-    step_counter++;
-    if(step_counter <= max_counter) {
-  var cost = tsne.step();
-  cost_each = cost[1];
-  for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
-  $("#cost").html("Number of Iteration: " + tsne.iter + ", Overall Cost: " + cost[0].toFixed(3));
-    }
-    else {
-        clearInterval(runner);
-    }
-    if (step_counter == max_counter){
-      updateEmbedding();
-    }
+      step_counter++;
+      if(step_counter <= max_counter) {
+          cost = tsne.step();
+          cost_each = cost[1];
+          for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
+          $("#cost").html("Number of Iteration: " + tsne.iter + ", Overall Cost: " + cost[0].toFixed(3));
+        }
+        else {
+            clearInterval(runner);
+        }
+        if (step_counter == max_counter){
+          updateEmbedding(AnalaysisResults);
+        }
 }
 
 function resize(canvas) {
@@ -1092,7 +1264,7 @@ function CalculateCorrel(){
   if (flag == false){
     alert("Please, draw a schema first!");
   } else{
-    var correlLimit = document.getElementById("param-corr-value").value;
+  var correlLimit = document.getElementById("param-corr-value").value;
   correlLimit = parseInt(correlLimit);
 
     allTransformPoints = [];
@@ -1224,7 +1396,6 @@ function CalculateCorrel(){
 
     var SignStore = [];
     correlationResults = [];
-
     const arrayColumn = (arr, n) => arr.map(x => x[n]);
     for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
       var tempData = new Array(
@@ -1577,7 +1748,7 @@ function brushmove() {
 //Create a gradient 
 function createGradient(idName, endPerc) {
 
-  var colorsBarChart = ['#7f3b08','#b35806','#e08214','#fdb863','#fee0b6','#d8daeb','#b2abd2','#8073ac','#542788','#2d004b']
+  var colorsBarChart = ['#67001f','#b2182b','#d6604d','#f4a582','#fddbc7','#d1e5f0','#92c5de','#4393c3','#2166ac','#053061'];
 
   colorsBarChart.reverse();
 
@@ -2059,8 +2230,8 @@ function BetatSNE(points){
  var ColSizeSelector = document.getElementById("param-neighborHood").value;
 
  if (ColSizeSelector == "color") {
-  var max = (d3.max(final_dataset,function(d){ return d.beta; }));
-  var min = (d3.min(final_dataset,function(d){ return d.beta; }));
+  var max = (d3.max(points,function(d){ return d.beta; }));
+  var min = (d3.min(points,function(d){ return d.beta; }));
   // colors
   var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
   var calcStep = (max-min)/7;
@@ -2068,11 +2239,11 @@ function BetatSNE(points){
     .domain(d3.range(0, max+calcStep, calcStep))
     .range(colorbrewer);
 
-  var maxSize1 = (d3.max(final_dataset,function(d){ return d.cost; }));
-  var minSize1 = (d3.min(final_dataset,function(d){ return d.cost; }));
+  var maxSize1 = (d3.max(points,function(d){ return d.cost; }));
+  var minSize1 = (d3.min(points,function(d){ return d.cost; }));
   var rscale1 = d3.scaleLinear()
     .domain([minSize1, maxSize1])
-    .range([3,10]);
+    .range([5,12]);
 
   var colorScale = d3.scaleLinear()
     .domain(d3.range(0, max+calcStep, calcStep))
@@ -2103,14 +2274,14 @@ function BetatSNE(points){
     svg.select(".legendLinear")
       .call(legend);
 } else {
-var max = (d3.max(final_dataset,function(d){ return d.cost; }));
-var min = (d3.min(final_dataset,function(d){ return d.cost; }));
+var max = (d3.max(points,function(d){ return d.cost; }));
+var min = (d3.min(points,function(d){ return d.cost; }));
 
-var maxSize2 = (d3.max(final_dataset,function(d){ return d.beta; }));
-var minSize2 = (d3.min(final_dataset,function(d){ return d.beta; }));
+var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
+var minSize2 = (d3.min(points,function(d){ return d.beta; }));
 var rscale2 = d3.scaleLinear()
   .domain([minSize2, maxSize2])
-  .range([3,10]);
+  .range([5,12]);
 
 var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
 var calcStep = (max-min)/9;
@@ -2189,13 +2360,14 @@ clearThree(scene);
 var limitdist = document.getElementById("param-lim-value").value;
 limitdist = parseFloat(limitdist).toFixed(1);
 
-let pointsMaterial = [];
+let pointsMaterial;
 let factorPlusSize;
-let pointsGeometry = [];
+let geometry = new THREE.Geometry();
 for (var i=0; i<points.length; i++) {
-  pointsGeometry[i] = new THREE.Geometry();
+  let pointsGeometry = new THREE.Geometry();
   let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
-  pointsGeometry[i].vertices.push(vertex);
+  pointsGeometry.vertices.push(vertex);
+  geometry.vertices.push(vertex);
   if (points[i].selected == false){
     var color = new THREE.Color("rgb(211, 211, 211)");
   } else if (points[i].DimON != null) {
@@ -2223,8 +2395,8 @@ for (var i=0; i<points.length; i++) {
   if (ColSizeSelector == "color") {
     let sizePoint = rscale1(points[i].cost);
     factorPlusSize = limitdist * sizePoint;
-    pointsGeometry[i].colors.push(color);
-    pointsMaterial[i] = new THREE.PointsMaterial({
+    pointsGeometry.colors.push(color);
+    pointsMaterial = new THREE.PointsMaterial({
       sizeAttenuation: false,
       size: Number(factorPlusSize.toFixed(1)),
       vertexColors: THREE.VertexColors,
@@ -2234,8 +2406,8 @@ for (var i=0; i<points.length; i++) {
   } else{
     let sizePoint = rscale2(points[i].beta);
     factorPlusSize = limitdist * sizePoint;
-    pointsGeometry[i].colors.push(color);
-    pointsMaterial[i] = new THREE.PointsMaterial({
+    pointsGeometry.colors.push(color);
+    pointsMaterial = new THREE.PointsMaterial({
       sizeAttenuation: false,
       size: Number(factorPlusSize.toFixed(1)),
       vertexColors: THREE.VertexColors,
@@ -2243,8 +2415,8 @@ for (var i=0; i<points.length; i++) {
       transparent: true
     });
   }
-  console.log(Number(factorPlusSize.toFixed(1)));
-  var particles = new THREE.Points(pointsGeometry[i], pointsMaterial[i]);
+  var particlesDuplic = new THREE.Points(geometry, pointsMaterial);
+  var particles = new THREE.Points(pointsGeometry, pointsMaterial);
   scene.add(particles);
 }
 
@@ -2386,7 +2558,7 @@ function mouseToThree(mouseX, mouseY) {
 function checkIntersects(mouse_position) {
   let mouse_vector = mouseToThree(...mouse_position);
   raycaster.setFromCamera(mouse_vector, camera);
-  let intersects = raycaster.intersectObject(particles);
+  let intersects = raycaster.intersectObject(particlesDuplic);
   if (intersects[0]) {
     if (ColSizeSelector == "color"){
       points = points.sort(function(a, b) {
@@ -2557,3 +2729,38 @@ function hideTooltip() {
     }
     return [viewPortWidth, viewPortHeight];
  }
+
+ function download(contentP, Parameters, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([contentP], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+}
+
+var measureSaves = 0;
+
+function SaveAnalysis(){
+  measureSaves = measureSaves + 1;
+  let dataset = document.getElementById("param-dataset").value;
+  let perplexity = document.getElementById("param-perplexity-value").value;
+  let learningRate = document.getElementById("param-learningrate-value").value;
+  let IterValue = document.getElementById("param-maxiter-value").value;
+  let parDist = document.getElementById("param-distance").value;
+  let parTrans = document.getElementById("param-transform").value;
+  let Parameters = [];
+  Parameters.push(dataset);
+  Parameters.push(perplexity);
+  Parameters.push(learningRate);
+  Parameters.push(IterValue);
+  Parameters.push(parDist);
+  Parameters.push(parTrans);
+  AllData = [];
+  if (cost[0] != undefined){
+    AllData = points.concat(points2d).concat(cost[0].toFixed(3)).concat(Parameters);
+  } else{
+    AllData = points.concat(points2d).concat(overallCost).concat(Parameters);
+  }
+
+  download(JSON.stringify(AllData), JSON.stringify(Parameters),'Analysis'+measureSaves+'.txt', 'text/plain');
+}
