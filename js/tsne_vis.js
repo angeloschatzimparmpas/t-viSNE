@@ -93,8 +93,6 @@ function FactoryReset(){
   document.getElementById("param-distance").value = "euclideanDist";
   document.getElementById("param-transform").value = "noTrans";
   
-  
-
 }
 
 function loadAnalysis(){
