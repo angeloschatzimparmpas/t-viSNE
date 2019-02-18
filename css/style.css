@@ -220,7 +220,6 @@ rect {
   box-sizing: border-box;
   display: inline;
   font-size: 10px;
-  width: 100%;
   line-height: 1;
   color: rgba(0, 0, 0, 0.8);
   content: "\25BC";
@@ -310,7 +309,7 @@ rect {
 }
 
 .bar {
-  /*shape-rendering: crispEdges;*/
+  shape-rendering: crispEdges;
 }
 
 /* Styling for the annotation circle */
@@ -351,7 +350,7 @@ rect {
  .children-columns{
    display: flex;
  }
-
+/* Margins for the extra-information panel and the kNNInfo */
 #extra-information {
   margin-top: 40px;
   margin-left: 10px;
@@ -370,6 +369,8 @@ rect {
   margin-left:10px;
 }
 
+/* Draw a red colored button for reset */
 #FactRes{
   color: red;
 }
+

@@ -12,7 +12,7 @@
     <script src='./modules/d3v3/d3.min.js'></script>
     <script src='./modules/d3/d3.min.js'></script>
     
-    <!-- Importing additional modules such as starPlot, annotator, tip, legend, switch, papaParse, and Jquery. -->
+    <!-- Importing additional modules such as starPlot, annotator, tip, legend, lasso, papaParse, and Jquery. -->
     <script src='./modules/d3-star/d3-starPlot.js'></script>
     <script src='./modules/d3-annotations/d3-annotator.js'></script>
     <script src="./modules/d3-tip/tip.js"></script>
@@ -24,7 +24,6 @@
 
     <!-- Basic scripts that we execute. -->
     <script src="./js/tsne.js"></script>
-    <script src="./js/checkbox.js"></script>
     <script src="./js/data_form_handler.js"></script>
     <script src="./modules/pca/pca.js"></script>
 
@@ -128,52 +127,52 @@
                 </div>
               <div class="panel-body">
                 <div id="control-panel" data-sr="enter left over 8s">
-                    <div class="param">
-                  <label id="data" for="param-dataset">Data sets</label>
-                  <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
-                    <option value="winequality-red.csv">Red Wine - Quality</option>
-                    <option value="iris.csv" selected>Iris</option>
-                    <option value="mnist.csv" >Mnist</option>
-                    <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
-                    <option value="empty">Add New File</option>
-                  </select>
-                  <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
-                    </div>
-                    <div class="param">
-                  <label for="param-perplexity">Perplexity</label>
-                  <input id="param-perplexity" type="range" min="2" max="100" value="30", step="1">
-                  <output for="param-perplexity" id="param-perplexity-value">30</output>
-                    </div>
-                    <div class="param">
-                  <label for="param-learningrate">Learning rate</label>
-                  <input id="param-learningrate" type="range" min="1" max="300" value="10", step="1">
-                  <output for="param-learningrate" id="param-learningrate-value">10</output>
-                    </div>
-                    <div class="param">
-                  <label for="param-maxiter">Max iterations</label>
-                  <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10">
-                  <output for="param-maxiter" id="param-maxiter-value">500</output>
-                    </div>
-                    <div class="param">
-                  <label for="param-distance">Distance metric</label>
-                  <select id="param-distance" name="param-distance">
-                      <option value="euclideanDist" selected>Euclidean distance</option>
-                      <option value="jaccardDist">Jaccard dissimilarity</option>
-                  </select>
-                  <input id="file-input" type="file" name="name" style="display: none;" />
-                  <button type="button" class="button" onclick='loadAnalysis();'>Load Execut.</button>
-                    </div>
-                    <div class="param">
-                  <label for="param-transform">Data transform</label>
-                  <select id="param-transform" name="param-transform">
-                      <option value="noTrans" selected>No transform</option>
-                      <option value="logTrans">Log10</option>
-                      <option value="asinhTrans">Asinh</option>
-                      <option value="binTrans">Binarize</option>
-                  </select>
-                  <button type="button" class="button" onclick="SaveAnalysis()">Save Execut.</button>
-                    </div>
-                    <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis">Execute new t-SNE analysis</button></div></p>
+                  <div class="param">
+                      <label id="data" for="param-dataset">Data sets</label>
+                      <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
+                        <option value="winequality-red.csv">Red Wine - Quality</option>
+                        <option value="iris.csv" selected>Iris</option>
+                        <option value="mnist.csv" >Mnist</option>
+                        <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
+                        <option value="empty">Add New File</option>
+                      </select>
+                      <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
+                  </div>
+                      <div class="param">
+                    <label for="param-perplexity">Perplexity</label>
+                    <input id="param-perplexity" type="range" min="2" max="100" value="30", step="1">
+                    <output for="param-perplexity" id="param-perplexity-value">30</output>
+                      </div>
+                      <div class="param">
+                    <label for="param-learningrate">Learning rate</label>
+                    <input id="param-learningrate" type="range" min="1" max="300" value="10", step="1">
+                    <output for="param-learningrate" id="param-learningrate-value">10</output>
+                      </div>
+                      <div class="param">
+                    <label for="param-maxiter">Max iterations</label>
+                    <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10">
+                    <output for="param-maxiter" id="param-maxiter-value">500</output>
+                      </div>
+                      <div class="param">
+                    <label for="param-distance">Distance metric</label>
+                    <select id="param-distance" name="param-distance">
+                        <option value="euclideanDist" selected>Euclidean distance</option>
+                        <option value="jaccardDist">Jaccard dissimilarity</option>
+                    </select>
+                    <input id="file-input" type="file" name="name" style="display: none;" />
+                    <button type="button" class="button" onclick='loadAnalysis();'>Load Execut.</button>
+                      </div>
+                      <div class="param">
+                    <label for="param-transform">Data transform</label>
+                    <select id="param-transform" name="param-transform">
+                        <option value="noTrans" selected>No transform</option>
+                        <option value="logTrans">Log10</option>
+                        <option value="asinhTrans">Asinh</option>
+                        <option value="binTrans">Binarize</option>
+                    </select>
+                    <button type="button" class="button" onclick="SaveAnalysis()">Save Execut.</button>
+                      </div>
+                      <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis">Execute new t-SNE analysis</button></div></p>
                 </div>
               </div>
             </div>

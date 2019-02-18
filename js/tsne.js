@@ -1,4 +1,5 @@
-// create main global object
+// t-SNE Algorithm
+
 var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 
 (function(global) {

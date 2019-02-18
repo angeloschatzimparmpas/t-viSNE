@@ -1,24 +1,40 @@
-// t-SNE.js object and other global variables
+// t-SNE Visualization and global variables
 
-var k; var points = []; var all_fields; var pointsbeta = []; var KNNEnabled = true; var cost = []; var ParametersSet = []; var overallCost;
-// form controls
-var input;
-// These are the dimensions for the square shape of the main panel\
-var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
-var prevRightClick; var ColorsCategorical; var Category;
+// This variable is used when a new file is upload by a user.
+var new_file; 
 
-// These are the dimensions for the overview panel
-var dim = document.getElementById('tSNEcanvas').offsetWidth;
+// The basic variables in order to execute t-SNE (opt is perplexity and learning rate). 
+var tsne; var opt; var step_counter; var max_counter; var runner; 
 
-var format; var new_file; var opt; var step_counter; var final_dataset; var max_counter; var dists; var dists2d; var all_labels; var runner; var tsne; var count_canvas = 0; var x_position = []; var y_position = []; var x_position2 = []; var y_position2 = []; var cost_each; var beta_all = [];
-var points2d = []; var ArrayContainsDataFeatures = []; var ArrayContainsDataFeaturesCleared = [];
-var InitialStatePoints = [];
+// These variables are initialized here in order to store the final dataset, the points, the cost, the cost for each iteration, the beta values, the positions, the 2D points positions,
+// In addition, there is an array which keeps the initial information of the points (i.e., initial state), the data features (with the label of the category plus the id of the point), the data features without the category (only numbers).
+var final_dataset; var points = []; var cost = []; var cost_each; var beta_all = []; var x_position = []; var y_position = []; var points2d = []; var ArrayContainsDataFeatures = []; var ArrayContainsDataFeaturesCleared = []; var InitialStatePoints = []; 
 
+// The distances in the high dimensional space and in the 2D space. All the labels that were found in the selected data set.
+var dists; var dists2d; var all_labels;
+
+// These are the dimensions for the Overview view and the Main view
+var dim = document.getElementById('tSNEcanvas').offsetWidth; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
+
+// Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
+// ColorsCategorical = the categorical colors (maximum value = 10).
+var Category; var ColorsCategorical; 
+
+// Schema Investigation 
+// svgClick = Click a left mouse click in order to add a point.
+// prevRightClick = When right click is pressed prevent any other action. Lock the current schema.
+// if flagForSchema is false then send a message to the user that he/she has to: "Please, draw a schema first!");
+var svgClick; var prevRightClick; var flagForSchema = false; 
+
+// Save the parameters for the current analysis, save the overallCost, and store in the "input" variable all the points and points2D.
+var ParametersSet = []; var overallCost; var input; 
+
+// This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
-  lassoEnable();
-  flag = false;
+  flagForSchema = false;
   d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
-  d3.selectAll("#SvgAnnotator > *").remove(); 
+  d3.selectAll("#SvgAnnotator > *").remove();
+  d3.select("#data").select("input").remove(); // Remove the selection field. 
   Arrayx = [];
   Arrayy = [];
   XYDistId = [];
@@ -95,15 +111,18 @@ function FactoryReset(){
   
 }
 
+// Load a previously executed analysis function.
 function loadAnalysis(){
   document.getElementById('file-input').click();
   document.getElementById("ExecuteBut").innerHTML = "Execute previous t-SNE analysis";
 }
 
+// This function is being used when the user selects to upload a new data set.
 function getfile(file){
-  new_file = file;   //uploaded file data
+  new_file = file;   //uploaded data file
 }
 
+// Read the previous analysis, which the user wants to upload. 
 function fetchVal(callback) {
   var file, fr;
   file = input.files[0];
@@ -115,24 +134,25 @@ function fetchVal(callback) {
   fr.readAsText(file);
 }
 
-// Parse data
+// Parse the data set
 var getData = function() {
-  
+
+        let format; 
+        let value;
+
         if (typeof window.FileReader !== 'function') {
           alert("The file API isn't supported on this browser yet.");
         }
         
-        var value;
         input = document.getElementById("file-input");
         if (!input) {
           alert("Um, couldn't find the fileinput element.");
-        }
-        else if (!input.files) {
+        } else if (!input.files) {
           alert("This browser doesn't seem to support the `files` property of file inputs.");
-        }
-        else if (!input.files[0]) {
-          value = document.getElementById("param-dataset").value;
-          format = document.getElementById("param-dataset").value.split("."); //get the actual format
+        } else if (!input.files[0]) {
+          value = document.getElementById("param-dataset").value; // get the value of the data set
+          format = document.getElementById("param-dataset").value.split("."); //get the format
+
           if (format[value.split(".").length-1] == "csv") {
             parseData("./data/"+value);
           }else{
@@ -168,8 +188,6 @@ function parseData(url) {
           for(key in el) {
               if(el.hasOwnProperty(key)) {
                   var value = el[key];
-                  if (key === 'name'){
-                  }else{
                     if(typeof(value) !== 'number' || value === undefined || key === "Version"){ //add more limitations if needed!
                       delete el[key];
                     }else{
@@ -177,7 +195,6 @@ function parseData(url) {
                       delete el[key];
                       counter = counter + 1;
                     }
-                  }
               }
           }
           return el;
@@ -211,7 +228,7 @@ function setReset(){
   d3.selectAll("#correlation > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
   lassoEnable();
-  flag = false;
+  flagForSchema = false;
   d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
   d3.selectAll("#SvgAnnotator > *").remove(); 
   Arrayx = [];
@@ -259,7 +276,9 @@ function setLayerComp(){
   d3.select("#modtSNEcanvas_svg").style("z-index", 2);
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
   d3.select("#modtSNEcanvas").style("z-index", 1);
-  lassoEnable();
+  if (points.length){
+    lassoEnable();
+  }
 }
 
 function setLayerSche(){
@@ -355,6 +374,11 @@ function setAnnotator(){
             .classed("shaded", function(d) { return d.shaded; });
       }
     } else{
+      // Get the checkbox.
+      var checkBox = document.getElementById("controls");
+      // Unchecked!
+      checkBox.checked = false;
+      // Print a message to the user.
       alert("Cannot hide the annotators' controls because, currently, there are no annotations into the visual representation.")
     }
   });
@@ -458,7 +482,6 @@ function init(data, results_all, fields) {
     var fields;
     fields.push("beta");
     fields.push("cost");
-    all_fields = fields;
     opt.epsilon = document.getElementById("param-learningrate-value").value; // epsilon is learning rate (10 = default)
     opt.perplexity = document.getElementById("param-perplexity-value").value; // roughly how many neighbors each point influences (30 = default)
     tsne = new tsnejs.tSNE(opt);
@@ -483,19 +506,17 @@ function init(data, results_all, fields) {
     for (let k = 0; k < dataFeatures.length; k++){
       ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
       object = [];
-      Object.values(dataFeatures[k]).forEach(function(dataFeature){
-          if(typeof(dataFeature) == "number"){
-            object.push(dataFeature);
-          }
-      });
+      for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
+        if(typeof(Object.values(dataFeatures[k])[j]) == "number" && Object.keys(dataFeatures[k])[j] != Category){
+          object.push(Object.values(dataFeatures[k])[j]);
+        }
+      }
       ArrayContainsDataFeaturesCleared.push(object);
     }
-
     
     var valCategExists = 0;
     for (var i=0; i<Object.keys(dataFeatures[0]).length; i++){
       if (Object.keys(dataFeatures[0])[i] == Category){
-
         valCategExists = valCategExists + 1;
       }
     }
@@ -792,7 +813,7 @@ d3.tsv("./modules/heat.tsv").then(function(data) {
   var tip = d3.tip()
               .attr('class', 'd3-tip')
               .style("visibility","visible")
-              .offset([-20, 0])
+              .offset([-10, 36.5])
               .html(function(d) {
                 return "Value:  <span style='color:red'>" + Math.round(d.value);
               });
@@ -1114,7 +1135,6 @@ function redraw(repoints){
 
 function handleLassoEnd(lassoPolygon) {
   var countLassoFalse = 0;
-  KNNEnabled = true;
       for (var i = 0 ; i < points.length ; i ++) {
 
         x = points[i].x;
@@ -1152,7 +1172,6 @@ function handleLassoEnd(lassoPolygon) {
 // reset selected points when starting a new polygon
 function handleLassoStart(lassoPolygon) {
 
-    KNNEnabled = false;
     for (var i = 0 ; i < points.length ; i ++) {
       points[i].selected = true;
       points[i].starplot = false;
@@ -1197,9 +1216,6 @@ var svg,
              .on("touchstart.zoom", null)
              .on("touchmove.zoom", null)
              .on("touchend.zoom", null);
-
-var svgClick;
-var flag = false; 
 
 function click(){
   
@@ -1251,7 +1267,7 @@ function click(){
               // Prevent the default mouse action. Allow right click to be used for the confirmation of our schema.
               d3.event.preventDefault();
 
-              flag = true;
+              flagForSchema = true;
               CalculateCorrel();
             }
       });
@@ -1259,7 +1275,7 @@ function click(){
 
 function CalculateCorrel(){
 
-  if (flag == false){
+  if (flagForSchema == false){
     alert("Please, draw a schema first!");
   } else{
   var correlLimit = document.getElementById("param-corr-value").value;
@@ -1317,7 +1333,7 @@ function CalculateCorrel(){
 
     ArrayLimit = [];
     for (var i=0; i<arraysCleared.length; i++) {
-      if (arraysCleared[i][5] < correlLimit) {
+      if (arraysCleared[i][arraysCleared[0].length-2] < correlLimit) {
         ArrayLimit.push(arraysCleared[i]);
       }
     }
@@ -1326,7 +1342,7 @@ function CalculateCorrel(){
     var count = new Array(paths.nodes().length).fill(0);
     for (var m=0; m < paths.nodes().length; m++) {
       for (var i=0; i<ArrayLimit.length; i++) {
-        if (ArrayLimit[i][2] == m){
+        if (ArrayLimit[i][ArrayLimit[0].length-5] == m){
             count[m] = count[m] + 1;
           temparray.push(ArrayLimit[i]);
         }
@@ -1361,73 +1377,101 @@ function CalculateCorrel(){
     }
     var Order = [];
     for (var temp = 0; temp < arraysConnected.length; temp++) {
-      Order.push(arraysConnected[temp][6]);
+      Order.push(arraysConnected[temp][arraysConnected[0].length-1]);
     }
 
     for (var i = 0; i < points.length; i++){
       points[i].selected = false;
       for (var j = 0; j < ArrayLimit.length; j++){
-        if (ArrayLimit[j][6] == points[i].id){
+        if (ArrayLimit[j][ArrayLimit[0].length-1] == points[i].id){
           points[i].selected = true;
         }
       }
     }
     redraw(points);
-
     for (let k = 0; k < dataFeatures.length; k++){
-      ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
+      ArrayContainsDataFeaturesCleared.push(ArrayContainsDataFeaturesCleared[k].concat(k));
     }
-    
-    ArrayContainsDataFeatures = mapOrder(ArrayContainsDataFeatures, Order, 5);
+
+    ArrayContainsDataFeaturesCleared = mapOrder(ArrayContainsDataFeaturesCleared, Order, arraysConnected[0].length-2);
+
     ArrayContainsDataFeaturesLimit = [];
-    for (var i = 0; i < ArrayContainsDataFeatures.length; i++){
+    for (var i = 0; i < ArrayContainsDataFeaturesCleared.length; i++){
       for (var j = 0; j < arraysConnected.length; j++){
-        if (ArrayContainsDataFeatures[i][5] == arraysConnected[j][6]){
-          ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeatures[i]);
-        }
+        if (ArrayContainsDataFeaturesCleared[i][ArrayContainsDataFeaturesCleared[0].length-1] == arraysConnected[j][arraysConnected[0].length-1]){
+          ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeaturesCleared[i]);
+        } 
       }
     }
-
-    for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
-      ArrayContainsDataFeaturesLimit[loop].push(loop);
-    }
-
-    var SignStore = [];
-    correlationResults = [];
-    const arrayColumn = (arr, n) => arr.map(x => x[n]);
-    for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
-      var tempData = new Array(
-        arrayColumn(ArrayContainsDataFeaturesLimit, temp),
-        arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
+   
+    if (ArrayContainsDataFeaturesLimit.length == 0){
+      d3.selectAll("#correlation > *").remove(); 
+      d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
+      flagForSchema = false;
+      d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
+      Arrayx = [];
+      Arrayy = [];
+      XYDistId = [];
+      Arrayxy = [];
+      DistanceDrawing1D = [];
+      allTransformPoints = [];
+      p;
+      pFinal = [];
+      paths;
+      path;
+      ArrayLimit = [];
+      minimum;
+      correlationResults = [];
+      ArrayContainsDataFeaturesLimit = [];
+      prevRightClick = false;
+      for (var i=0; i < InitialStatePoints.length; i++){
+        InitialStatePoints[i].selected = true;
+        InitialStatePoints[i].starplot = false;
+      }
+      alert("No points selected! Please, try to increase the correlation threshold.");
+      redraw(InitialStatePoints);
+    } else {
+      for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
+        ArrayContainsDataFeaturesLimit[loop].push(loop);
+      }
+  
+      var SignStore = [];
+      correlationResults = [];
+      const arrayColumn = (arr, n) => arr.map(x => x[n]);
+      for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
+        var tempData = new Array(
+          arrayColumn(ArrayContainsDataFeaturesLimit, temp),
+          arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
+        );
+        if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
+        } else{
+          SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]);
+          correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))]);
+        }
+      }
+      correlationResults = correlationResults.sort(
+        function(a,b) {
+        if (a[1] == b[1])
+        return a[0] < b[0] ? -1 : 1;
+        return a[1] < b[1] ? 1 : -1;
+        }
       );
-      if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
-      } else{
-        SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]);
-        correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))]);
-      }
-    }
-    correlationResults = correlationResults.sort(
-      function(a,b) {
-      if (a[1] == b[1])
-      return a[0] < b[0] ? -1 : 1;
-      return a[1] < b[1] ? 1 : -1;
-      }
-    );
-
-    for (var j = 0; j < correlationResults.length; j++) {
-      for (var i = 0; i < SignStore.length; i++) {
-        if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-          correlationResults[j][1] = parseInt(correlationResults[j][1] * 100) * (-1);
-          correlationResults[j].push(j);
-        }
-        if (SignStore[i][1] == correlationResults[j][1]) {
-          correlationResults[j][1] = parseInt(correlationResults[j][1] * 100);
-          correlationResults[j].push(j);
+  
+      for (var j = 0; j < correlationResults.length; j++) {
+        for (var i = 0; i < SignStore.length; i++) {
+          if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
+            correlationResults[j][1] = parseInt(correlationResults[j][1] * 100) * (-1);
+            correlationResults[j].push(j);
+          }
+          if (SignStore[i][1] == correlationResults[j][1]) {
+            correlationResults[j][1] = parseInt(correlationResults[j][1] * 100);
+            correlationResults[j].push(j);
+          }
         }
       }
     }
-  }
-  drawBarChart();
+    drawBarChart();
+    }
   }
 }
 
@@ -1960,744 +2004,745 @@ height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
 
 function BetatSNE(points){
 
-  selectedPoints = [];
-  var findNearestTable = [];
-  for (let m=0; m<points.length; m++){
-   if (points[m].selected == true){
-      selectedPoints.push(points[m]);
-   }
-  }
+if (points.length) {
+    selectedPoints = [];
+    var findNearestTable = [];
+    for (let m=0; m<points.length; m++){
+    if (points[m].selected == true){
+        selectedPoints.push(points[m]);
+    }
+    }
 
-  if (KNNEnabled == true && selectedPoints.length != 0){
-    var distsFull = dists;
-    var dists2dFull = dists2d;
+    if (selectedPoints.length != 0){
+      var distsFull = dists;
+      var dists2dFull = dists2d;
 
-    for (var i=0; i<dists.length; i++){
-      for (var j=0; j<dists.length; j++){
-        if(dists[i][j] != null) {
-          distsFull[j][i] = dists[i][j];
-          dists2dFull[j][i] = dists2d[i][j];
+      for (var i=0; i<dists.length; i++){
+        for (var j=0; j<dists.length; j++){
+          if(dists[i][j] != null) {
+            distsFull[j][i] = dists[i][j];
+            dists2dFull[j][i] = dists2d[i][j];
+          }
         }
       }
-    }
 
-    var indexOrder = [];
-    var indexOrder2d = [];
-    var indices = new Array(selectedPoints.length);
-    var indices2d = new Array(selectedPoints.length);
+      var indexOrder = [];
+      var indexOrder2d = [];
+      var indices = new Array(selectedPoints.length);
+      var indices2d = new Array(selectedPoints.length);
 
-    var findNearest;
-    var counter1;
-    var counter2;
+      var findNearest;
+      var counter1;
+      var counter2;
 
-    var temp = [];
-    var temp2 = [];
+      var temp = [];
+      var temp2 = [];
 
-    var viewport = getViewport();
-    var vw = viewport[0] * 0.5;
-    var vh = viewport[1] * 0.042;
-    var factor = Math.log10(points.length) * 4;
-    if (factor == 0){
-      factor = 1;
-    }
-    var maxKNN = Math.ceil(points.length / factor);
-
-    selectedPoints.sort(function(a, b) {
-      return parseFloat(a.id) - parseFloat(b.id);
-    });
-  
-    $("#kNNDetails").html("Purity of the cluster was checked for k values starting from " + (1) + " to " + maxKNN + ".");
-
-    for (k=maxKNN; k>0; k--){
-
-      findNearest = 0;
-      var indexOrderSliced = [];
-      var indexOrderSliced2d = [];
-      var count1 = new Array(selectedPoints.length).fill(0);
-      var count2 = new Array(selectedPoints.length).fill(0);
-      counter1 = 0;
-      counter2 = 0;
-
-      for (var i=0; i<selectedPoints.length; i++){
-
-        temp[i] = 0;
-        temp2[i] = 0;
-
-        if (k == maxKNN){
-
-            // temporary array holds objects with position and sort-value
-            indices[i] = dists[i].map(function(el, i) {
-                return [ i, el ];
-            })
-            var index = indices[i].indexOf(selectedPoints[i].id);
-            if (index > -1) {
-              indices[i].splice(index, 1);
-            }
-            // sorting the mapped array containing the reduced values
-            indices[i].sort(function(a, b) {
-              if (a[1] > b[1]) {
-                return 1;
-              }
-              if (a[1] < b[1]) {
-                return -1;
-              }
-              return 0;
-            });
-    
-            indexOrder[i] = indices[i].map(function(value) { return value[0]; });
-
-            // temporary array holds objects with position and sort-value
-            indices2d[i] = dists2d[i].map(function(el, i) {
-                return [ i, el ];
-            })
-            var index2d = indices2d[i].indexOf(selectedPoints[i].id);
-            if (index2d > -1) {
-              indices2d[i].splice(index2d, 1);
-            }
-            
-            // sorting the mapped array containing the reduced values
-            indices2d[i].sort(function(a, b) {
-              if (a[1] > b[1]) {
-                return 1;
-              }
-              if (a[1] < b[1]) {
-                return -1;
-              }
-              return 0;
-            });
-            indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
-          }
-          indexOrderSliced[i] = indexOrder[i].slice(0,k);
-          indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
-
-        for (var m=0; m < indexOrderSliced2d[i].length; m++){
-          if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){
-            count1[i] = count1[i] + 1;
-            temp[i] = temp[i] + 1;
-          }
-          if(indexOrderSliced[i][m] == indexOrderSliced2d[i][m]){
-            count2[i] = count2[i] + 1;
-            temp2[i] = temp2[i] + 1;
-
-          }
-        }  
-
-        if (count1[i] != 0){
-          counter1 = (count1[i] / temp[i]) + counter1;
-        }
-        if (count2[i] != 0){
-          counter2 = (count2[i] / temp2[i]) + counter2;
-        }
-
+      var viewport = getViewport();
+      var vw = viewport[0] * 0.5;
+      var vh = viewport[1] * 0.042;
+      var factor = Math.log10(points.length) * 4;
+      if (factor == 0){
+        factor = 1;
       }
+      var maxKNN = Math.ceil(points.length / factor);
 
-        sumUnion = counter1 / selectedPoints.length;
-        sumIntersection = counter2 / selectedPoints.length;
-        if (sumUnion == 0){
-          findNearest = 0;
-        } else{
-          findNearest = sumIntersection / sumUnion;
-        }
-
-        if (isNaN(findNearest)){
-          findNearest = 0; 
-        }
-        findNearestTable.push(findNearest * vh * 2);
-    }
-    findNearestTable.reverse();
-
-    var barPadding = 5;
-        d3v3.select("#knnBarChart").selectAll("rect").remove();
-
-    var svg2 = d3v3.select('#knnBarChart')
-      .attr("class", "bar-chart");
-
-      
-    var barWidth = (vw / findNearestTable.length);
-
-    var knnBarChartSVG = svg2.selectAll("rect")
-      .data(findNearestTable)
-      .enter()
-      .append("rect")
-      .attr("y", function(d) {
-          return Math.round(vh*2 - d)
-      })
-      .attr("height", function(d) {
-        return d;
-      })
-      .attr("width", barWidth - barPadding)
-      .attr("transform", function (d, i) {
-          var translate = [barWidth * i, 0];
-          return "translate("+ translate +")";
+      selectedPoints.sort(function(a, b) {
+        return parseFloat(a.id) - parseFloat(b.id);
       });
-    }
+    
+      $("#kNNDetails").html("Purity of the cluster was checked for k values starting from " + (1) + " to " + maxKNN + ".");
 
-    d3.select("#starPlot").selectAll('g').remove();
-    var coun = 0;
-    for (var i=0; i < selectedPoints.length; i++){
-      if (selectedPoints[i].starplot == true){
-        coun = coun + 1;
-      } 
-    }
+      for (k=maxKNN; k>1; k--){
 
-    if(selectedPoints.length <= 10 && coun > 0){
-  
-      var FeatureWise = [];
-  
-      for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
-        for (var i=0;i<dataFeatures.length;i++){
-          if (!isNaN(Object.values(dataFeatures[i])[j])){
-            FeatureWise.push(Object.values(dataFeatures[i])[j]);
-          }
-        }
-      }
+        findNearest = 0;
+        var indexOrderSliced = [];
+        var indexOrderSliced2d = [];
+        var count1 = new Array(selectedPoints.length).fill(0);
+        var count2 = new Array(selectedPoints.length).fill(0);
+        counter1 = 0;
+        counter2 = 0;
+
+        for (var i=0; i<selectedPoints.length; i++){
+
+          temp[i] = 0;
+          temp2[i] = 0;
+
+          if (k == maxKNN){
+
+              // temporary array holds objects with position and sort-value
+              indices[i] = dists[i].map(function(el, i) {
+                  return [ i, el ];
+              })
+              var index = indices[i].indexOf(selectedPoints[i].id);
+              if (index > -1) {
+                indices[i].splice(index, 1);
+              }
+              // sorting the mapped array containing the reduced values
+              indices[i].sort(function(a, b) {
+                if (a[1] > b[1]) {
+                  return 1;
+                }
+                if (a[1] < b[1]) {
+                  return -1;
+                }
+                return 0;
+              });
       
-      var max = [];
-      var min = [];
-      var vectors = [];
-      var FeatureWiseSlicedArray = [];
-      for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
-        var FeatureWiseSliced = FeatureWise.slice(0+(j*dataFeatures.length),dataFeatures.length+j*dataFeatures.length);
-        if (FeatureWiseSliced != ""){
-          FeatureWiseSlicedArray.push(FeatureWiseSliced);
+              indexOrder[i] = indices[i].map(function(value) { return value[0]; });
+
+              // temporary array holds objects with position and sort-value
+              indices2d[i] = dists2d[i].map(function(el, i) {
+                  return [ i, el ];
+              })
+              var index2d = indices2d[i].indexOf(selectedPoints[i].id);
+              if (index2d > -1) {
+                indices2d[i].splice(index2d, 1);
+              }
+              
+              // sorting the mapped array containing the reduced values
+              indices2d[i].sort(function(a, b) {
+                if (a[1] > b[1]) {
+                  return 1;
+                }
+                if (a[1] < b[1]) {
+                  return -1;
+                }
+                return 0;
+              });
+              indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
+            }
+            indexOrderSliced[i] = indexOrder[i].slice(0,k);
+            indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
+
+          for (var m=0; m < indexOrderSliced2d[i].length; m++){
+            if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){
+              count1[i] = count1[i] + 1;
+              temp[i] = temp[i] + 1;
+            }
+            if(indexOrderSliced[i][m] == indexOrderSliced2d[i][m]){
+              count2[i] = count2[i] + 1;
+              temp2[i] = temp2[i] + 1;
+
+            }
+          }  
+
+          if (count1[i] != 0){
+            counter1 = (count1[i] / temp[i]) + counter1;
+          }
+          if (count2[i] != 0){
+            counter2 = (count2[i] / temp2[i]) + counter2;
+          }
+
         }
 
-        max[j] = FeatureWiseSliced[0];
-        min[j] = FeatureWiseSliced[0];
-        for (var i=0; i<FeatureWiseSliced.length; i++){
-          if (max[j] < FeatureWiseSliced[i]){
-            max[j] = FeatureWiseSliced[i];
+          sumUnion = counter1 / selectedPoints.length;
+          sumIntersection = counter2 / selectedPoints.length;
+          if (sumUnion == 0){
+            findNearest = 0;
+          } else{
+            findNearest = sumIntersection / sumUnion;
           }
-          if (min[j] > FeatureWiseSliced[i]){
-            min[j] = FeatureWiseSliced[i];
+
+          if (isNaN(findNearest)){
+            findNearest = 0; 
           }
-        }
+          findNearestTable.push(findNearest * vh * 2);
+      }
+      findNearestTable.reverse();
+
+      var barPadding = 5;
+          d3v3.select("#knnBarChart").selectAll("rect").remove();
+
+      var svg2 = d3v3.select('#knnBarChart')
+        .attr("class", "bar-chart");
+
+        
+      var barWidth = (vw / findNearestTable.length);
+
+      var knnBarChartSVG = svg2.selectAll("rect")
+        .data(findNearestTable)
+        .enter()
+        .append("rect")
+        .attr("y", function(d) {
+            return Math.round(vh*2 - d)
+        })
+        .attr("height", function(d) {
+          return d;
+        })
+        .attr("width", barWidth - barPadding)
+        .attr("transform", function (d, i) {
+            var translate = [barWidth * i, 0];
+            return "translate("+ translate +")";
+        });
       }
 
-      var vectors = PCA.getEigenVectors(ArrayContainsDataFeaturesCleared);
-      var PCAResults = PCA.computeAdjustedData(ArrayContainsDataFeaturesCleared,vectors[0]);
-      var PCASelVec = [];
-      PCASelVec = PCAResults.selectedVectors[0];
+      d3.select("#starPlot").selectAll('g').remove();
+      var coun = 0;
+      for (var i=0; i < selectedPoints.length; i++){
+        if (selectedPoints[i].starplot == true){
+          coun = coun + 1;
+        } 
+      }
 
-      var len = PCASelVec.length;
-      var indices = new Array(len);
-      for (var i = 0; i < len; ++i) indices[i] = i;
-      indices = indices.sort(function (a, b) { return PCASelVec[a] < PCASelVec[b] ? -1 : PCASelVec[a] > PCASelVec[b] ? 1 : 0; });
-      //const list = dataFeatures.sort((a,b) => a.index - b.index).map((dataFeatures, index, array) => dataFeatures[Category])
+      if(selectedPoints.length <= 10 && coun > 0){
+    
+        var FeatureWise = [];
+    
+        for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
+          for (var i=0;i<dataFeatures.length;i++){
+            if (!isNaN(Object.values(dataFeatures[i])[j])){
+              FeatureWise.push(Object.values(dataFeatures[i])[j]);
+            }
+          }
+        }
+        
+        var max = [];
+        var min = [];
+        var vectors = [];
+        var FeatureWiseSlicedArray = [];
+        for (var j=0; j<Object.values(dataFeatures[0]).length; j++){
+          var FeatureWiseSliced = FeatureWise.slice(0+(j*dataFeatures.length),dataFeatures.length+j*dataFeatures.length);
+          if (FeatureWiseSliced != ""){
+            FeatureWiseSlicedArray.push(FeatureWiseSliced);
+          }
 
-      var wrapData = [];
-      var IDS = [];
-      for (var i=0; i<selectedPoints.length; i++){
-        var data = [];
-        for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
-          if (!isNaN(Object.values(dataFeatures[selectedPoints[i].id])[j])){
-                  for (m=0; m < len; m++){
-                    if (indices[m] == j){
-                      if (Object.keys(dataFeatures[selectedPoints[i].id])[m] == Category) {
-                      } else{
-                        data.push({axis:Object.keys(dataFeatures[selectedPoints[i].id])[m],value:Math.abs((Object.values(dataFeatures[selectedPoints[i].id])[m] - min[m])/(max[m] - min[m]))});
+          max[j] = FeatureWiseSliced[0];
+          min[j] = FeatureWiseSliced[0];
+          for (var i=0; i<FeatureWiseSliced.length; i++){
+            if (max[j] < FeatureWiseSliced[i]){
+              max[j] = FeatureWiseSliced[i];
+            }
+            if (min[j] > FeatureWiseSliced[i]){
+              min[j] = FeatureWiseSliced[i];
+            }
+          }
+        }
+
+        var vectors = PCA.getEigenVectors(ArrayContainsDataFeaturesCleared);
+        var PCAResults = PCA.computeAdjustedData(ArrayContainsDataFeaturesCleared,vectors[0]);
+        var PCASelVec = [];
+        PCASelVec = PCAResults.selectedVectors[0];
+
+        var len = PCASelVec.length;
+        var indices = new Array(len);
+        for (var i = 0; i < len; ++i) indices[i] = i;
+        indices = indices.sort(function (a, b) { return PCASelVec[a] < PCASelVec[b] ? -1 : PCASelVec[a] > PCASelVec[b] ? 1 : 0; });
+        //const list = dataFeatures.sort((a,b) => a.index - b.index).map((dataFeatures, index, array) => dataFeatures[Category])
+
+        var wrapData = [];
+        var IDS = [];
+        for (var i=0; i<selectedPoints.length; i++){
+          var data = [];
+          for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
+            if (!isNaN(Object.values(dataFeatures[selectedPoints[i].id])[j])){
+                    for (m=0; m < len; m++){
+                      if (indices[m] == j){
+                        if (Object.keys(dataFeatures[selectedPoints[i].id])[m] == Category) {
+                        } else{
+                          data.push({axis:Object.keys(dataFeatures[selectedPoints[i].id])[m],value:Math.abs((Object.values(dataFeatures[selectedPoints[i].id])[m] - min[m])/(max[m] - min[m]))});
+                        }
                       }
                     }
-                  }
+              }
             }
-          }
-        wrapData.push(data);
-        IDS.push(selectedPoints[i].id);
-      } 
+          wrapData.push(data);
+          IDS.push(selectedPoints[i].id);
+        } 
 
-        ////////////////////////////////////////////////////////////// 
-        //////////////////// Draw the Chart ////////////////////////// 
-        ////////////////////////////////////////////////////////////// 
-        var colors = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd'];
-        var colorScl = d3v3.scale.ordinal()
-          .domain(IDS)
-          .range(colors);
+          ////////////////////////////////////////////////////////////// 
+          //////////////////// Draw the Chart ////////////////////////// 
+          ////////////////////////////////////////////////////////////// 
+          var colors = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd'];
+          var colorScl = d3v3.scale.ordinal()
+            .domain(IDS)
+            .range(colors);
 
-        var radarChartOptions = {
-          w: width,
-          h: height,
-          margin: margin,
-          levels: 10,
-          roundStrokes: true,
-        };
-        //Call function to draw the Radar chart
-        RadarChart("#starPlot", wrapData, colorScl, IDS, radarChartOptions);
-  }
+          var radarChartOptions = {
+            w: width,
+            h: height,
+            margin: margin,
+            levels: 10,
+            roundStrokes: true,
+          };
+          //Call function to draw the Radar chart
+          RadarChart("#starPlot", wrapData, colorScl, IDS, radarChartOptions);
+    }
 
-  
- var ColSizeSelector = document.getElementById("param-neighborHood").value;
+    
+  var ColSizeSelector = document.getElementById("param-neighborHood").value;
 
- if (ColSizeSelector == "color") {
-  var max = (d3.max(points,function(d){ return d.beta; }));
-  var min = (d3.min(points,function(d){ return d.beta; }));
-  // colors
-  var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
-  var calcStep = (max-min)/7;
-  var colorScale = d3.scaleLinear()
-    .domain(d3.range(0, max+calcStep, calcStep))
-    .range(colorbrewer);
-
-  var maxSize1 = (d3.max(points,function(d){ return d.cost; }));
-  var minSize1 = (d3.min(points,function(d){ return d.cost; }));
-  var rscale1 = d3.scaleLinear()
-    .domain([minSize1, maxSize1])
-    .range([5,12]);
-
-  var colorScale = d3.scaleLinear()
-    .domain(d3.range(0, max+calcStep, calcStep))
-    .range(colorbrewer);
-  points = points.sort(function(a, b) {
-    return a.beta - b.beta;
-  })
-  var labels_beta = [];
-  var abbr_labels_beta = [];
-  labels_beta = d3.range(0, max+calcStep, calcStep);
-  for (var i=0; i<9; i++){
-    labels_beta[i] = parseInt(labels_beta[i]);
-    abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
-  }
-  var svg = d3.select("#legend1");
-
-    svg.append("g")
-      .attr("class", "legendLinear")
-      .attr("transform", "translate(10,15)");
-
-    var legend = d3.legendColor()
-      .labelFormat(d3.format(",.0f"))
-      .cells(9)
-      .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-      .title("1 / sigma")
-      .scale(colorScale);
-      
-    svg.select(".legendLinear")
-      .call(legend);
-} else {
-var max = (d3.max(points,function(d){ return d.cost; }));
-var min = (d3.min(points,function(d){ return d.cost; }));
-
-var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
-var minSize2 = (d3.min(points,function(d){ return d.beta; }));
-var rscale2 = d3.scaleLinear()
-  .domain([minSize2, maxSize2])
-  .range([5,12]);
-
-var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
-var calcStep = (max-min)/9;
-var colorScale = d3.scaleLinear()
-  .domain(d3.range(min, max, calcStep))
-  .range(colorbrewer);
-
-  points = points.sort(function(a, b) {
-    return a.cost - b.cost;
-  })
-
-  var labels_cost = [];
-  var abbr_labels_cost = [];
-  labels_cost = d3.range(min, max, calcStep);
-  for (var i=0; i<9; i++){
-    labels_cost[i] = labels_cost[i].toFixed(5);
-    abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
-  }
-
-  var svg = d3.select("#legend1");
-
-  svg.append("g")
-      .attr("class", "legendLinear")
-      .attr("transform", "translate(10,15)");
-
-  var legend = d3.legendColor()
-    .labelFormat(d3.format(",.5f"))
-    .cells(9)
-    .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-    .title("KLD(P||Q)")
-    .scale(colorScale);
-
-  svg.select(".legendLinear")
-    .call(legend);
-}
-
-window.addEventListener('resize', () => {
-  dimensions = window.innerWidth;
-  dimensions = window.innerHeight;
-
-  renderer.setSize(dimensions, dimensions);
-  camera.aspect = dimensions / dimensions;
-  camera.updateProjectionMatrix();
-})
-
-let zoom = d3.zoom()
-  .scaleExtent([getScaleFromZ(far), getScaleFromZ(near)])
-  .on('zoom', () =>  {
-    let d3_transform = d3.event.transform;
-    zoomHandler(d3_transform);
-  });
-
-view = d3.select(renderer.domElement);
-
-function setUpZoom() {
-  view.call(zoom);    
-  let initial_scale = getScaleFromZ(far);
-  var initial_transform = d3.zoomIdentity.translate(dimensions/2, dimensions/2).scale(initial_scale);    
-  zoom.transform(view, initial_transform);
-  camera.position.set(0, 0, far);
-}
-
-//if(step_counter == max_counter){
-setUpZoom();
-//}
-
-var circle_sprite= new THREE.TextureLoader().load(
-  "./textures/circle-sprite.png"
-)
-
-
-
-clearThree(scene);
-
-// Increase/reduce size factor selected by the user
-var limitdist = document.getElementById("param-lim-value").value;
-limitdist = parseFloat(limitdist).toFixed(1);
-
-let pointsMaterial;
-let factorPlusSize;
-let geometry = new THREE.Geometry();
-for (var i=0; i<points.length; i++) {
-  let pointsGeometry = new THREE.Geometry();
-  let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
-  pointsGeometry.vertices.push(vertex);
-  geometry.vertices.push(vertex);
-  if (points[i].selected == false){
-    var color = new THREE.Color("rgb(211, 211, 211)");
-  } else if (points[i].DimON != null) {
-
-    let temp = points[i].DimON.match(/\d+/)[0];
-
-    var maxDim = (d3.max(points,function(d){ if(d.selected == true){return d[temp]}; }));
-    var minDim = (d3.min(points,function(d){ if(d.selected == true){return d[temp]}; }));  
-
-    let colorsBarChart = ['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
-    var calcStepDim = (maxDim-minDim)/8;
-    var colorScale = d3.scaleLinear()
-      .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
-      .range(colorsBarChart);
-    var color = new THREE.Color(colorScale(points[i][temp]));
-      
-  } else if(points[i].starplot == true){
-    var color = new THREE.Color(colorScl(points[i].id));
-  } else if (ColSizeSelector == "color") {
-    var color = new THREE.Color(colorScale(points[i].beta));
-  }
-  else{
-    var color = new THREE.Color(colorScale(points[i].cost));
-  }
   if (ColSizeSelector == "color") {
-    let sizePoint = rscale1(points[i].cost);
-    factorPlusSize = limitdist * sizePoint;
-    pointsGeometry.colors.push(color);
-    pointsMaterial = new THREE.PointsMaterial({
-      sizeAttenuation: false,
-      size: Number(factorPlusSize.toFixed(1)),
-      vertexColors: THREE.VertexColors,
-      map: circle_sprite,
-      transparent: true
-    });
-  } else{
-    let sizePoint = rscale2(points[i].beta);
-    factorPlusSize = limitdist * sizePoint;
-    pointsGeometry.colors.push(color);
-    pointsMaterial = new THREE.PointsMaterial({
-      sizeAttenuation: false,
-      size: Number(factorPlusSize.toFixed(1)),
-      vertexColors: THREE.VertexColors,
-      map: circle_sprite,
-      transparent: true
-    });
-  }
-  var particlesDuplic = new THREE.Points(geometry, pointsMaterial);
-  var particles = new THREE.Points(pointsGeometry, pointsMaterial);
-  scene.add(particles);
-}
+    var max = (d3.max(points,function(d){ return d.beta; }));
+    var min = (d3.min(points,function(d){ return d.beta; }));
+    // colors
+    var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
+    var calcStep = (max-min)/7;
+    var colorScale = d3.scaleLinear()
+      .domain(d3.range(0, max+calcStep, calcStep))
+      .range(colorbrewer);
 
-let tempSort = -1;
+    var maxSize1 = (d3.max(points,function(d){ return d.cost; }));
+    var minSize1 = (d3.min(points,function(d){ return d.cost; }));
+    var rscale1 = d3.scaleLinear()
+      .domain([minSize1, maxSize1])
+      .range([5,12]);
 
-for (var i=0; i<points.length; i++){
-if (points[i].DimON != null) {
-  tempSort = points[i].DimON.match(/\d+/)[0];
-}
-}
-
-if (tempSort != -1){
-points = points.sort(function(a, b) {
-    return a[tempSort] - b[tempSort];
-})
-}
-
-var temporal = 0;
-for (var j=0; j < points.length; j++){
-if(points[j].DimON != null) {
-      temporal = temporal + 1;
-      var labels_dim = [];
-      var abbr_labels_dim = [];
-      labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
-
-      for (var i=0; i<9; i++){
-        labels_dim[i] = labels_dim[i].toFixed(2);
-        abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
-      }
-      d3.select("#legend1").selectAll('*').remove();
-      var svg = d3.select("#legend1");
+    var colorScale = d3.scaleLinear()
+      .domain(d3.range(0, max+calcStep, calcStep))
+      .range(colorbrewer);
+    points = points.sort(function(a, b) {
+      return a.beta - b.beta;
+    })
+    var labels_beta = [];
+    var abbr_labels_beta = [];
+    labels_beta = d3.range(0, max+calcStep, calcStep);
+    for (var i=0; i<9; i++){
+      labels_beta[i] = parseInt(labels_beta[i]);
+      abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
+    }
+    var svg = d3.select("#legend1");
 
       svg.append("g")
         .attr("class", "legendLinear")
         .attr("transform", "translate(10,15)");
-        
-      var legend = d3.legendColor()
-        .labelFormat(d3.format(",.0f"))
-        .cells(9)
-        .labels([abbr_labels_dim[0],abbr_labels_dim[1],abbr_labels_dim[2],abbr_labels_dim[3],abbr_labels_dim[4],abbr_labels_dim[5],abbr_labels_dim[6],abbr_labels_dim[7],abbr_labels_dim[8]])
-        .title(points[j].DimON)
-        .scale(colorScale);
 
-      svg.select(".legendLinear")
-        .call(legend);
-      break;
-    } 
-}
-// This is for the legend
-for (var j=0; j < points.length; j++){
-if(temporal == 0 && points[j].DimON == null){
-    if (ColSizeSelector == "color"){
-      d3.select("#legend1").selectAll('*').remove();
-      var svg = d3.select("#legend1");
-  
-      svg.append("g")
-        .attr("class", "legendLinear")
-        .attr("transform", "translate(10,15)");
-  
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.0f"))
         .cells(9)
         .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
         .title("1 / sigma")
         .scale(colorScale);
-  
+        
       svg.select(".legendLinear")
         .call(legend);
-      break;
-    } else {
-      d3.select("#legend1").selectAll('*').remove();
-      var svg = d3.select("#legend1");
+  } else {
+  var max = (d3.max(points,function(d){ return d.cost; }));
+  var min = (d3.min(points,function(d){ return d.cost; }));
 
-      svg.append("g")
+  var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
+  var minSize2 = (d3.min(points,function(d){ return d.beta; }));
+  var rscale2 = d3.scaleLinear()
+    .domain([minSize2, maxSize2])
+    .range([5,12]);
+
+  var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
+  var calcStep = (max-min)/9;
+  var colorScale = d3.scaleLinear()
+    .domain(d3.range(min, max, calcStep))
+    .range(colorbrewer);
+
+    points = points.sort(function(a, b) {
+      return a.cost - b.cost;
+    })
+
+    var labels_cost = [];
+    var abbr_labels_cost = [];
+    labels_cost = d3.range(min, max, calcStep);
+    for (var i=0; i<9; i++){
+      labels_cost[i] = labels_cost[i].toFixed(5);
+      abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+    }
+
+    var svg = d3.select("#legend1");
+
+    svg.append("g")
         .attr("class", "legendLinear")
         .attr("transform", "translate(10,15)");
 
-      var legend = d3.legendColor()
-        .labelFormat(d3.format(".4f"))
-        .cells(9)
-        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-        .title("KLD(P||Q)")
-        .scale(colorScale);
+    var legend = d3.legendColor()
+      .labelFormat(d3.format(",.5f"))
+      .cells(9)
+      .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+      .title("KLD(P||Q)")
+      .scale(colorScale);
 
-      svg.select(".legendLinear")
-        .call(legend);
-      break;
-    }
+    svg.select(".legendLinear")
+      .call(legend);
   }
-}
 
-function zoomHandler(d3_transform) {
-  let scale = d3_transform.k;
-  let x = -(d3_transform.x - dimensions/2) / scale;
-  let y = (d3_transform.y - dimensions/2) / scale;
-  let z = getZFromScale(scale);
-  camera.position.set(x, y, z);
-}
+  window.addEventListener('resize', () => {
+    dimensions = window.innerWidth;
+    dimensions = window.innerHeight;
 
-function getScaleFromZ (camera_z_position) {
-  let half_fov = fov/2;
-  let half_fov_radians = toRadians(half_fov);
-  let half_fov_height = Math.tan(half_fov_radians) * camera_z_position;
-  let fov_height = half_fov_height * 2;
-  let scale = dimensions / fov_height; // Divide visualization height by height derived from field of view
-  return scale;
-}
+    renderer.setSize(dimensions, dimensions);
+    camera.aspect = dimensions / dimensions;
+    camera.updateProjectionMatrix();
+  })
 
-function getZFromScale(scale) {
-  let half_fov = fov/2;
-  let half_fov_radians = toRadians(half_fov);
-  let scale_height = dimensions / scale;
-  let camera_z_position = scale_height / (2 * Math.tan(half_fov_radians));
-  return camera_z_position;
-}
+  let zoom = d3.zoom()
+    .scaleExtent([getScaleFromZ(far), getScaleFromZ(near)])
+    .on('zoom', () =>  {
+      let d3_transform = d3.event.transform;
+      zoomHandler(d3_transform);
+    });
 
-function toRadians (angle) {
-  return angle * (Math.PI / 180);
-}
+  view = d3.select(renderer.domElement);
 
-// Hover and tooltip interaction
-
-raycaster = new THREE.Raycaster();
-raycaster.params.Points.threshold = 10;
-
-view.on("mousemove", () => {
-  let [mouseX, mouseY] = d3.mouse(view.node());
-  let mouse_position = [mouseX, mouseY];
-checkIntersects(mouse_position);
-});
-
-function mouseToThree(mouseX, mouseY) {
-  return new THREE.Vector3(
-    mouseX / dimensions * 2 - 1,
-    -(mouseY / dimensions) * 2 + 1,
-    1
-  );
-}
-function checkIntersects(mouse_position) {
-  let mouse_vector = mouseToThree(...mouse_position);
-  raycaster.setFromCamera(mouse_vector, camera);
-  let intersects = raycaster.intersectObject(particlesDuplic);
-  if (intersects[0]) {
-    if (ColSizeSelector == "color"){
-      points = points.sort(function(a, b) {
-      return a.beta - b.beta;
-    })
-    } else{
-        points = points.sort(function(a, b) {
-        return a.cost - b.cost;
-      })
-    }
-    let sorted_intersects = sortIntersectsByDistanceToRay(intersects);
-    let intersect = sorted_intersects[0];
-    let index = intersect.index;
-    let datum = points[index];
-    highlightPoint(datum);
-    showTooltip(mouse_position, datum);
-  } else {
-    removeHighlights();
-    hideTooltip();
+  function setUpZoom() {
+    view.call(zoom);    
+    let initial_scale = getScaleFromZ(far);
+    var initial_transform = d3.zoomIdentity.translate(dimensions/2, dimensions/2).scale(initial_scale);    
+    zoom.transform(view, initial_transform);
+    camera.position.set(0, 0, far);
   }
-}
 
-function sortIntersectsByDistanceToRay(intersects) {
-  return _.sortBy(intersects, "distanceToRay");
-}
+  //if(step_counter == max_counter){
+  setUpZoom();
+  //}
 
-hoverContainer = new THREE.Object3D()
-scene.add(hoverContainer);
+  var circle_sprite= new THREE.TextureLoader().load(
+    "./textures/circle-sprite.png"
+  )
 
-function highlightPoint(datum) {
-  removeHighlights();
-  
+
+
+  clearThree(scene);
+
+  // Increase/reduce size factor selected by the user
+  var limitdist = document.getElementById("param-lim-value").value;
+  limitdist = parseFloat(limitdist).toFixed(1);
+
+  let pointsMaterial;
+  let factorPlusSize;
   let geometry = new THREE.Geometry();
+  for (var i=0; i<points.length; i++) {
+    let pointsGeometry = new THREE.Geometry();
+    let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
+    pointsGeometry.vertices.push(vertex);
+    geometry.vertices.push(vertex);
+    if (points[i].selected == false){
+      var color = new THREE.Color("rgb(211, 211, 211)");
+    } else if (points[i].DimON != null) {
 
-  geometry.vertices.push(
-    new THREE.Vector3(
-      (((datum.x/dimensions)*2) - 1)*dimensions,
-      (((datum.y/dimensions)*2) - 1)*dimensions*-1,
-      0
-    )
-  );
+      let temp = points[i].DimON.match(/\d+/)[0];
 
-  if (all_labels[0] == undefined){
-    var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
+      var maxDim = (d3.max(points,function(d){ if(d.selected == true){return d[temp]}; }));
+      var minDim = (d3.min(points,function(d){ if(d.selected == true){return d[temp]}; }));  
+
+      let colorsBarChart = ['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
+      var calcStepDim = (maxDim-minDim)/8;
+      var colorScale = d3.scaleLinear()
+        .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
+        .range(colorsBarChart);
+      var color = new THREE.Color(colorScale(points[i][temp]));
+        
+    } else if(points[i].starplot == true){
+      var color = new THREE.Color(colorScl(points[i].id));
+    } else if (ColSizeSelector == "color") {
+      var color = new THREE.Color(colorScale(points[i].beta));
+    }
+    else{
+      var color = new THREE.Color(colorScale(points[i].cost));
+    }
+    if (ColSizeSelector == "color") {
+      let sizePoint = rscale1(points[i].cost);
+      factorPlusSize = limitdist * sizePoint;
+      pointsGeometry.colors.push(color);
+      pointsMaterial = new THREE.PointsMaterial({
+        sizeAttenuation: false,
+        size: Number(factorPlusSize.toFixed(1)),
+        vertexColors: THREE.VertexColors,
+        map: circle_sprite,
+        transparent: true
+      });
+    } else{
+      let sizePoint = rscale2(points[i].beta);
+      factorPlusSize = limitdist * sizePoint;
+      pointsGeometry.colors.push(color);
+      pointsMaterial = new THREE.PointsMaterial({
+        sizeAttenuation: false,
+        size: Number(factorPlusSize.toFixed(1)),
+        vertexColors: THREE.VertexColors,
+        map: circle_sprite,
+        transparent: true
+      });
+    }
+    var particlesDuplic = new THREE.Points(geometry, pointsMaterial);
+    var particles = new THREE.Points(pointsGeometry, pointsMaterial);
+    scene.add(particles);
   }
-  else{
-    var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
+
+  let tempSort = -1;
+
+  for (var i=0; i<points.length; i++){
+  if (points[i].DimON != null) {
+    tempSort = points[i].DimON.match(/\d+/)[0];
+  }
   }
 
-  geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
-
-  let material = new THREE.PointsMaterial({
-    size: 26,
-    sizeAttenuation: false,
-    vertexColors: THREE.VertexColors,
-    map: circle_sprite,
-    transparent: true
-  });
-  
-  let point = new THREE.Points(geometry, material);
-  hoverContainer.add(point);
-}
-
-function removeHighlights() {
-  hoverContainer.remove(...hoverContainer.children);
-}
-
-view.on("mouseleave", () => {
-  removeHighlights()
-});
-
-// Initial tooltip state
-let tooltip_state = { display: "none" }
-let tooltip_dimensions;
-let tooltip_template = document.createRange().createContextualFragment(`<div id="tooltip" style="display: none; z-index: 2; position: absolute; pointer-events: none; font-size: 13px; width: 240px; text-align: center; line-height: 1; padding: 6px; background: white; font-family: sans-serif;">
-  <div id="point_tip" style="padding: 4px; margin-bottom: 4px;"></div>
-  <div id="group_tip" style="padding: 4px;"></div>
-</div>`);
-document.body.append(tooltip_template);
-
-let $tooltip = document.querySelector('#tooltip');
-let $point_tip = document.querySelector('#point_tip');
-let $group_tip = document.querySelector('#group_tip');
-
-function updateTooltip() {
-  if (all_labels[0] == undefined){
-    var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
+  if (tempSort != -1){
+  points = points.sort(function(a, b) {
+      return a[tempSort] - b[tempSort];
+  })
   }
-  else{
-    var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
+
+  var temporal = 0;
+  for (var j=0; j < points.length; j++){
+  if(points[j].DimON != null) {
+        temporal = temporal + 1;
+        var labels_dim = [];
+        var abbr_labels_dim = [];
+        labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
+
+        for (var i=0; i<9; i++){
+          labels_dim[i] = labels_dim[i].toFixed(2);
+          abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
+        }
+        d3.select("#legend1").selectAll('*').remove();
+        var svg = d3.select("#legend1");
+
+        svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+          
+        var legend = d3.legendColor()
+          .labelFormat(d3.format(",.0f"))
+          .cells(9)
+          .labels([abbr_labels_dim[0],abbr_labels_dim[1],abbr_labels_dim[2],abbr_labels_dim[3],abbr_labels_dim[4],abbr_labels_dim[5],abbr_labels_dim[6],abbr_labels_dim[7],abbr_labels_dim[8]])
+          .title(points[j].DimON)
+          .scale(colorScale);
+
+        svg.select(".legendLinear")
+          .call(legend);
+        break;
+      } 
   }
-  $tooltip.style.display = tooltip_state.display;
-  $tooltip.style.left = tooltip_state.left + 'px';
-  $tooltip.style.top = tooltip_state.top + 'px';
-  $point_tip.innerText = tooltip_state[Category];
-  $point_tip.style.background = colorScaleCat(tooltip_state.color);
-  var tooltipComb = [];
-  tooltipComb = "Data set's features: " + "\n";
-  if (tooltip_dimensions){
-    for (var i=0; i<tooltip_dimensions[0].length; i++){
-      if (tooltip_dimensions[0][i][0] == Category){
-  
-      } else{
-        tooltipComb = tooltipComb + tooltip_dimensions[0][i];
-        tooltipComb = tooltipComb + "\n";
+  // This is for the legend
+  for (var j=0; j < points.length; j++){
+  if(temporal == 0 && points[j].DimON == null){
+      if (ColSizeSelector == "color"){
+        d3.select("#legend1").selectAll('*').remove();
+        var svg = d3.select("#legend1");
+    
+        svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+    
+        var legend = d3.legendColor()
+          .labelFormat(d3.format(",.0f"))
+          .cells(9)
+          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
+          .title("1 / sigma")
+          .scale(colorScale);
+    
+        svg.select(".legendLinear")
+          .call(legend);
+        break;
+      } else {
+        d3.select("#legend1").selectAll('*').remove();
+        var svg = d3.select("#legend1");
+
+        svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+
+        var legend = d3.legendColor()
+          .labelFormat(d3.format(".4f"))
+          .cells(9)
+          .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+          .title("KLD(P||Q)")
+          .scale(colorScale);
+
+        svg.select(".legendLinear")
+          .call(legend);
+        break;
       }
     }
-  } else{
-    tooltipComb = "-";
   }
-  $group_tip.innerText = tooltipComb;
-}
 
-function showTooltip(mouse_position, datum) {
-  let tooltip_width = 240;
-  let x_offset = tooltip_width + tooltip_width;
-  let y_offset = 30;
-  tooltip_state.display = "block";
-  tooltip_state.left = mouse_position[0] + x_offset;
-  tooltip_state.top = mouse_position[1] + y_offset;
-  if (all_labels[0] == undefined){
-    tooltip_state[Category] = "Point ID: " + datum.id;
-    tooltip_state.color = datum.id;
-  } else{
-    tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
-    tooltip_state.color = datum[Category];
+  function zoomHandler(d3_transform) {
+    let scale = d3_transform.k;
+    let x = -(d3_transform.x - dimensions/2) / scale;
+    let y = (d3_transform.y - dimensions/2) / scale;
+    let z = getZFromScale(scale);
+    camera.position.set(x, y, z);
   }
-  tooltip_dimensions = [];
-  for (var i=0; i < dataFeatures.length - 1; i++){
-    if (datum.id == i){
-        tooltip_dimensions.push(Object.entries(dataFeatures[i]));
+
+  function getScaleFromZ (camera_z_position) {
+    let half_fov = fov/2;
+    let half_fov_radians = toRadians(half_fov);
+    let half_fov_height = Math.tan(half_fov_radians) * camera_z_position;
+    let fov_height = half_fov_height * 2;
+    let scale = dimensions / fov_height; // Divide visualization height by height derived from field of view
+    return scale;
+  }
+
+  function getZFromScale(scale) {
+    let half_fov = fov/2;
+    let half_fov_radians = toRadians(half_fov);
+    let scale_height = dimensions / scale;
+    let camera_z_position = scale_height / (2 * Math.tan(half_fov_radians));
+    return camera_z_position;
+  }
+
+  function toRadians (angle) {
+    return angle * (Math.PI / 180);
+  }
+
+  // Hover and tooltip interaction
+
+  raycaster = new THREE.Raycaster();
+  raycaster.params.Points.threshold = 10;
+
+  view.on("mousemove", () => {
+    let [mouseX, mouseY] = d3.mouse(view.node());
+    let mouse_position = [mouseX, mouseY];
+  checkIntersects(mouse_position);
+  });
+
+  function mouseToThree(mouseX, mouseY) {
+    return new THREE.Vector3(
+      mouseX / dimensions * 2 - 1,
+      -(mouseY / dimensions) * 2 + 1,
+      1
+    );
+  }
+  function checkIntersects(mouse_position) {
+    let mouse_vector = mouseToThree(...mouse_position);
+    raycaster.setFromCamera(mouse_vector, camera);
+    let intersects = raycaster.intersectObject(particlesDuplic);
+    if (intersects[0]) {
+      if (ColSizeSelector == "color"){
+        points = points.sort(function(a, b) {
+        return a.beta - b.beta;
+      })
+      } else{
+          points = points.sort(function(a, b) {
+          return a.cost - b.cost;
+        })
+      }
+      let sorted_intersects = sortIntersectsByDistanceToRay(intersects);
+      let intersect = sorted_intersects[0];
+      let index = intersect.index;
+      let datum = points[index];
+      highlightPoint(datum);
+      showTooltip(mouse_position, datum);
+    } else {
+      removeHighlights();
+      hideTooltip();
     }
   }
-  updateTooltip();
-}
 
-function hideTooltip() {
-  tooltip_state.display = "none";
-  updateTooltip();
-}
+  function sortIntersectsByDistanceToRay(intersects) {
+    return _.sortBy(intersects, "distanceToRay");
+  }
 
+  hoverContainer = new THREE.Object3D()
+  scene.add(hoverContainer);
+
+  function highlightPoint(datum) {
+    removeHighlights();
+    
+    let geometry = new THREE.Geometry();
+
+    geometry.vertices.push(
+      new THREE.Vector3(
+        (((datum.x/dimensions)*2) - 1)*dimensions,
+        (((datum.y/dimensions)*2) - 1)*dimensions*-1,
+        0
+      )
+    );
+
+    if (all_labels[0] == undefined){
+      var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
+    }
+    else{
+      var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
+    }
+
+    geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
+
+    let material = new THREE.PointsMaterial({
+      size: 26,
+      sizeAttenuation: false,
+      vertexColors: THREE.VertexColors,
+      map: circle_sprite,
+      transparent: true
+    });
+    
+    let point = new THREE.Points(geometry, material);
+    hoverContainer.add(point);
+  }
+
+  function removeHighlights() {
+    hoverContainer.remove(...hoverContainer.children);
+  }
+
+  view.on("mouseleave", () => {
+    removeHighlights()
+  });
+
+    // Initial tooltip state
+    let tooltip_state = { display: "none" }
+    let tooltip_dimensions;
+    let tooltip_template = document.createRange().createContextualFragment(`<div id="tooltip" style="display: none; z-index: 2; position: absolute; pointer-events: none; font-size: 13px; width: 240px; text-align: center; line-height: 1; padding: 6px; background: white; font-family: sans-serif;">
+      <div id="point_tip" style="padding: 4px; margin-bottom: 4px;"></div>
+      <div id="group_tip" style="padding: 4px;"></div>
+    </div>`);
+    document.body.append(tooltip_template);
+
+    let $tooltip = document.querySelector('#tooltip');
+    let $point_tip = document.querySelector('#point_tip');
+    let $group_tip = document.querySelector('#group_tip');
+
+    function updateTooltip() {
+      if (all_labels[0] == undefined){
+        var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
+      }
+      else{
+        var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
+      }
+      $tooltip.style.display = tooltip_state.display;
+      $tooltip.style.left = tooltip_state.left + 'px';
+      $tooltip.style.top = tooltip_state.top + 'px';
+      $point_tip.innerText = tooltip_state[Category];
+      $point_tip.style.background = colorScaleCat(tooltip_state.color);
+      var tooltipComb = [];
+      tooltipComb = "Data set's features: " + "\n";
+      if (tooltip_dimensions){
+        for (var i=0; i<tooltip_dimensions[0].length; i++){
+          if (tooltip_dimensions[0][i][0] == Category){
+      
+          } else{
+            tooltipComb = tooltipComb + tooltip_dimensions[0][i];
+            tooltipComb = tooltipComb + "\n";
+          }
+        }
+      } else{
+        tooltipComb = "-";
+      }
+      $group_tip.innerText = tooltipComb;
+    }
+
+    function showTooltip(mouse_position, datum) {
+      let tooltip_width = 240;
+      let x_offset = tooltip_width + tooltip_width;
+      let y_offset = 30;
+      tooltip_state.display = "block";
+      tooltip_state.left = mouse_position[0] + x_offset;
+      tooltip_state.top = mouse_position[1] + y_offset;
+      if (all_labels[0] == undefined){
+        tooltip_state[Category] = "Point ID: " + datum.id;
+        tooltip_state.color = datum.id;
+      } else{
+        tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
+        tooltip_state.color = datum[Category];
+      }
+      tooltip_dimensions = [];
+      for (var i=0; i < dataFeatures.length - 1; i++){
+        if (datum.id == i){
+            tooltip_dimensions.push(Object.entries(dataFeatures[i]));
+        }
+      }
+      updateTooltip();
+    }
+
+    function hideTooltip() {
+      tooltip_state.display = "none";
+      updateTooltip();
+    }
+  }
   
 }
 
