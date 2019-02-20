@@ -187,8 +187,8 @@ var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 		}
 	    }
 	    var results = d2p(dists, this.perplexity, 1e-4);
-      this.P = results[0];
-      this.beta = results[1];
+      	this.P = results[0];
+     	this.beta = results[1];
 	    this.N = N;
 	    this.initSolution(); // refresh this
 	},
