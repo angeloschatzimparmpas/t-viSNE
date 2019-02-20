@@ -149,7 +149,7 @@ cursor: default;
 
 
 /* Legend of the Overview t-SNE canvas */
- div#legend3 {
+ div#legend2 {
    height: 11vw;
    width: 11vw;
    text-align: left;
@@ -182,7 +182,7 @@ text.label {
 }
 
 /* Styling of the ShepardHeatmap */
-svg#legend4 {
+svg#legend3 {
   height: 11vw;
   width: 11vw;
   text-align: left;
@@ -327,7 +327,7 @@ rect {
 /* Styling of the main SVG behind canvas */
 #SvgAnnotator {
   position: absolute; 
-  z-index: 3;
+  z-index: 1;
 }
 
 #toggleAnnotator {

@@ -3,7 +3,7 @@ function changeDataset(value) {
 
     var format = value.split("."); // Get the data set's format.
 
-    if (format[value.split(".").length-1] != "csv") { // This is for a new file.
+    if (format[value.split(".").length-1] != "csv") { // This is a function that handles a new file, which users can upload.
       d3.select("#data").select("input").remove();
       d3.select("#data")
         .append("input")

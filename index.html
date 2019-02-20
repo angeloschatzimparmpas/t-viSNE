@@ -53,7 +53,7 @@
                         <canvas id = "tSNEcanvas"></canvas>
                     </div>
                     <div class="col-md-2">
-                        <div class="legend" id = "legend3"></div>
+                        <div class="legend" id = "legend2"></div>
                     </div>
                 </div>
               </div>
@@ -109,7 +109,7 @@
                   <svg id="sheparheat"></svg>
                 </div>
                 <div class="col-md-2">
-                  <svg id="legend4"></svg>
+                  <svg id="legend3"></svg>
                 </div>
               </div>
             </div>
@@ -258,7 +258,7 @@
       $('#param-maxiter').bind('input', function () { $('#param-maxiter-value').text($('#param-maxiter').val()); });
 
       // Get the container element
-      var btnContainer = document.getElementById("commBtn");
+      var btnContainer = document.getElementById("commBtn"); //Add a new comment button
 
       // Get all buttons with class="btn" inside the container
       var btns = btnContainer.getElementsByClassName("btn");
@@ -271,7 +271,7 @@
       }
 
       // Get the container element
-      var btnContainer2 = document.getElementById("resetAllFilters");
+      var btnContainer2 = document.getElementById("resetAllFilters"); //resetAllFilters button
 
       // Get all buttons with class="btn" inside the container
       var btns2 = btnContainer2.getElementsByClassName("btn");
@@ -292,7 +292,7 @@
         if ( document.getElementById('cost').hasChildNodes() ) {
           
           // Clear legend for the shepardHeatmap
-          var svgLegend = d3.select("#legend4");
+          var svgLegend = d3.select("#legend3");
           svgLegend.selectAll("*").remove();
 
           // Clear the SheapHeardmap before refreshing
