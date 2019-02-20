@@ -569,7 +569,7 @@ function init(data, results_all, fields) {
     $("#datasetDetails").html("Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Samples: " + final_dataset.length); // Print on the screen the number of dimensions and samples of the data set, which is being analyzed.
     dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
     tsne.initDataDist(dists); // Init t-SNE with dists.
-    console.log(dists);
+
     for(var i = 0; i < dataFeatures.length; i++) {
       if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){ // If a categorization label exist then add it into all_labels variable.
         all_labels[i] = dataFeatures[i][Category];
@@ -761,7 +761,6 @@ function updateEmbedding(AnalaysisResults) {
             points[i] = extend(points[i], dataFeatures[i]);
         }
   } else{
-    console.log("mpa");
       points = AnalaysisResults.slice(0,dataFeatures.length); // Load the points from the previous analysis
       points2d = AnalaysisResults.slice(dataFeatures.length,2*dataFeatures.length); // Load the 2D points 
       overallCost = AnalaysisResults.slice(dataFeatures.length*2,dataFeatures.length*2+1); // Load the overall cost
@@ -774,8 +773,6 @@ function updateEmbedding(AnalaysisResults) {
       document.getElementById("param-transform").value = ParametersSet[5];
   }
   InitialStatePoints = points; // Initial Points will not be modified!
-  console.log(points2d);
-  console.log(points);
   
 
   function extend(obj, src) { // Call this function to add additional information to the points such as dataFeatures and Array which contains the data features without strings.
@@ -2535,7 +2532,7 @@ if (points.length) { // If points exist (at least 1 point)
       var labels_dim = [];
       var abbr_labels_dim = [];
       labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
-      console.log(labels_dim);
+
       for (var i=0; i<9; i++){
         labels_dim[i] = labels_dim[i].toFixed(2);
         abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
