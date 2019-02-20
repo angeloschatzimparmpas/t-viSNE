@@ -8,7 +8,7 @@ var tsne; var opt; var step_counter; var max_counter; var runner;
 
 // These variables are initialized here in order to store the final dataset, the points, the cost, the cost for each iteration, the beta values, the positions, the 2D points positions,
 // In addition, there is an array which keeps the initial information of the points (i.e., initial state), the data features (with the label of the category plus the id of the point), the data features without the category (only numbers).
-var final_dataset; var points = []; var cost = []; var cost_each; var beta_all = []; var x_position = []; var y_position = []; var points2d = []; var ArrayContainsDataFeatures = []; var ArrayContainsDataFeaturesCleared = []; var InitialStatePoints = [];
+var final_dataset; var points = []; var cost = []; var cost_each; var beta_all = []; var x_position = []; var y_position = []; var points2d = []; var ArrayContainsDataFeaturesCleared = []; var InitialStatePoints = [];
 
 // The distances in the high dimensional space and in the 2D space. All the labels that were found in the selected data set.
 var dists; var dists2d; var all_labels;
@@ -181,7 +181,6 @@ var getData = function() {
 
 // Parse the data set with the use of PapaParse.
 function parseData(url) {
-
   Papa.parse(url, { 
       download: true,
       header: true,
@@ -193,7 +192,7 @@ function parseData(url) {
         for(key in el) {
             if(el.hasOwnProperty(key)) {
                 var value = el[key];
-                  if(typeof(value) !== 'number' || value === undefined || key === "Version"){ // We can add more limitations here if needed! We delete everything that we do not want. 
+                  if(typeof(value) !== 'number' || value === undefined || key === "Version"){ //add more limitations if needed!
                     delete el[key];
                   }else{
                     el[counter] = el[key];
@@ -529,7 +528,9 @@ function init(data, results_all, fields) {
     // Put the input variables into more properly named variables and store them.
     final_dataset = data;
     dataFeatures = results_all;
-
+  
+    dists = computeDistances(final_dataset, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
+    tsne.initDataDist(dists); // Init t-SNE with dists.
     var object;
     all_labels = [];
     // Get the dimension that contains an asterisk mark ("*"). This is our classification label.
@@ -548,7 +549,6 @@ function init(data, results_all, fields) {
 
     for (let k = 0; k < dataFeatures.length; k++){
 
-      ArrayContainsDataFeatures.push(Object.values(dataFeatures[k]).concat(k));
       object = [];
       for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
         if(typeof(Object.values(dataFeatures[k])[j]) == "number" && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
@@ -567,8 +567,6 @@ function init(data, results_all, fields) {
     }
 
     $("#datasetDetails").html("Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Samples: " + final_dataset.length); // Print on the screen the number of dimensions and samples of the data set, which is being analyzed.
-    dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
-    tsne.initDataDist(dists); // Init t-SNE with dists.
 
     for(var i = 0; i < dataFeatures.length; i++) {
       if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){ // If a categorization label exist then add it into all_labels variable.
@@ -582,6 +580,7 @@ function init(data, results_all, fields) {
       alert("The file API isn't supported on this browser yet.");
     }
     
+
     // During the initialization check if we loaded a previous analysis.
     input = document.getElementById("file-input");
     if (!input) {
@@ -773,7 +772,6 @@ function updateEmbedding(AnalaysisResults) {
       document.getElementById("param-transform").value = ParametersSet[5];
   }
   InitialStatePoints = points; // Initial Points will not be modified!
-  
 
   function extend(obj, src) { // Call this function to add additional information to the points such as dataFeatures and Array which contains the data features without strings.
   for (var key in src) {
@@ -814,7 +812,7 @@ function ShepardHeatMap () {
   var dist_list2d = []; // Distances lists empty
   var dist_list = [];
   dists2d = [];
-  
+
   // Calculate the 2D distances.
   dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
 
@@ -1024,7 +1022,7 @@ function OverviewtSNE(points){ // The overview t-SNE function
   ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
 
   if (all_labels[0] == undefined){
-    var colorScale = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]); // If no category then grascale.
+    var colorScale = d3.scaleOrdinal().domain(["No Category"]).range(["#00000"]); // If no category then grascale.
   } else{
     var colorScale = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical); // We use the color scale here!
   }
@@ -1066,18 +1064,23 @@ function OverviewtSNE(points){ // The overview t-SNE function
       singleObj = 0.0;
       vertices.push(singleObj);
   }
+  
   for (var i=0; i<points.length; i++){
-    let singleCol = {};
+    var singleCol = {};
     if (points[i].selected == false){
-      let colval = d3.rgb(211,211,211); // Grayscale for the points that are not selected
-      singleCol = colval.r/255;
+      var colval2 = d3.rgb(211,211,211); // Grayscale for the points that are not selected
+      singleCol = colval2.r/255;
       colors.push(singleCol);
-      singleCol = colval.g/255;
+      singleCol = colval2.g/255;
       colors.push(singleCol);
-      singleCol = colval.b/255;
+      singleCol = colval2.b/255;
       colors.push(singleCol);
     } else{
-      let colval = d3.rgb(colorScale(points[i][Category])); // Normal color for the points that are selected
+      if (all_labels[0] != undefined){
+        var colval = d3.rgb(colorScale(points[i][Category])); // Normal color for the points that are selected
+      } else {
+        colval = d3.rgb(0,0,0);
+      }
       singleCol = colval.r/255;
       colors.push(singleCol);
       singleCol = colval.g/255;
@@ -1086,6 +1089,7 @@ function OverviewtSNE(points){ // The overview t-SNE function
       colors.push(singleCol);
     }
   }
+
   // Create an empty buffer object and store vertex data
   var vertex_buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
@@ -2049,7 +2053,7 @@ var IDS = [];
 RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
 
 function BetatSNE(points){ // Run the main visualization
-  
+
 if (points.length) { // If points exist (at least 1 point)
 
     selectedPoints = [];
@@ -2095,6 +2099,10 @@ if (points.length) { // If points exist (at least 1 point)
       }
 
       var maxKNN = Math.ceil(points.length / factor); // Specify the amount of k neighborhoods that we are going to calculate.
+
+      if (maxKNN > 150){
+        maxKNN = 150;
+      }
 
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
