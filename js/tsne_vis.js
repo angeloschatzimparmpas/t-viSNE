@@ -258,6 +258,7 @@ function setReset(){ // Reset only the filters which were applied into the data 
   for (var i=0; i < InitialStatePoints.length; i++){
     InitialStatePoints[i].selected = true;
     InitialStatePoints[i].starplot = false;
+    InitialStatePoints[i].schemaInv = false;
   }
   redraw(InitialStatePoints);
 
@@ -330,12 +331,7 @@ function setLayerComp(){ // The main Layer becomes the comparison (starplot)
     lassoEnable();
   }
 
-    // Reset the points into their initial state
-    for (var i=0; i < InitialStatePoints.length; i++){
-      InitialStatePoints[i].selected = true;
-      InitialStatePoints[i].starplot = false;
-    }
-    redraw(InitialStatePoints);
+  redraw(points);
 
 }
 
@@ -758,7 +754,7 @@ function updateEmbedding(AnalaysisResults) {
       for(var i = 0; i < final_dataset.length; i++) {
         x_position[i] = x(Y[i][0]); // x points position
         y_position[i] = y(Y[i][1]); // y points position
-            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, DimON: null, starplot: false}; // Create the points and points2D (2 dimensions) 
+            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, schemaInv: false, DimON: null, starplot: false}; // Create the points and points2D (2 dimensions) 
             points2d[i] = {id: i, x: x_position[i], y: y_position[i], selected: true}; // and add everything that we know about the points (e.g., selected = true, starplot = false in the beginning and so on)
             points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
             points[i] = extend(points[i], dataFeatures[i]);
@@ -1220,18 +1216,15 @@ function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
       x = points[i].x;
       y = points[i].y;
       if (d3.polygonContains(lassoPolygon, [x, y])){ // Check if the points are inside the area of the lasso
-        points[i].selected = true;
-        points2d[i].selected = true;
+          points[i].selected = true;
       } else{
         countLassoFalse = countLassoFalse + 1; // Count the points which are not inside the lasso interaction.
         points[i].selected = false;
-        points2d[i].selected = false;
       }
     }
     if (countLassoFalse == points.length){
       for (var i = 0 ; i < points.length ; i ++) {
         points[i].selected = true;
-        points2d[i].selected = true;
       }
     }
     if (points.length - countLassoFalse <= 10 && points.length - countLassoFalse != 0){ // Check the points for the starplot
@@ -1250,17 +1243,7 @@ function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
 }
 
 
-function handleLassoStart(lassoPolygon) {
-
-  // Reset selected points when starting a new polygon
-  for (var i = 0 ; i < points.length ; i ++) {
-    points[i].selected = true;
-    points[i].starplot = false;
-    points2d[i].selected = true;
-  }
-
-  redraw(points);
-  
+function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anything.  
 }
 
 // Initialize the horizontal (correlations) barchart's variables
@@ -1413,6 +1396,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       }
     }
 
+
     var temparray = [];
     var count = new Array(paths.nodes().length).fill(0);
 
@@ -1463,6 +1447,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       for (var j = 0; j < ArrayLimit.length; j++){
         if (ArrayLimit[j][ArrayLimit[0].length-1] == points[i].id){
           points[i].selected = true;
+          points[i].schemaInv = true;
         }
       }
     }
@@ -1620,8 +1605,6 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   .tickSize(0)
   .outerTickSize(0);
 
-
-
   //Add group for the y axis
   mainGroup.append("g")
   .attr("class", "y axis")
@@ -1773,7 +1756,7 @@ function updateBarChart() {
     })
     .on("mousemove", function(d) {
       points.forEach(function (p) {
-        if (p.selected == true) {
+        if (p.schemaInv == true) {
           p.DimON = d[0];
         }
       })
@@ -1818,7 +1801,7 @@ function brushmove() {
   //Update the label size
   d3v3.selectAll(".y.axis text")
     .style("font-size", textScale(selected.length));
-  
+
   //Update the big bar chart
   updateBarChart();
   
@@ -1879,7 +1862,7 @@ function brushmove() {
 //Create a gradient 
 function createGradient(idName, endPerc) {
 
-  var colorsBarChart = ['#000000'];
+  var colorsBarChart = ['#919191'];
 
   colorsBarChart.reverse();
 
@@ -2062,7 +2045,7 @@ var IDS = [];
 RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
 
 function BetatSNE(points){ // Run the main visualization
-
+  
 if (points.length) { // If points exist (at least 1 point)
 
     selectedPoints = [];
@@ -2486,24 +2469,23 @@ if (points.length) { // If points exist (at least 1 point)
     let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
     pointsGeometry.vertices.push(vertex);
     geometry.vertices.push(vertex);
-    if (points[i].selected == false){
-      var color = new THREE.Color("rgb(211, 211, 211)");
-    } else if (points[i].DimON != null) {
-
+    if (points[i].DimON != null) {
       let temp = points[i].DimON.match(/\d+/)[0];
+      var maxDim = (d3.max(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));
+      var minDim = (d3.min(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));  
 
-      var maxDim = (d3.max(points,function(d){ if(d.selected == true){return d[temp]}; }));
-      var minDim = (d3.min(points,function(d){ if(d.selected == true){return d[temp]}; }));  
-
-      let colorsBarChart = ['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
+      let colorsBarChart = ['#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
       var calcStepDim = (maxDim-minDim)/8;
       var colorScale = d3.scaleLinear()
         .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
         .range(colorsBarChart);
       var color = new THREE.Color(colorScale(points[i][temp]));
-        
     } else if(points[i].starplot == true){
       var color = new THREE.Color(colorScl(points[i].id));
+    } else if (points[i].selected == false && points[i].schemaInv == true){
+      var color = new THREE.Color("rgb(145, 145, 145)");
+    } else if (points[i].selected == false){
+      var color = new THREE.Color("rgb(211, 211, 211)");
     } else if (ColSizeSelector == "color") {
       var color = new THREE.Color(colorScale(points[i].beta));
     }
@@ -2546,7 +2528,7 @@ if (points.length) { // If points exist (at least 1 point)
       var labels_dim = [];
       var abbr_labels_dim = [];
       labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
-
+      console.log(labels_dim);
       for (var i=0; i<9; i++){
         labels_dim[i] = labels_dim[i].toFixed(2);
         abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
@@ -2571,26 +2553,26 @@ if (points.length) { // If points exist (at least 1 point)
     } 
   }
   for (var j=0; j < points.length; j++){
-  if(temporal == 0 && points[j].DimON == null){
-    if (ColSizeSelector == "color"){
-      d3.select("#legend1").selectAll('*').remove();
-      var svg = d3.select("#legend1");
-  
-      svg.append("g")
-        .attr("class", "legendLinear")
-        .attr("transform", "translate(10,15)");
-  
-      var legend = d3.legendColor()
-        .labelFormat(d3.format(",.0f"))
-        .cells(9)
-        .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-        .title("1 / sigma")
-        .scale(colorScale);
-  
-      svg.select(".legendLinear")
-        .call(legend);
-      break;
-    } else {
+    if(temporal == 0 && points[j].DimON == null){
+      if (ColSizeSelector == "color"){
+        d3.select("#legend1").selectAll('*').remove();
+        var svg = d3.select("#legend1");
+    
+        svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+    
+        var legend = d3.legendColor()
+          .labelFormat(d3.format(",.0f"))
+          .cells(9)
+          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
+          .title("1 / sigma")
+          .scale(colorScale);
+    
+        svg.select(".legendLinear")
+          .call(legend);
+        break;
+     } else {
       d3.select("#legend1").selectAll('*').remove();
       var svg = d3.select("#legend1");
 
