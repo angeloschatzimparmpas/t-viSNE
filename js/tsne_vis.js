@@ -145,7 +145,6 @@ var getData = function() {
 
     value = document.getElementById("param-dataset").value; // Get the value of the data set
     format = value.split("."); //Get the format (e.g., [iris, csv])
-
     if (format[value.split(".").length-1] == "csv") { // Parse the predefined files
       parseData("./data/"+value);
     } else{
@@ -570,7 +569,7 @@ function init(data, results_all, fields) {
     $("#datasetDetails").html("Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Samples: " + final_dataset.length); // Print on the screen the number of dimensions and samples of the data set, which is being analyzed.
     dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
     tsne.initDataDist(dists); // Init t-SNE with dists.
-
+    console.log(dists);
     for(var i = 0; i < dataFeatures.length; i++) {
       if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){ // If a categorization label exist then add it into all_labels variable.
         all_labels[i] = dataFeatures[i][Category];
@@ -738,6 +737,8 @@ function computeDistances(data, distFunc, transFunc) {
 // Function that updates embedding
 function updateEmbedding(AnalaysisResults) {
 
+  points = [];
+  points2d = [];
   if (AnalaysisResults == ""){ // Check if the embedding does not need to load because we had a previous analysis uploaded.
     var Y = tsne.getSolution(); // We receive the solution from the t-SNE
     var xExt = d3.extent(Y, d => d[0]);
@@ -760,6 +761,7 @@ function updateEmbedding(AnalaysisResults) {
             points[i] = extend(points[i], dataFeatures[i]);
         }
   } else{
+    console.log("mpa");
       points = AnalaysisResults.slice(0,dataFeatures.length); // Load the points from the previous analysis
       points2d = AnalaysisResults.slice(dataFeatures.length,2*dataFeatures.length); // Load the 2D points 
       overallCost = AnalaysisResults.slice(dataFeatures.length*2,dataFeatures.length*2+1); // Load the overall cost
@@ -772,6 +774,9 @@ function updateEmbedding(AnalaysisResults) {
       document.getElementById("param-transform").value = ParametersSet[5];
   }
   InitialStatePoints = points; // Initial Points will not be modified!
+  console.log(points2d);
+  console.log(points);
+  
 
   function extend(obj, src) { // Call this function to add additional information to the points such as dataFeatures and Array which contains the data features without strings.
   for (var key in src) {
@@ -808,34 +813,36 @@ function ShepardHeatMap () {
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  var dist_list2d = []; // Distances lists empty
+  var dist_list = [];
+  dists2d = [];
+  
   // Calculate the 2D distances.
   dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
 
-var dist_list2d = []; // Distances lists empty
-var dist_list = [];
-
-for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
-  dists2d[j] = dists2d[j].slice(0,j);
-  dists[j] = dists[j].slice(0,j);
-}
-
-for (var i=0; i<dists2d.length; i++){
-  for (var j=0; j<dists2d.length; j++){
-    let singleObj = {};
-    singleObj = dists2d[i][j];
-    dist_list2d.push(singleObj);
-    let singleObj2 = {};
-    singleObj2 = dists[i][j];
-    dist_list.push(singleObj2);
+  for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
+    dists2d[j] = dists2d[j].slice(0,j);
+    dists[j] = dists[j].slice(0,j);
   }
-}
 
-dist_list2d = dist_list2d.sort(); // Sort the lists that contain the distances.
-dist_list = dist_list.sort();
-dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; }); // Filter all undefined values
-dist_list = dist_list.filter(function(val){ return val!==undefined; });
+  for (var i=0; i<dists2d.length; i++){
+    for (var j=0; j<dists2d.length; j++){
+      let singleObj = {};
+      singleObj = dists2d[i][j];
+      dist_list2d.push(singleObj);
+      let singleObj2 = {};
+      singleObj2 = dists[i][j];
+      dist_list.push(singleObj2);
+    }
+  }
 
-d3.tsv("./modules/heat.tsv").then(function(data) { // Run the heat.tsv file and get the data from there. This file contains and ordering of the dimensions 1 and dimensions 2.
+  dist_list2d = dist_list2d.sort(); // Sort the lists that contain the distances.
+  dist_list = dist_list.sort();
+  dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; }); // Filter all undefined values
+  dist_list = dist_list.filter(function(val){ return val!==undefined; });
+
+  d3.tsv("./modules/heat.tsv").then(function(data) { // Run the heat.tsv file and get the data from there. This file contains and ordering of the dimensions 1 and dimensions 2.
   // For example: dim1 = 1 and the dim 2 = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10... and then dim2 = 2 and the dim2=... (same)
     data.forEach(function(d) { // Get the data from the heat.tsv.
         d.dim1 = +d.dim1;
