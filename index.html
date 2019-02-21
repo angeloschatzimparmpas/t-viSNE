@@ -8,8 +8,6 @@
     <script src='./modules/three.js-r101/three.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.js'></script>
 
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script> 
-
     <!-- Importing D3 minified versions v3 and v5. -->
     <script src='./modules/d3v3/d3.min.js'></script>
     <script src='./modules/d3/d3.min.js'></script>
@@ -72,7 +70,7 @@
             <svg id="modtSNEcanvas_svg"></svg>
             <svg id="modtSNEcanvas_svg_Schema"></svg>
             <div id="modtSNEDiv">
-              <canvas id = "modtSNEcanvas" ></canvas>
+            <canvas id = "modtSNEcanvas" ></canvas>
             </div>
           </div>
           <div class="col-md-1" style="width: 3.499999995%">
@@ -93,6 +91,10 @@
                   <label style="margin-top: 15px">
                       <input id="controls" type="checkbox">
                       Hide annotations' controllers
+                  </label>
+                  <label style="margin-top: 15px">
+                      <input id="downloadDists" checked type="checkbox">
+                      Distances cache (Save Execut.)
                   </label>
                 </div>
             </div>
@@ -225,7 +227,7 @@
         <div class = col-md-6>
               <svg id="knnBarChart"></svg>
         </div>
-        <div class="col-md-3" id="extra-information" style="width: 24.5999995%">
+        <div class="col-md-3" id="extra-information" style="width: 24.6vw">
             <div class="panel panel-default">
               <div class="panel-heading">
                   <h2 class="panel-title">t-SNE and Data Set's Additional Information</h2>

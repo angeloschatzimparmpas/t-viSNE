@@ -103,11 +103,10 @@ cursor: default;
 
 /* Styling of the main canvas */
 #modtSNEcanvas {
-    width: 50vw;
-    height: 50vw;
+    width: 50vw !important;
+    height: 50vw !important;
     border: 1px solid black;
     position: absolute;
-    display: block;
     z-index: 2;
 }
 

@@ -9,10 +9,10 @@ var tsne; var opt; var step_counter; var max_counter; var runner;
 // These variables are initialized here in order to store the final dataset, the points, the cost, the cost for each iteration, the beta values, the positions, the 2D points positions,
 // In addition, there is an array which keeps the initial information of the points (i.e., initial state), the data features (with the label of the category plus the id of the point), the data features without the category (only numbers).
 var final_dataset; var points = []; var cost = []; var cost_each; var beta_all = []; var x_position = []; var y_position = []; var points2d = []; var InitialStatePoints = []; 
-var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedwithoutNull = []; var ArrayContainsDataFeaturesClearedwithoutNullKeys = [];
+var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedwithoutNull = []; var ArrayContainsDataFeaturesClearedwithoutNullKeys = []; var flagAnalysis = false;
 
 // The distances in the high dimensional space and in the 2D space. All the labels that were found in the selected data set.
-var dists; var dists2d; var all_labels;
+var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = [];
 
 // These are the dimensions for the Overview view and the Main view
 var dim = document.getElementById('tSNEcanvas').offsetWidth; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
@@ -20,6 +20,9 @@ var dim = document.getElementById('tSNEcanvas').offsetWidth; var dimensions = do
 // Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
 // ColorsCategorical = the categorical colors (maximum value = 10).
 var Category; var ColorsCategorical; 
+
+// This is for the removal of the distances cache. 
+var returnVal = false;
 
 // Schema Investigation 
 // svgClick = Click a left mouse click in order to add a point.
@@ -99,12 +102,21 @@ var getData = function() {
 
   } else {
     fetchVal(function(lines){
-      // Load an analysis and parse the previous points and parameters information.
-      AnalaysisResults = JSON.parse(lines); 
-      length = (AnalaysisResults.length - 7) / 2;
-      ParametersSet = AnalaysisResults.slice(length*2+1, length*2+7);
 
-      value = document.getElementById("param-dataset").value = ParametersSet[0];
+      // Load an analysis and parse the previous points and parameters information.
+      AnalysisResults = JSON.parse(lines); 
+      var length = (AnalysisResults.length - 7);
+      ParametersSet = AnalysisResults.slice(length+1, AnalysisResults.length+7)
+      value = ParametersSet[0];
+      console.log(value);
+      if (!isNaN(parseInt(value))){
+        flagAnalysis = true;
+        length = (AnalysisResults.length - 9);
+        ParametersSet = AnalysisResults.slice(length+1, length+7);
+        value = ParametersSet[0];
+      } else {
+        flagAnalysis = false;
+      }
       format = value.split("."); //Get the actual format
       if (format[value.split(".").length-1] == "csv") {
         // Check if the file is in the right folder, i.e., ./data/{file}
@@ -351,7 +363,6 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
   .attr("width", vw2 * 0.5)
   .attr("height", vh2 * 0.888)
   .style("z-index", 3);
-
   var gAnnotations = svgAnnotator.append("g")
   .attr("class", "annotations")
   .call(ringNote, annotations);
@@ -387,11 +398,25 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
     }
   });
 
+  $(document).ready(function() {
+    //set initial state.
+
+    $('#downloadDists').change(function() {
+        if(!this.checked) {
+            returnVal = confirm("Are you sure that you want to store the points and the parameters without the distances?");
+            $(this).prop("checked", !returnVal);
+        }
+    });
+});
+
   // Three.js render loop for the very first scene.
   function animate() {
     requestAnimationFrame(animate);
     renderer.render(scene, camera);
   }
+
+function MainVisual(){
+
 
   MainCanvas = document.getElementById('modtSNEcanvas');
   Child = document.getElementById('modtSNEDiv');
@@ -414,6 +439,10 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
   );
   // Animate the scene.
   animate();
+}
+
+MainVisual();
+ 
 
 // The following function executes exactly after the data is successfully loaded. New EXECUTION!
 // results_all variable is all the columns multiplied by all the rows.
@@ -469,14 +498,22 @@ function init(data, results_all, fields) {
     fields.push("cost");
     opt.epsilon = document.getElementById("param-learningrate-value").value; // Epsilon is learning rate (10 = default)
     opt.perplexity = document.getElementById("param-perplexity-value").value; // Roughly how many neighbors each point influences (30 = default)
-    tsne = new tsnejs.tSNE(opt); // Set new t-SNE with specific perplexity.
+
 
     // Put the input variables into more properly named variables and store them.
     final_dataset = data;
     dataFeatures = results_all;
-  
-    dists = computeDistances(final_dataset, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
-    tsne.initDataDist(dists); // Init t-SNE with dists.
+    if (flagAnalysis){
+    } else{
+      console.log("mpike2");
+      tsne = new tsnejs.tSNE(opt); // Set new t-SNE with specific perplexity.
+      dists = [];
+      dists = computeDistances(final_dataset, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
+      InitialFormDists.push(dists);
+      tsne.initDataDist(dists); // Init t-SNE with dists.
+      for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];} // Calculate beta and bring it back from the t-SNE algorithm.
+    }
+
     var object;
     all_labels = [];
     // Get the dimension that contains an asterisk mark ("*"). This is our classification label.
@@ -527,8 +564,6 @@ function init(data, results_all, fields) {
       }
     }
 
-    for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];} // Calculate beta and bring it back from the t-SNE algorithm.
-
     if (typeof window.FileReader !== 'function') {
       alert("The file API isn't supported on this browser yet.");
     }
@@ -541,12 +576,12 @@ function init(data, results_all, fields) {
     } else if (!input.files) {
       alert("This browser doesn't seem to support the `files` property of file inputs.");
     } else if (!input.files[0]) { // If we execute a new analysis continue running with a step = 0.
-      AnalaysisResults = [];
+      AnalysisResults = [];
       runner = setInterval(step, 0);
     } else {
       fetchVal(function(lines){ // If we uploaded a previous analysis file then parse the .txt file with JSON.parse.
-        AnalaysisResults = JSON.parse(lines); 
-        updateEmbedding(AnalaysisResults);
+        AnalysisResults = JSON.parse(lines); 
+        updateEmbedding(AnalysisResults);
     });
     }
 
@@ -687,11 +722,11 @@ function computeDistances(data, distFunc, transFunc) {
 }
 
 // Function that updates embedding
-function updateEmbedding(AnalaysisResults) {
+function updateEmbedding(AnalysisResults) {
 
   points = [];
   points2d = [];
-  if (AnalaysisResults == ""){ // Check if the embedding does not need to load because we had a previous analysis uploaded.
+  if (AnalysisResults == ""){ // Check if the embedding does not need to load because we had a previous analysis uploaded.
     var Y = tsne.getSolution(); // We receive the solution from the t-SNE
     var xExt = d3.extent(Y, d => d[0]);
     var yExt = d3.extent(Y, d => d[1]);
@@ -713,16 +748,35 @@ function updateEmbedding(AnalaysisResults) {
             points[i] = extend(points[i], dataFeatures[i]);
         }
   } else{
-      points = AnalaysisResults.slice(0,dataFeatures.length); // Load the points from the previous analysis
-      points2d = AnalaysisResults.slice(dataFeatures.length,2*dataFeatures.length); // Load the 2D points 
-      overallCost = AnalaysisResults.slice(dataFeatures.length*2,dataFeatures.length*2+1); // Load the overall cost
-      ParametersSet = AnalaysisResults.slice(dataFeatures.length*2+1, dataFeatures.length*2+7); // Load the parameters and set the necessary values to the visualization of those parameters.
+    if (flagAnalysis){
+      var length = (AnalysisResults.length - dataFeatures.length*2 - 7 - 2);
+      points = AnalysisResults.slice(0, dataFeatures.length); // Load the points from the previous analysis
+      points2d = AnalysisResults.slice(dataFeatures.length, 2*dataFeatures.length); // Load the 2D points 
+      dist_list = AnalysisResults.slice(2*dataFeatures.length, 2*dataFeatures.length+length/2); // Load the parameters and set the necessary values to the visualization of those parameters.
+      dist_list2d = AnalysisResults.slice(2*dataFeatures.length+length/2, 2*dataFeatures.length+length); // Load the parameters and set the necessary values to the visualization of those parameters.
+      overallCost = AnalysisResults.slice(2*dataFeatures.length+length,  2*dataFeatures.length+length+1); // Load the overall cost
+      ParametersSet = AnalysisResults.slice(2*dataFeatures.length+length+1, 2*dataFeatures.length+length+7); // Load the parameters and set the necessary values to the visualization of those parameters.
+      dists = AnalysisResults.slice(2*dataFeatures.length+length+7, 2*dataFeatures.length+length+8)[0]; // Load the parameters and set the necessary values to the visualization of those parameters.
+      dists2d = AnalysisResults.slice(2*dataFeatures.length+length+8, 2*dataFeatures.length+length+9)[0]; // Load the parameters and set the necessary values to the visualization of those parameters.
       $("#cost").html("Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost);
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
       document.getElementById("param-distance").value = ParametersSet[4];
       document.getElementById("param-transform").value = ParametersSet[5];
+    } else{
+      var length = (AnalysisResults.length - 7) / 2;
+      points = AnalysisResults.slice(0, length); // Load the points from the previous analysis
+      points2d = AnalysisResults.slice(length, 2*length); // Load the 2D points 
+      overallCost = AnalysisResults.slice(2*length, 2*length+1); // Load the overall cost
+      ParametersSet = AnalysisResults.slice(2*length+1, 2*length+7); // Load the parameters and set the necessary values to the visualization of those parameters.
+      $("#cost").html("Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost);
+      $('#param-perplexity-value').text(ParametersSet[1]);
+      $('#param-learningrate-value').text(ParametersSet[2]);
+      $('#param-maxiter-value').text(ParametersSet[3]);
+      document.getElementById("param-distance").value = ParametersSet[4];
+      document.getElementById("param-transform").value = ParametersSet[5];
+    }
   }
   InitialStatePoints = points; // Initial Points will not be modified!
 
@@ -761,33 +815,37 @@ function ShepardHeatMap () {
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  var dist_list2d = []; // Distances lists empty
-  var dist_list = [];
-  dists2d = [];
-
-  // Calculate the 2D distances.
-  dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
-
-  for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
-    dists2d[j] = dists2d[j].slice(0,j);
-    dists[j] = dists[j].slice(0,j);
-  }
-
-  for (var i=0; i<dists2d.length; i++){
-    for (var j=0; j<dists2d.length; j++){
-      let singleObj = {};
-      singleObj = dists2d[i][j];
-      dist_list2d.push(singleObj);
-      let singleObj2 = {};
-      singleObj2 = dists[i][j];
-      dist_list.push(singleObj2);
+  if (flagAnalysis){
+  } else{
+    console.log("mpike");
+    dists2d = [];
+    dist_list2d = []; // Distances lists empty
+    dist_list = [];
+    // Calculate the 2D distances.
+    dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
+    InitialFormDists2D.push(dists2d);
+    for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
+      dists2d[j] = dists2d[j].slice(0,j);
+      dists[j] = dists[j].slice(0,j);
     }
+  
+    for (var i=0; i<dists2d.length; i++){
+      for (var j=0; j<dists2d.length; j++){
+        let singleObj = {};
+        singleObj = dists2d[i][j];
+        dist_list2d.push(singleObj);
+        let singleObj2 = {};
+        singleObj2 = dists[i][j];
+        dist_list.push(singleObj2);
+      }
+    }
+    dist_list2d = dist_list2d.sort(); // Sort the lists that contain the distances.
+    dist_list = dist_list.sort();
+    dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; }); // Filter all undefined values
+    dist_list = dist_list.filter(function(val){ return val!==undefined; });
   }
+    
 
-  dist_list2d = dist_list2d.sort(); // Sort the lists that contain the distances.
-  dist_list = dist_list.sort();
-  dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; }); // Filter all undefined values
-  dist_list = dist_list.filter(function(val){ return val!==undefined; });
 
   d3.tsv("./modules/heat.tsv").then(function(data) { // Run the heat.tsv file and get the data from there. This file contains and ordering of the dimensions 1 and dimensions 2.
   // For example: dim1 = 1 and the dim 2 = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10... and then dim2 = 2 and the dim2=... (same)
@@ -941,7 +999,7 @@ function step() {
             clearInterval(runner);
         }
         if (step_counter == max_counter){
-          updateEmbedding(AnalaysisResults);
+          updateEmbedding(AnalysisResults);
         }
 }
 
@@ -1404,6 +1462,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
 
     for (var i = 0; i < points.length; i++){
       points[i].selected = false;
+      points[i].schemaInv = false;
       for (var j = 0; j < ArrayLimit.length; j++){
         if (ArrayLimit[j][ArrayLimit[0].length-1] == points[i].id){
           points[i].selected = true;
@@ -2022,17 +2081,6 @@ if (points.length) { // If points exist (at least 1 point)
     }
 
     if (selectedPoints.length != 0){ // If there are some selected points then
-      var distsFull = dists;
-      var dists2dFull = dists2d;
-
-      for (var i=0; i<dists.length; i++){ // Calculate the distances in 2D and multi-dimensional spaces.
-        for (var j=0; j<dists.length; j++){
-          if(dists[i][j] != null) {
-            distsFull[j][i] = dists[i][j];
-            dists2dFull[j][i] = dists2d[i][j];
-          }
-        }
-      }
 
       var indexOrder = [];
       var indexOrder2d = [];
@@ -2083,7 +2131,6 @@ if (points.length) { // If points exist (at least 1 point)
           temp2[i] = 0;
 
           if (k == maxKNN){
-
               // Temporary array holds objects with position and sort-value
               indices[i] = dists[i].map(function(el, i) {
                   return [ i, el ];
@@ -2604,6 +2651,7 @@ if (points.length) { // If points exist (at least 1 point)
       1
     );
   }
+  
   function checkIntersects(mouse_position) {
     let mouse_vector = mouseToThree(...mouse_position);
     raycaster.setFromCamera(mouse_vector, camera);
@@ -2776,11 +2824,12 @@ if (points.length) { // If points exist (at least 1 point)
       viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
       viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
     }
+
     return [viewPortWidth, viewPortHeight];
 
  }
 
- function download(contentP, Parameters, fileName, contentType) {  // Download the file into the local disk.
+ function download(contentP, fileName, contentType) {  // Download the file into the local disk.
   
   var a = document.createElement("a");
   var file = new Blob([contentP], {type: contentType});
@@ -2815,11 +2864,19 @@ function SaveAnalysis(){ // Save the analysis into a .txt file
   Parameters.push(parTrans);
   AllData = [];
   if (cost[0] != undefined){
-    AllData = points.concat(points2d).concat(cost[0].toFixed(3)).concat(Parameters);
+    if (!returnVal){
+      AllData = points.concat(points2d).concat(dist_list).concat(dist_list2d).concat(cost[0].toFixed(3)).concat(Parameters).concat(InitialFormDists).concat(InitialFormDists2D);
+    } else {
+      AllData = points.concat(points2d).concat(cost[0].toFixed(3)).concat(Parameters);
+    }
   } else{
-    AllData = points.concat(points2d).concat(overallCost).concat(Parameters);
+    if (!returnVal){
+      AllData = points.concat(points2d).concat(dist_list).concat(dist_list2d).concat(overallCost).concat(Parameters).concat(InitialFormDists).concat(InitialFormDists2D);
+    } else {
+      AllData = points.concat(points2d).concat(overallCost).concat(Parameters);
+    }
   }
 
-  download(JSON.stringify(AllData), JSON.stringify(Parameters),'Analysis'+measureSaves+'.txt', 'text/plain');
+  download(JSON.stringify(AllData),'Analysis'+measureSaves+'.txt', 'text/plain');
 
 }
