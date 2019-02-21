@@ -734,10 +734,9 @@ function updateEmbedding(AnalaysisResults) {
   }
 
   // Run all the main functions (Shepard Heatmap, Overview t-SNE, and Beta/Cost t-SNE) Beta = 1/sigma, Cost = KLD(Q||P).
-  ShepardHeatMap();
   OverviewtSNE(points);
+  ShepardHeatMap();
   BetatSNE(points);
-
 }
 
 function ShepardHeatMap () {

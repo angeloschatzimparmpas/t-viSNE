@@ -8,6 +8,8 @@
     <script src='./modules/three.js-r101/three.js'></script>
     <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.js'></script>
 
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.0.1/spin.min.js'></script> 
+
     <!-- Importing D3 minified versions v3 and v5. -->
     <script src='./modules/d3v3/d3.min.js'></script>
     <script src='./modules/d3/d3.min.js'></script>
@@ -39,7 +41,6 @@
   </head>
 
   <body>
-
     <div class="container-fluid">
         <div class="row">
           <div class="col-md-3">
@@ -248,7 +249,7 @@
     </div>
 
     <script>
-      
+
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });
