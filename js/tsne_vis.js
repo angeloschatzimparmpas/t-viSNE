@@ -8,7 +8,8 @@ var tsne; var opt; var step_counter; var max_counter; var runner;
 
 // These variables are initialized here in order to store the final dataset, the points, the cost, the cost for each iteration, the beta values, the positions, the 2D points positions,
 // In addition, there is an array which keeps the initial information of the points (i.e., initial state), the data features (with the label of the category plus the id of the point), the data features without the category (only numbers).
-var final_dataset; var points = []; var cost = []; var cost_each; var beta_all = []; var x_position = []; var y_position = []; var points2d = []; var ArrayContainsDataFeaturesCleared = []; var InitialStatePoints = [];
+var final_dataset; var points = []; var cost = []; var cost_each; var beta_all = []; var x_position = []; var y_position = []; var points2d = []; var InitialStatePoints = []; 
+var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedwithoutNull = []; var ArrayContainsDataFeaturesClearedwithoutNullKeys = [];
 
 // The distances in the high dimensional space and in the 2D space. All the labels that were found in the selected data set.
 var dists; var dists2d; var all_labels;
@@ -40,67 +41,12 @@ var Arrayx = []; var Arrayy = []; var XYDistId = []; var Arrayxy = []; var Dista
 
 // This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
+  location.reload(); 
+}
 
-  // Remove the Schema Investigation
-  flagForSchema = false;
-  Arrayx = [];
-  Arrayy = [];
-  XYDistId = [];
-  Arrayxy = [];
-  DistanceDrawing1D = [];
-  allTransformPoints = [];
-  pFinal = [];
-  ArrayLimit = [];
-  correlationResults = [];
-  ArrayContainsDataFeaturesLimit = [];
-  prevRightClick = false;
-
-  // Remove the previously drawn scene by Three.js
-  var oldcanvOver = document.getElementById('tSNEcanvas');
-  var contxOver = oldcanvOver.getContext('experimental-webgl');
-  contxOver.clear(contxOver.COLOR_BUFFER_BIT);
-
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xffffff);
-
-  // ReEnable lasso interaction
-  lassoEnable();
-
-  // Set the default data set into iris.csv and return the main execution button into the initial state
-  document.getElementById("param-dataset").value = "iris.csv";
-  document.getElementById('file-input').value = "";
-  document.getElementById("ExecuteBut").innerHTML = "Execute new t-SNE analysis";
-  
-  // Remove every d3 svg that was already drawn on the screen
-  d3.selectAll("#correlation > *").remove(); 
-  d3.selectAll("#modtSNEcanvas_svg > *").remove();
-  d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
-  d3.selectAll("#SvgAnnotator > *").remove(); 
-  d3.selectAll("#sheparheat > *").remove(); 
-  d3.selectAll("#knnBarChart > *").remove(); 
-  d3.select("#data").select("input").remove(); // Remove the selection field. 
-
-  // Remove all the legends
-  d3.selectAll("#legend1 > *").remove();
-  d3.selectAll("#legend2 > *").remove();
-  d3.selectAll("#legend3 > *").remove();
-
-  // Remove the extra information such as cost, number of iterations, number of dimensions, and number of samples
-  $("#cost").html("");
-  $("#datasetDetails").html("");
-  $("#kNNDetails").html("");
-
-  // Set all parameters into their default values
-  document.getElementById("param-perplexity-value").value = 30;
-  document.getElementById("param-learningrate-value").value = 10;
-  document.getElementById("param-maxiter-value").value = 500;
-  document.getElementById("param-lim-value").value = 2;
-  document.getElementById("param-corr-value").value = 150;
-  document.getElementById("param-neighborHood").value = "color";
-  document.getElementById('selectionLabel').innerHTML = 'Size';
-  document.getElementById("param-distance").value = "euclideanDist";
-  document.getElementById("param-transform").value = "noTrans";
-  
+// Returns if a value is a string
+function isString(value) {
+  return typeof value === 'string' || value instanceof String;
 }
 
 // Load a previously executed analysis function.
@@ -550,13 +496,20 @@ function init(data, results_all, fields) {
     for (let k = 0; k < dataFeatures.length; k++){
 
       object = [];
+      object2 = [];
+      object3 = [];
       for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
-        if(typeof(Object.values(dataFeatures[k])[j]) == "number" && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
+        if(!isString((Object.values(dataFeatures[k])[j])) && (Object.keys(dataFeatures[k])[j] != Category)){ // Only numbers and not the classification labels. 
           object.push(Object.values(dataFeatures[k])[j]);
+          object2.push(Object.values(dataFeatures[k])[j]);
+          object3.push(Object.keys(dataFeatures[k])[j]);
+        } else {
+          object.push(null);
         }
       }
       ArrayContainsDataFeaturesCleared.push(object.concat(k)); // The ArrayContainsDataFeaturesCleared contains only numbers without the categorization parameter even if it is a number.
-
+      ArrayContainsDataFeaturesClearedwithoutNull.push(object2);
+      ArrayContainsDataFeaturesClearedwithoutNullKeys.push(object3);
     }
 
     var valCategExists = 0;
@@ -1466,8 +1419,10 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
 
       object = [];
       for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
-        if(typeof(Object.values(dataFeatures[k])[j]) == "number" && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
+        if(!isString(Object.values(dataFeatures[k])[j]) && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
           object.push(Object.values(dataFeatures[k])[j]);
+        } else{
+          object.push(null);
         }
       }
       ArrayContainsDataFeaturesCleared.push(object.concat(k)); // The ArrayContainsDataFeaturesCleared contains only numbers without the categorization parameter even if it is a number.
@@ -1518,14 +1473,17 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       correlationResults = [];
       const arrayColumn = (arr, n) => arr.map(x => x[n]);
       for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
-        var tempData = new Array(
-          arrayColumn(ArrayContainsDataFeaturesLimit, temp),
-          arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
-        );
-        if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
-        } else{
-          SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign 
-          correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))]); // Find the pearson correlations
+        if (ArrayContainsDataFeaturesLimit[0][temp] == null){ // Match the data features with every dimension, which is a number!
+        } else {
+          var tempData = new Array(
+            arrayColumn(ArrayContainsDataFeaturesLimit, temp),
+            arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
+          );
+          if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
+          } else{
+            SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign 
+            correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))]); // Find the pearson correlations
+          }
         }
       }
       correlationResults = correlationResults.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
@@ -2277,9 +2235,8 @@ if (points.length) { // If points exist (at least 1 point)
             }
           }
         }
-
-        var vectors = PCA.getEigenVectors(ArrayContainsDataFeaturesCleared); // Run a local PCA!
-        var PCAResults = PCA.computeAdjustedData(ArrayContainsDataFeaturesCleared,vectors[0]); // Get the results for individual dimension.
+        var vectors = PCA.getEigenVectors(ArrayContainsDataFeaturesClearedwithoutNull); // Run a local PCA!
+        var PCAResults = PCA.computeAdjustedData(ArrayContainsDataFeaturesClearedwithoutNull,vectors[0]); // Get the results for individual dimension.
         var PCASelVec = [];
         PCASelVec = PCAResults.selectedVectors[0];
 
@@ -2292,21 +2249,16 @@ if (points.length) { // If points exist (at least 1 point)
         var IDS = [];
         for (var i=0; i<selectedPoints.length; i++){
           var data = [];
-          for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
-            if (!isNaN(Object.values(dataFeatures[selectedPoints[i].id])[j])){
-                    for (m=0; m < len; m++){
-                      if (indices[m] == j){
-                        if (Object.keys(dataFeatures[selectedPoints[i].id])[m] == Category) { // Do not take into consideration the category whhich classifies the data. 
-                        } else{
-                          data.push({axis:Object.keys(dataFeatures[selectedPoints[i].id])[m],value:Math.abs((Object.values(dataFeatures[selectedPoints[i].id])[m] - min[m])/(max[m] - min[m]))}); // Push the values into the starplot
-                        }
-                      }
-                    }
+          for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id].length; j++){
+              for (m=0; m < len; m++){
+                if (indices[m] == j){
+                    data.push({axis:ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m],value:Math.abs((ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m] - min[m])/(max[m] - min[m]))}); // Push the values into the starplot
+                }
               }
-            }
-          wrapData.push(data); // Wrap everything together 
-          IDS.push(selectedPoints[i].id); // Push all the IDs of the selected points 
-        } 
+          }
+            wrapData.push(data); // Wrap everything together 
+            IDS.push(selectedPoints[i].id); // Push all the IDs of the selected points 
+        }
 
           ////////////////////////////////////////////////////////////// 
           //////////////////// Draw the Chart ////////////////////////// 
