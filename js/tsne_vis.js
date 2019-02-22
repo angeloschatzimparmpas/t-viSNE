@@ -149,7 +149,7 @@ function parseData(url) {
         for(key in el) {
             if(el.hasOwnProperty(key)) {
                 var value = el[key];
-                  if(typeof(value) !== 'number' || value === undefined || key === "Version"){ //add more limitations if needed!
+                  if(key === "id" || key === "Version" || typeof(value) !== 'number' || value === undefined){ // Add more limitations if needed in both areas. This is for the calculations so  it needs more limitations!
                     delete el[key];
                   }else{
                     el[counter] = el[key];
@@ -167,7 +167,18 @@ function parseData(url) {
             dynamicTyping: true,
             skipEmptyLines: true,
             complete: function(data) {
-              doStuff(data.data);
+              doStuff(data.data.filter(function (el) {
+                  var counter = 0;
+                  for(key in el) {
+                      if(el.hasOwnProperty(key)) {
+                          var value = el[key];
+                            if(key === "id"){ // Add more limitations if needed in both areas.
+                              delete el[key];
+                            }
+                      }
+                  }
+                  return el;
+                  }));
             }
           });
           function doStuff(results_all){
@@ -477,7 +488,6 @@ function init(data, results_all, fields) {
 
     // Enable again the lasso interaction.
     lassoEnable();
-
     // Empty all the Schema Investigation arrays.
     Arrayx = [];
     Arrayy = [];
@@ -550,7 +560,6 @@ function init(data, results_all, fields) {
       ArrayContainsDataFeaturesClearedwithoutNull.push(object2);
       ArrayContainsDataFeaturesClearedwithoutNullKeys.push(object3);
     }
-
     var valCategExists = 0;
     for (var i=0; i<Object.keys(dataFeatures[0]).length; i++){
       if (Object.keys(dataFeatures[0])[i] == Category){
@@ -1489,7 +1498,6 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
     }
 
     ArrayContainsDataFeaturesCleared = mapOrder(ArrayContainsDataFeaturesCleared, Order, ArrayContainsDataFeaturesCleared[0].length-1); // Order the features according to the order.
-
     ArrayContainsDataFeaturesLimit = [];
     for (var i = 0; i < ArrayContainsDataFeaturesCleared.length; i++){
       for (var j = 0; j < arraysConnected.length; j++){
@@ -2437,7 +2445,6 @@ if (points.length) { // If points exist (at least 1 point)
   window.addEventListener('resize', () => {
     window.innerWidth = dimensions;
     window.innerHeight = dimensions;
-    console.log(dimensions);
     renderer.setSize(dimensions, dimensions);
     camera.aspect = dimensions / dimensions;
     camera.updateProjectionMatrix();
@@ -2825,8 +2832,6 @@ if (points.length) { // If points exist (at least 1 point)
       viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
       viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
     }
-    console.log(viewPortWidth);
-    console.log(viewPortHeight);
     
     return [viewPortWidth, viewPortHeight];
 
