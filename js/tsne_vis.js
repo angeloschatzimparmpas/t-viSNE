@@ -2825,7 +2825,9 @@ if (points.length) { // If points exist (at least 1 point)
       viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
       viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
     }
-
+    console.log(viewPortWidth);
+    console.log(viewPortHeight);
+    
     return [viewPortWidth, viewPortHeight];
 
  }

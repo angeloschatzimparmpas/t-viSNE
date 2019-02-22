@@ -334,11 +334,11 @@ rect {
 }
 
 #selectionLabel{
-  border: 1px solid grey;
+  border: 1px solid black;
 }
 
 #starPlot{
-  border: 1px solid grey;
+  border: 1px solid black;
   margin-left:10px;
   margin-top:10px;
 }
