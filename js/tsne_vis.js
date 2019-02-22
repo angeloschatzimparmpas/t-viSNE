@@ -346,9 +346,8 @@ function lassoEnable(){ // The main Layer becomes the correlation (barchart)
 
 function setAnnotator(){ // Set a new annotation on top of the main visualization.
 
-  var viewport2 = getViewport(); // Get the main viewport width and height.
-  var vw2 = viewport2[0];
-  var vh2 = viewport2[1];
+  vw2 = dimensions;
+  vh2 = dimensions;
   var textarea = document.getElementById("comment").value;
 
   d3.select("#SvgAnnotator").style("z-index", 3);
