@@ -108,7 +108,6 @@ var getData = function() {
       var length = (AnalysisResults.length - 7);
       ParametersSet = AnalysisResults.slice(length+1, AnalysisResults.length+7)
       value = ParametersSet[0];
-      console.log(value);
       if (!isNaN(parseInt(value))){
         flagAnalysis = true;
         length = (AnalysisResults.length - 9);
@@ -417,7 +416,6 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
 
 function MainVisual(){
 
-
   MainCanvas = document.getElementById('modtSNEcanvas');
   Child = document.getElementById('modtSNEDiv');
 
@@ -439,6 +437,11 @@ function MainVisual(){
   );
   // Animate the scene.
   animate();
+
+  if (points.length > 0){
+    BetatSNE(points);
+  }
+
 }
 
 MainVisual();
@@ -505,7 +508,6 @@ function init(data, results_all, fields) {
     dataFeatures = results_all;
     if (flagAnalysis){
     } else{
-      console.log("mpike2");
       tsne = new tsnejs.tSNE(opt); // Set new t-SNE with specific perplexity.
       dists = [];
       dists = computeDistances(final_dataset, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
@@ -817,7 +819,6 @@ function ShepardHeatMap () {
 
   if (flagAnalysis){
   } else{
-    console.log("mpike");
     dists2d = [];
     dist_list2d = []; // Distances lists empty
     dist_list = [];
@@ -2080,8 +2081,6 @@ if (points.length) { // If points exist (at least 1 point)
       }
     }
 
-    if (selectedPoints.length != 0){ // If there are some selected points then
-
       var indexOrder = [];
       var indexOrder2d = [];
       var indices = new Array(selectedPoints.length);
@@ -2114,7 +2113,9 @@ if (points.length) { // If points exist (at least 1 point)
       });
     
       $("#kNNDetails").html("Purity of the cluster was checked for k values starting from " + (1) + " to " + maxKNN + "."); // Print on the screen the number of k values of kNN which we present!
-
+      if (selectedPoints.length == 1){
+        alert("You have selected only one point. We cannot compute the purity of one point. Please, consider selecting at least two points.")
+      }
       for (k=maxKNN; k>1; k--){ // Start from the maximum k value and go to the minimum (k=2).
 
         findNearest = 0;
@@ -2136,6 +2137,7 @@ if (points.length) { // If points exist (at least 1 point)
                   return [ i, el ];
               })
               var index = indices[i].indexOf(selectedPoints[i].id);
+              
               if (index > -1) {
                 indices[i].splice(index, 1);
               }
@@ -2218,7 +2220,7 @@ if (points.length) { // If points exist (at least 1 point)
       var svg2 = d3v3.select('#knnBarChart') // Create the barchart for the kNN
         .attr("class", "bar-chart");
 
-        
+      vw = dimensions;
       var barWidth = (vw / findNearestTable.length); // Bar width.
 
       var knnBarChartSVG = svg2.selectAll("rect") // Draw the barchart!
@@ -2236,7 +2238,6 @@ if (points.length) { // If points exist (at least 1 point)
             var translate = [barWidth * i, 0];
             return "translate("+ translate +")";
         });
-      }
       // Here we have the code for the starplot
       d3.select("#starPlot").selectAll('g').remove(); // Remove the starplot if there was one before
 
@@ -2434,9 +2435,9 @@ if (points.length) { // If points exist (at least 1 point)
   
   // Here we start with the Three.js (zoom and drag functions!)
   window.addEventListener('resize', () => {
-    dimensions = window.innerWidth;
-    dimensions = window.innerHeight;
-
+    window.innerWidth = dimensions;
+    window.innerHeight = dimensions;
+    console.log(dimensions);
     renderer.setSize(dimensions, dimensions);
     camera.aspect = dimensions / dimensions;
     camera.updateProjectionMatrix();

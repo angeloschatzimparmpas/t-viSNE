@@ -94,7 +94,7 @@
                   </label>
                   <label style="margin-top: 15px">
                       <input id="downloadDists" checked type="checkbox">
-                      Distances cache (Save Execut.)
+                      Distances cache (Save Exec)
                   </label>
                 </div>
             </div>
@@ -295,15 +295,17 @@
         if ( document.getElementById('cost').hasChildNodes() ) {
           
           // Clear legend for the shepardHeatmap
-          var svgLegend = d3.select("#legend3");
-          svgLegend.selectAll("*").remove();
+          //var svgLegend = d3.select("#legend3");
+          //svgLegend.selectAll("*").remove();
 
           // Clear the SheapHeardmap before refreshing
-          var svg = d3.select("#sheparheat");
-          svg.selectAll("*").remove();
+          //var svg = d3.select("#sheparheat");
+          //svg.selectAll("*").remove();
 
+          MainVisual();
+          
           // Call the ShepardHeatmap again to be redrawn
-          ShepardHeatMap();
+          //ShepardHeatMap();
         }
       }
 

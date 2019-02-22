@@ -120,8 +120,8 @@ cursor: default;
 
 /* A little styling for knn's bar chart */
 #knnBarChart {
-    width: 50vw;
-    height: 4.2vw;
+    width: 50vw !important;
+    height: 4.2vw !important;
     margin-top: 7.2vw;
     border: 1px solid black;
     position: absolute;
