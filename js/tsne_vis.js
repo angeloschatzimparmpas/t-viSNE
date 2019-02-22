@@ -172,7 +172,7 @@ function parseData(url) {
                   for(key in el) {
                       if(el.hasOwnProperty(key)) {
                           var value = el[key];
-                            if(key === "id"){ // Add more limitations if needed in both areas.
+                            if(key === "id" || key === "Version"){ // Add more limitations if needed in both areas. Key limitations here!
                               delete el[key];
                             }
                       }
