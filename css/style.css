@@ -148,7 +148,7 @@ cursor: default;
 
 
 /* Legend of the Overview t-SNE canvas */
- div#legend2 {
+#legend2 {
    height: 11vw;
    width: 11vw;
    text-align: left;
@@ -351,12 +351,12 @@ rect {
  }
 /* Margins for the extra-information panel and the kNNInfo */
 #extra-information {
-  margin-top: 40px;
+  margin-top: 32px;
   margin-left: 10px;
 }
 
 #kNNInfo {
-  margin-top: 35px;
+  margin-top: 10px;
 }
 
 /* Load and Save Analysis Buttons Styling */

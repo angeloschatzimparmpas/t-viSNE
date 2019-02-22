@@ -566,6 +566,13 @@ function init(data, results_all, fields) {
     }
 
     $("#datasetDetails").html("Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Samples: " + final_dataset.length); // Print on the screen the number of dimensions and samples of the data set, which is being analyzed.
+    if (Category == undefined){
+      console.log("mpike");
+      $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
+    } else {
+      $("#CategoryName").html("Classification label: "+Category.replace('*','')); // Print on the screen the classification label.
+    }
+
 
     for(var i = 0; i < dataFeatures.length; i++) {
       if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){ // If a categorization label exist then add it into all_labels variable.
