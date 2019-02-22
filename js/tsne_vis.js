@@ -524,7 +524,6 @@ function init(data, results_all, fields) {
       tsne.initDataDist(dists); // Init t-SNE with dists.
       for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];} // Calculate beta and bring it back from the t-SNE algorithm.
     }
-
     var object;
     all_labels = [];
     // Get the dimension that contains an asterisk mark ("*"). This is our classification label.
