@@ -101,12 +101,23 @@ user-select: none;
 cursor: default;
 }
 
+.right-side-cor {
+  margin-left:12px;
+  margin-top: -60px;
+}
+
+.right-side-star {
+  margin-left:12px;
+  margin-top: -50px;
+}
+
 /* Styling of the main canvas */
 #modtSNEcanvas {
     width: 50vw !important;
     height: 50vw !important;
     border: 1px solid black;
     position: absolute;
+    margin-left: -7.5px;
     z-index: 2;
 }
 
@@ -120,20 +131,20 @@ cursor: default;
 
 /* A little styling for knn's bar chart */
 #knnBarChart {
-    width: 50vw !important;
-    height: 4.2vw !important;
-    margin-top: 7.2vw;
-    border: 1px solid black;
-    position: absolute;
-    display: block;
+  width: 50vw !important;
+  height: 4.2vw !important;
+  margin-top: 7.2vw !important;
+  border: 1px solid black;
+  position: absolute;
+  display: block;
 }
 
 /* Styling of the main SVG behind canvas */
 #modtSNEcanvas_svg {
-  width: 50vw;
-  height: 50vw;
+  width: 50vw ;
+  height: 50vw ;
   opacity: 1.0;
-  margin-left:15px;
+  margin-left: 7.5px;
   position:absolute; 
   z-index: 2;
 }
@@ -143,6 +154,7 @@ cursor: default;
   height: 50vw;
   opacity: 1.0;
   position:absolute; 
+  margin-left: -7.5px;
   z-index: 2;
 }
 
@@ -275,9 +287,8 @@ rect {
 
 /* This is for the Correlation bar chart */
 #correlation{
-  margin-left: 10px;
+  margin-left: -20px;
   margin-top: -20px;
-  border: 1px solid black;
 }
 
 .y.axis line {
@@ -325,7 +336,8 @@ rect {
 
 /* Styling of the main SVG behind canvas */
 #SvgAnnotator {
-  position: absolute; 
+  position: absolute;
+  margin-left:-7.5px; 
   z-index: 1;
 }
 
@@ -338,9 +350,8 @@ rect {
 }
 
 #starPlot{
-  border: 1px solid black;
-  margin-left:10px;
-  margin-top:10px;
+  margin-left:-15px;
+  margin-top:0px;
 }
 
 .parent-row{
@@ -352,7 +363,7 @@ rect {
 /* Margins for the extra-information panel and the kNNInfo */
 #extra-information {
   margin-top: 32px;
-  margin-left: 10px;
+  margin-left: 5px;
 }
 
 #kNNInfo {

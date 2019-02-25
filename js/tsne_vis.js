@@ -80,7 +80,6 @@ var getData = function() {
 
   let format; 
   let value;
-
   if (typeof window.FileReader !== 'function') {
     alert("The file API is not supported on this browser yet.");
   }
@@ -91,7 +90,6 @@ var getData = function() {
   } else if (!input.files) {
     alert("This browser does not seem to support the `files` property of file inputs.");
   } else if (!input.files[0]) {
-
     value = document.getElementById("param-dataset").value; // Get the value of the data set
     format = value.split("."); //Get the format (e.g., [iris, csv])
     if (format[value.split(".").length-1] == "csv") { // Parse the predefined files
@@ -106,12 +104,14 @@ var getData = function() {
       // Load an analysis and parse the previous points and parameters information.
       AnalysisResults = JSON.parse(lines); 
       var length = (AnalysisResults.length - 7);
+
       ParametersSet = AnalysisResults.slice(length+1, AnalysisResults.length+7)
       value = ParametersSet[0];
       if (!isNaN(parseInt(value))){
         flagAnalysis = true;
         length = (AnalysisResults.length - 9);
         ParametersSet = AnalysisResults.slice(length+1, length+7);
+
         value = ParametersSet[0];
       } else {
         flagAnalysis = false;
@@ -346,6 +346,7 @@ function lassoEnable(){ // The main Layer becomes the correlation (barchart)
 
 function setAnnotator(){ // Set a new annotation on top of the main visualization.
 
+  console.log(dimensions);
   vw2 = dimensions;
   vh2 = dimensions;
   var textarea = document.getElementById("comment").value;
@@ -369,8 +370,8 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
   .draggable(true);
 
   var svgAnnotator = d3v3.select("#SvgAnnotator")
-  .attr("width", vw2 * 0.5)
-  .attr("height", vh2 * 0.888)
+  .attr("width", vw2)
+  .attr("height", vh2)
   .style("z-index", 3);
   var gAnnotations = svgAnnotator.append("g")
   .attr("class", "annotations")
@@ -565,9 +566,8 @@ function init(data, results_all, fields) {
       }
     }
 
-    $("#datasetDetails").html("Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Samples: " + final_dataset.length); // Print on the screen the number of dimensions and samples of the data set, which is being analyzed.
+    $("#datasetDetails").html("Number of Features: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length); // Print on the screen the number of features and instances of the data set, which is being analyzed.
     if (Category == undefined){
-      console.log("mpike");
       $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
     } else {
       $("#CategoryName").html("Classification label: "+Category.replace('*','')); // Print on the screen the classification label.
@@ -793,6 +793,8 @@ function updateEmbedding(AnalysisResults) {
       document.getElementById("param-distance").value = ParametersSet[4];
       document.getElementById("param-transform").value = ParametersSet[5];
     }
+    $("#data").html(ParametersSet[0]); // Print on the screen the classification label.
+    $("#param-dataset").html('-');
   }
   InitialStatePoints = points; // Initial Points will not be modified!
 
@@ -1245,22 +1247,26 @@ function redraw(repoints){ // On redraw manipulate the points of the main and ov
 function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
 
   var countLassoFalse = 0;
-    for (var i = 0 ; i < points.length ; i ++) {
-      x = points[i].x;
-      y = points[i].y;
-      if (d3.polygonContains(lassoPolygon, [x, y])){ // Check if the points are inside the area of the lasso
-          points[i].selected = true;
-      } else{
-        countLassoFalse = countLassoFalse + 1; // Count the points which are not inside the lasso interaction.
-        points[i].selected = false;
-      }
+  KNNEnabled = true;
+      for (var i = 0 ; i < points.length ; i ++) {
+        x = points[i].x;
+        y = points[i].y;
+        if (d3.polygonContains(lassoPolygon, [x, y])){
+            points[i].selected = true;
+            points2d[i].selected = true;
+        } else{
+          countLassoFalse = countLassoFalse + 1;
+          points[i].selected = false;
+          points2d[i].selected = true;
+        }
     }
     if (countLassoFalse == points.length){
       for (var i = 0 ; i < points.length ; i ++) {
         points[i].selected = true;
+        points2d[i].selected = true;
       }
     }
-    if (points.length - countLassoFalse <= 10 && points.length - countLassoFalse != 0){ // Check the points for the starplot
+    if (points.length - countLassoFalse <= 10 && points.length - countLassoFalse != 0){
       for (var i = 0 ; i < points.length ; i ++) {
         if (points[i].selected == true){
           points[i].starplot = true;
@@ -1271,12 +1277,20 @@ function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
         points[i].starplot = false;
       }
     }
-    redraw(points); // Redraw the points according to the new specifications.
+    redraw(points);
  
 }
 
 
 function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anything.  
+    KNNEnabled = false;
+    for (var i = 0 ; i < points.length ; i ++) {
+      points[i].selected = true;
+      points[i].starplot = false;
+      points2d[i].selected = true;
+    }
+
+  redraw(points);
 }
 
 // Initialize the horizontal (correlations) barchart's variables
@@ -2100,131 +2114,98 @@ if (points.length) { // If points exist (at least 1 point)
       var indices2d = new Array(selectedPoints.length);
 
       var findNearest;
-      var counter1;
-      var counter2;
-
-      var temp = [];
-      var temp2 = [];
 
       var viewport = getViewport(); // Get the main viewport width height
       var vw = viewport[0] * 0.5;
       var vh = viewport[1] * 0.042;
 
-      var factor = Math.log10(points.length) * 4; // This is a factor which a programmer sets
-      if (factor == 0){
-        factor = 1;
-      }
-
-      var maxKNN = Math.ceil(points.length / factor); // Specify the amount of k neighborhoods that we are going to calculate.
-
-      if (maxKNN > 150){
-        maxKNN = 150;
-      }
+      var maxKNN = document.getElementById("param-perplexity-value").value; // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
 
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
       });
     
       $("#kNNDetails").html("Purity of the cluster was checked for k values starting from " + (1) + " to " + maxKNN + "."); // Print on the screen the number of k values of kNN which we present!
-      if (selectedPoints.length == 1){
-        alert("You have selected only one point. We cannot compute the purity of one point. Please, consider selecting at least two points.")
-      }
-      for (k=maxKNN; k>1; k--){ // Start from the maximum k value and go to the minimum (k=2).
+      for (k=maxKNN; k>0; k--){ // Start from the maximum k value and go to the minimum (k=2).
 
         findNearest = 0;
         var indexOrderSliced = [];
         var indexOrderSliced2d = [];
-        var count1 = new Array(selectedPoints.length).fill(0);
-        var count2 = new Array(selectedPoints.length).fill(0);
-        counter1 = 0;
-        counter2 = 0;
-
-        for (var i=0; i<selectedPoints.length; i++){ // For the selected points check the purity of the cluster.
-
-          temp[i] = 0;
-          temp2[i] = 0;
-
-          if (k == maxKNN){
-              // Temporary array holds objects with position and sort-value
-              indices[i] = dists[i].map(function(el, i) {
-                  return [ i, el ];
-              })
-              var index = indices[i].indexOf(selectedPoints[i].id);
-              
-              if (index > -1) {
-                indices[i].splice(index, 1);
+        var count = [];
+        var sumIntersectionAvg = 0;
+        var sumUnionAvg = 0;
+        var sumIntersection = [];
+        var sumUnion = [];
+        for (var i=0; i<selectedPoints.length;i++){
+          count[i] = 0;
+          var id = selectedPoints[i].id;
+            // Temporary array holds objects with position and sort-value
+            indices[i] = dists[id].map(function(el, j) {
+              return [ j, el ];
+            })
+            indices2d[i] = dists2d[id].map(function(el, j) {
+              return [ j, el ];
+            })
+            if (k == maxKNN){
+              for (var j = id+1; j<points.length; j++){ // For the selected points check the purity of the cluster.
+                indices[i].push([j,dists[j][id]]);
+                indices2d[i].push([j,dists2d[j][id]]);
               }
-              // Sorting the mapped array containing the reduced values
-              indices[i].sort(function(a, b) {
-                if (a[1] > b[1]) {
-                  return 1;
-                }
-                if (a[1] < b[1]) {
-                  return -1;
-                }
-                return 0;
-              });
-      
-              indexOrder[i] = indices[i].map(function(value) { return value[0]; });
+                // Sorting the mapped array containing the reduced values
+                indices[i].sort(function(a, b) {
+                  if (a[1] > b[1]) {
+                    return 1;
+                  }
+                  if (a[1] < b[1]) {
+                    return -1;
+                  }
+                  return 0;
+                });
+        
+                indexOrder[i] = indices[i].map(function(value) { return value[0]; });
+                // Sorting the mapped array containing the reduced values
+                indices2d[i].sort(function(a, b) {
+                  if (a[1] > b[1]) {
+                    return 1;
+                  }
+                  if (a[1] < b[1]) {
+                    return -1;
+                  }
+                  return 0;
+                });
 
-              // Temporary array holds objects with position and sort-value
-              indices2d[i] = dists2d[i].map(function(el, i) {
-                  return [ i, el ];
-              })
-              var index2d = indices2d[i].indexOf(selectedPoints[i].id);
-              if (index2d > -1) {
-                indices2d[i].splice(index2d, 1);
+                indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
               }
-              
-              // Sorting the mapped array containing the reduced values
-              indices2d[i].sort(function(a, b) {
-                if (a[1] > b[1]) {
-                  return 1;
-                }
-                if (a[1] < b[1]) {
-                  return -1;
-                }
-                return 0;
-              });
-              indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
+              indexOrderSliced[i] = indexOrder[i].slice(0,k);
+              indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
+            for (var m=0; m < indexOrderSliced2d[i].length; m++){
+              if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){ // Union
+                count[i] = count[i] + 1;
+              }
             }
-            indexOrderSliced[i] = indexOrder[i].slice(0,k);
-            indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
 
-          for (var m=0; m < indexOrderSliced2d[i].length; m++){
-            if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){ // Union
-              count1[i] = count1[i] + 1;
-              temp[i] = temp[i] + 1;
+            sumIntersection.push(count[i]);
+            sumUnion.push((k*2 - sumIntersection[i]));
+          }
+
+          for (var i=0; i<selectedPoints.length;i++){
+            sumIntersectionAvg = sumIntersection[i] + sumIntersectionAvg;
+            sumUnionAvg = sumUnion[i] + sumUnionAvg;
+          }
+          sumIntersectionAvg = sumIntersectionAvg / selectedPoints.length;
+          sumUnionAvg = sumUnionAvg / selectedPoints.length;
+            if (sumIntersectionAvg == 0){
+              findNearest = 0;
+            } else{
+              findNearest = sumIntersectionAvg / sumUnionAvg; // Nearest neighbor!
             }
-            if(indexOrderSliced[i][m] == indexOrderSliced2d[i][m]){ // Intersection
-              count2[i] = count2[i] + 1;
-              temp2[i] = temp2[i] + 1;
-
+  
+            if (isNaN(findNearest)){
+              findNearest = 0; // If kNN is fully uncorrelated then we say that the value is 0.
             }
-          }  
-
-          if (count1[i] != 0){
-            counter1 = (count1[i] / temp[i]) + counter1;
-          }
-          if (count2[i] != 0){
-            counter2 = (count2[i] / temp2[i]) + counter2;
-          }
-
-        }
-
-          sumUnion = counter1 / selectedPoints.length; // Union
-          sumIntersection = counter2 / selectedPoints.length; // Intersection
-          if (sumUnion == 0){
-            findNearest = 0; // Prevent the division by 0 value.
-          } else{
-            findNearest = sumIntersection / sumUnion; // Nearest neighbor!
-          }
-
-          if (isNaN(findNearest)){
-            findNearest = 0; // If kNN is fully uncorrelated then we say that the value is 0.
-          }
-          findNearestTable.push(findNearest * vh * 2); // These values are multiplied by the height of the viewport because we need to draw the bins of the barchart representation
+            findNearestTable.push(findNearest * vh * 2); // These values are multiplied by the height of the viewport because we need to draw the bins of the barchart representation
       }
+         
       findNearestTable.reverse();
 
       var barPadding = 5; // Leave some space between the bars
@@ -2258,13 +2239,15 @@ if (points.length) { // If points exist (at least 1 point)
       for (var i=0; i < selectedPoints.length; i++){
         if (selectedPoints[i].starplot == true){ // Count the selected points
           coun = coun + 1;
+          console.log(coun);
         } 
       }
+
+      
 
       if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
     
         var FeatureWise = [];
-    
         for (var j=0; j<Object.values(dataFeatures[0]).length; j++){ // Get the features of the data set.
           for (var i=0;i<dataFeatures.length;i++){
             if (!isNaN(Object.values(dataFeatures[i])[j])){
@@ -2445,15 +2428,6 @@ if (points.length) { // If points exist (at least 1 point)
         return a[tempSort] - b[tempSort];
     })
   }
-  
-  // Here we start with the Three.js (zoom and drag functions!)
-  window.addEventListener('resize', () => {
-    window.innerWidth = dimensions;
-    window.innerHeight = dimensions;
-    renderer.setSize(dimensions, dimensions);
-    camera.aspect = dimensions / dimensions;
-    camera.updateProjectionMatrix();
-  })
 
   let zoom = d3.zoom()
     .scaleExtent([getScaleFromZ(far), getScaleFromZ(near)])
@@ -2837,7 +2811,7 @@ if (points.length) { // If points exist (at least 1 point)
       viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
       viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
     }
-    
+    console.log
     return [viewPortWidth, viewPortHeight];
 
  }
@@ -2889,7 +2863,6 @@ function SaveAnalysis(){ // Save the analysis into a .txt file
       AllData = points.concat(points2d).concat(overallCost).concat(Parameters);
     }
   }
-
   download(JSON.stringify(AllData),'Analysis'+measureSaves+'.txt', 'text/plain');
 
 }

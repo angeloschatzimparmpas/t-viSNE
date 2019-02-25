@@ -59,8 +59,8 @@
               <div id="control-panel">
                 <div class="param">
                   <label for="param-lim" >Points radius scaling factor</label>
-                  <input id="param-lim" type="range" min="1" max="4" value="2", step="0.25" onchange="setReInitialize();">
-                  <output for="param-lim" id="param-lim-value" >2</output>
+                  <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize();">
+                  <output for="param-lim" id="param-lim-value" >3</output>
                 </div>
               </div>
             </div>
@@ -119,9 +119,16 @@
             </div>
           </div>
           <div class="col-md-3 col-md-offset-6">
-            <svg id="correlation"></svg>
+              <div class="panel panel-default right-side-cor">
+                  <div class="panel-heading">
+                      <h2 class="panel-title">Correlation Schema Investigation</h2>
+                  </div>
+                  <div class="panel-body">  
+                    <svg id="correlation"></svg>
+                  </div>
+                </div>
+              </div>
           </div>
-        </div>
         <div class="row">
           <div class="col-md-3">
             <div class="panel panel-default">
@@ -137,7 +144,7 @@
                         <option value="iris.csv" selected>Iris</option>
                         <option value="mnist.csv" >Mnist</option>
                         <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
-                        <option value="empty">Add New File</option>
+                        <option value="empty">Upload New File</option>
                       </select>
                       <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
                   </div>
@@ -180,9 +187,15 @@
               </div>
             </div>
           </div>
-          <div class="col-md-3 col-md-offset-6">
+      <div class="col-md-3 col-md-offset-6">
+        <div class="panel panel-default right-side-star">
+          <div class="panel-heading">
+              <h2 class="panel-title">Starplot with PCA Calculation</h2>
+          </div>
+          <div class="panel-body">
             <div id="starPlot"></div>
         </div>
+       </div>
       </div>
       <div class="row">
         <div class="col-md-3">
@@ -253,7 +266,7 @@
     </div>
 
     <script>
-
+      
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });
