@@ -225,6 +225,7 @@ function setReset(){ // Reset only the filters which were applied into the data 
     InitialStatePoints[i].selected = true;
     InitialStatePoints[i].starplot = false;
     InitialStatePoints[i].schemaInv = false;
+    InitialStatePoints[i].DimON = null;
   }
   redraw(InitialStatePoints);
 
@@ -346,7 +347,6 @@ function lassoEnable(){ // The main Layer becomes the correlation (barchart)
 
 function setAnnotator(){ // Set a new annotation on top of the main visualization.
 
-  console.log(dimensions);
   vw2 = dimensions;
   vh2 = dimensions;
   var textarea = document.getElementById("comment").value;
@@ -1799,13 +1799,6 @@ function updateBarChart() {
     .on("mouseover", () => {
       svg.select('.tooltip').style('display', 'none'); 
     })
-    .on("mouseout", function(d){ 
-      points.forEach(function (p) {
-        p.DimON = null
-      })
-      BetatSNE(points);
-      svg.select('.tooltip').style('display', 'none'); 
-    })
     .on("mousemove", function(d) {
       points.forEach(function (p) {
         if (p.schemaInv == true) {
@@ -1814,6 +1807,7 @@ function updateBarChart() {
       })
       BetatSNE(points);
     });
+    
 
   //EXIT
   bar.exit()
@@ -2239,7 +2233,6 @@ if (points.length) { // If points exist (at least 1 point)
       for (var i=0; i < selectedPoints.length; i++){
         if (selectedPoints[i].starplot == true){ // Count the selected points
           coun = coun + 1;
-          console.log(coun);
         } 
       }
 
@@ -2811,7 +2804,7 @@ if (points.length) { // If points exist (at least 1 point)
       viewPortWidth = document.getElementsByTagName('body')[0].clientWidth,
       viewPortHeight = document.getElementsByTagName('body')[0].clientHeight
     }
-    console.log
+    
     return [viewPortWidth, viewPortHeight];
 
  }
