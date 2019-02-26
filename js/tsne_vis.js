@@ -1587,11 +1587,11 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       for (var j = 0; j < correlationResults.length; j++) {
         for (var i = 0; i < SignStore.length; i++) {
           if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+            correlationResults[j][1] = (correlationResults[j][1]).toFixed(4) * (-1); // Give the negative sign if needed and multiply by 100
             correlationResults[j].push(j);
           }
           if (SignStore[i][1] == correlationResults[j][1]) {
-            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2); // Give a positive sign and multiply by 100
+            correlationResults[j][1] = (correlationResults[j][1]).toFixed(4); // Give a positive sign and multiply by 100
             correlationResults[j].push(j);
           }
         }
@@ -2265,7 +2265,7 @@ if (points.length) { // If points exist (at least 1 point)
           margin: {
             l: 30,
             r: 30,
-            b: 20,
+            b: 25,
             t: 20,
             pad: 4
           },
@@ -2346,7 +2346,7 @@ if (points.length) { // If points exist (at least 1 point)
           ////////////////////////////////////////////////////////////// 
           //////////////////// Draw the Chart ////////////////////////// 
           ////////////////////////////////////////////////////////////// 
-          var colors = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd']; // Colorscale for the starplot
+          var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6']; // Colorscale for the starplot
           var colorScl = d3v3.scale.ordinal()
             .domain(IDS)
             .range(colors);
