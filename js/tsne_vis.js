@@ -1572,7 +1572,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
           if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
           } else{
             SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign 
-            correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))]); // Find the pearson correlations
+            correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
           }
         }
       }
@@ -1587,12 +1587,10 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       for (var j = 0; j < correlationResults.length; j++) {
         for (var i = 0; i < SignStore.length; i++) {
           if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-            correlationResults[j][1] = (correlationResults[j][1]).toFixed(4) * (-1); // Give the negative sign if needed and multiply by 100
-            correlationResults[j].push(j);
+            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
           }
           if (SignStore[i][1] == correlationResults[j][1]) {
-            correlationResults[j][1] = (correlationResults[j][1]).toFixed(4); // Give a positive sign and multiply by 100
-            correlationResults[j].push(j);
+            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2); // Give a positive sign and multiply by 100
           }
         }
       }
@@ -1606,13 +1604,13 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
     } 
 
     var maxminArea = [];
-    for (var i=0; i<ArrayContainsDataFeaturesClearedwithoutNull[0].length; i++){
+    for (var i=0; i<ArrayContainsDataFeaturesLimit[0].length; i++){
       maxminArea.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesLimit, i));
     }
 
     if (PreComputFlagCorrelation){
       maxminTotal = [];
-      for (var i=0; i<ArrayContainsDataFeaturesClearedwithoutNull[0].length; i++){
+      for (var i=0; i<ArrayContainsDataFeaturesCleared[0].length; i++){
         maxminTotal.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesCleared, i));
       }
       PreComputFlagCorrelation = false;
