@@ -12,7 +12,7 @@ var final_dataset; var points = []; var cost = []; var cost_each; var beta_all =
 var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedwithoutNull = []; var ArrayContainsDataFeaturesClearedwithoutNullKeys = []; var flagAnalysis = false;
 
 // The distances in the high dimensional space and in the 2D space. All the labels that were found in the selected data set.
-var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = [];
+var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = []; 
 
 // These are the dimensions for the Overview view and the Main view
 var dim = document.getElementById('tSNEcanvas').offsetWidth; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
@@ -28,7 +28,7 @@ var returnVal = false;
 // svgClick = Click a left mouse click in order to add a point.
 // prevRightClick = When right click is pressed prevent any other action. Lock the current schema.
 // if flagForSchema is false then send a message to the user that he/she has to: "Please, draw a schema first!");
-var svgClick; var prevRightClick; var flagForSchema = false; 
+var svgClick; var prevRightClick; var flagForSchema = false; var PreComputFlagCorrelation = true; var maxminTotal = [];
 
 // Save the parameters for the current analysis, save the overallCost, and store in the "input" variable all the points and points2D.
 var ParametersSet = []; var overallCost; var input; 
@@ -40,7 +40,8 @@ var ringNotes = []; var gAnnotationsAll = []; var AnnotationsAll = []; var dragg
 var MainCanvas; var Child; var renderer; var fov = 21; var near = 10; var far = 7000; var camera; var scene;
 
 // Initialize the Schema Investigation variables.
-var Arrayx = []; var Arrayy = []; var XYDistId = []; var Arrayxy = []; var DistanceDrawing1D = []; var allTransformPoints = []; var p; var pFinal = []; var paths; var path; var ArrayLimit = []; var minimum; var correlationResults = []; var ArrayContainsDataFeaturesLimit = [];
+var Arrayx = []; var Arrayy = []; var XYDistId = []; var Arrayxy = []; var DistanceDrawing1D = []; var allTransformPoints = []; var p; var pFinal = []; var paths; var path; var ArrayLimit = [];
+var minimum; var correlationResults = []; var correlationResultsFinal = []; var ArrayContainsDataFeaturesLimit = [];
 
 // This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
@@ -78,6 +79,7 @@ function fetchVal(callback) {
 // Parse the analysis folder if requested or the csv file if we run a new execution. 
 var getData = function() {
 
+  PreComputFlagCorrelation = true;
   let format; 
   let value;
   if (typeof window.FileReader !== 'function') {
@@ -1377,7 +1379,7 @@ function click(){ // This is the click of the Schema Investigation scenario
 }
 
 function CalculateCorrel(){ // Calculate the correlation is a function which has all the computations for the schema ordering (investigation).
-
+ 
   if (flagForSchema == false){
     alert("Please, draw a schema first!"); // If no Schema is drawn then ask the user!
   } else{
@@ -1436,13 +1438,11 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
     }
     
     ArrayLimit = [];
-
     for (var i=0; i<arraysCleared.length; i++) {
       if (arraysCleared[i][5] < correlLimit) { // Now we add a limit to the distance that we search according to the thresholder which the user changes through a slider.
         ArrayLimit.push(arraysCleared[i]);
       }
     }
-
 
     var temparray = [];
     var count = new Array(paths.nodes().length).fill(0);
@@ -1525,7 +1525,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
         } 
       }
     }
-   
+
     if (ArrayContainsDataFeaturesLimit.length == 0){ // If no points were selected then send a message to the user! And set everything again to the initial state.
       d3.selectAll("#correlation > *").remove(); 
       d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
@@ -1593,7 +1593,33 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
         }
       }
     }
+
+    function getMinMaxOf2DIndex (arr, idx) {
+      return {
+        min: Math.min.apply(null, arr.map(function (e) { return e[idx]})),
+        max: Math.max.apply(null, arr.map(function (e) { return e[idx]}))
+      }
+    } 
+
+    var maxminArea = [];
+    for (var i=0; i<ArrayContainsDataFeaturesClearedwithoutNull[0].length; i++){
+      maxminArea.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesLimit, i));
+    }
+
+    if (PreComputFlagCorrelation){
+      maxminTotal = [];
+      for (var i=0; i<ArrayContainsDataFeaturesClearedwithoutNull[0].length; i++){
+        maxminTotal.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesCleared, i));
+      }
+      PreComputFlagCorrelation = false;
+    }
+    correlationResultsFinal = [];
+    for (var i=0; i<correlationResults.length; i++){
+      correlationResultsFinal.push([correlationResults[i][0],(maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1],correlationResults[i][2]]);
+    }
+
     drawBarChart(); // Draw the horizontal barchart with the correlations.
+    
     }
   }
 }
@@ -1668,8 +1694,8 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   //Update the scales
   main_xScale.domain([-100, 100]);
   mini_xScale.domain([-100, 100]);     
-  main_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
-  mini_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
+  main_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
+  mini_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
 
   //Create the visual part of the y axis
   d3v3.select(".mainGroup").select(".y.axis").call(main_yAxis);
@@ -1689,11 +1715,11 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   /////////////////////////////////////////////////////////////
 
   //What should the first extent of the brush become - a bit arbitrary this
-  var brushExtent = parseInt(Math.max( 1, Math.min( 20, Math.round(correlationResults.length * 0.75) ) ));
+  var brushExtent = parseInt(Math.max( 1, Math.min( 20, Math.round(correlationResultsFinal.length * 0.75) ) ));
 
   brush = d3v3.svg.brush()
   .y(mini_yScale)
-  .extent([mini_yScale(correlationResults[0][0]), mini_yScale(correlationResults[brushExtent][0])])
+  .extent([mini_yScale(correlationResultsFinal[0][0]), mini_yScale(correlationResultsFinal[brushExtent][0])])
   .on("brush", brushmove)
 
   //Set up the visual part of the brush
@@ -1744,7 +1770,7 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   //The mini brushable bar
   //DATA JOIN
   var mini_bar = d3v3.select(".miniGroup").selectAll(".bar")
-  .data(correlationResults, function(d) { return +d[2]; });
+  .data(correlationResultsFinal, function(d) { return +d[2]; });
 
   //UDPATE
   mini_bar
@@ -1779,7 +1805,7 @@ function updateBarChart() {
   /////////////////////////////////////////////////////////////
 
   var bar = d3v3.select(".mainGroup").selectAll(".bar")
-      .data(correlationResults, function(d) { return +d[2]; })
+      .data(correlationResultsFinal, function(d) { return +d[2]; })
   //, function(d) { return d.key; });
 
   bar
@@ -1828,7 +1854,7 @@ function brushmove() {
    main_yZoom.domain( extent );
 
   //Update the domain of the x & y scale of the big bar chart
-  main_yScale.domain(correlationResults.map(function(d) { return d[0]; }));
+  main_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
   main_yScale.rangeBands( [ main_yZoom(originalRange[0]), main_yZoom(originalRange[1]) ], 0.4, 0);
 
   //Update the y axis of the big chart
