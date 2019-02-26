@@ -108,7 +108,17 @@ cursor: default;
 
 .right-side-star {
   margin-left:12px;
-  margin-top: -50px;
+  margin-top: -5px;
+}
+
+#left-side-param{
+  margin-top: -115px;
+}
+
+#left-side-visual{
+  margin-top: -160px;
+  margin-left: 15px;
+  margin-right: -5px;
 }
 
 /* Styling of the main canvas */
@@ -132,11 +142,10 @@ cursor: default;
 /* A little styling for knn's bar chart */
 #knnBarChart {
   width: 50vw !important;
-  height: 4.2vw !important;
-  margin-top: 7.2vw !important;
-  border: 1px solid black;
-  position: absolute;
-  display: block;
+  height: 5.5vw !important;
+  border: 1px solid black !important;
+  margin-top: 0.2vw;
+  position: absolute !important;
 }
 
 /* Styling of the main SVG behind canvas */
@@ -362,7 +371,7 @@ rect {
  }
 /* Margins for the extra-information panel and the kNNInfo */
 #extra-information {
-  margin-top: 32px;
+  margin-top: -5px;
   margin-left: 5px;
 }
 
@@ -395,4 +404,25 @@ rect {
   align-items: center;
   width: 100%;
   height: 90vh;
+}
+
+/* kNN barchart color box (legend)*/
+ul {
+  margin: 20px;
+}
+
+.input-color {
+  position: relative;
+}
+.input-color input {
+  padding-left: 20px;
+}
+.input-color .color-box {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  background-color: #ccc;
+  position: absolute;
+  left: 5px;
+  top: 5px;
 }

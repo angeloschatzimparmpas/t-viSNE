@@ -18,6 +18,7 @@
     <script src="./modules/d3-tip/tip.js"></script>
     <script src="./modules/d3-legend/d3-legend.min.js"></script>
     <script src="./modules/d3-lasso/lasso.js"></script>
+    <script src="./modules/plotly/plotly_min.js"></script>
     
     <script src="./modules/papa/papaparse.min.js"></script>
     <script src="./modules/jquery/jquery.min.js"></script>
@@ -131,7 +132,7 @@
           </div>
         <div class="row">
           <div class="col-md-3">
-            <div class="panel panel-default">
+            <div class="panel panel-default" id="left-side-param">
                 <div class="panel-heading">
                   <h2 class="panel-title">t-SNE Parameters</h2>
                 </div>
@@ -140,8 +141,10 @@
                   <div class="param">
                       <label id="data" for="param-dataset">Data sets</label>
                       <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
+                        <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
+                        <option value="bank-additional_s.csv">Bank Marketing</option>
                         <option value="winequality-red.csv">Red Wine - Quality</option>
-                        <option value="iris.csv" selected>Iris</option>
+                        <option value="iris.csv">Iris</option>
                         <option value="mnist.csv" >Mnist</option>
                         <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
                         <option value="empty">Upload New File</option>
@@ -199,7 +202,7 @@
       </div>
       <div class="row">
         <div class="col-md-3">
-            <div class="panel panel-default">
+            <div class="panel panel-default" id="left-side-visual">
                 <div class="panel-heading">
                     <h2 class="panel-title">Visual Mapping Parameters</h2>
                 </div>
@@ -238,7 +241,9 @@
               </div>
         </div>
         <div class = col-md-6>
-              <svg id="knnBarChart"></svg>
+              <div id="knnBarChart">
+                <div id="plotlyBarChart"></div>
+              </div>
         </div>
         <div class="col-md-3" id="extra-information" style="width: 24.6vw">
             <div class="panel panel-default">
@@ -253,20 +258,15 @@
                 <div id="CategoryName"></div>
               </div>
             </div>
-            <div class="panel panel-default" id="kNNInfo">
-                <div class="panel-heading">
-                    <h2 class="panel-title">k Nearest Neighborhood Cluster Purity Preservation</h2>
-                </div>
-                <div class="panel-body">
-                  <div id="kNNDetails"></div>
-                </div>
-              </div>
           </div>
       </div>
     </div>
 
     <script>
-      
+
+      $("#cost").html('Uknown iteration and cost values.');
+      $("#datasetDetails").html('Uknown number of features and instances.');
+      $("#CategoryName").html('No specific classification.');
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });

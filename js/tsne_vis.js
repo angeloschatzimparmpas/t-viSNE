@@ -24,6 +24,9 @@ var Category; var ColorsCategorical;
 // This is for the removal of the distances cache. 
 var returnVal = false;
 
+// This variable is for the kNN Bar Chart in order to store the first execution.
+var inside = 0;
+
 // Schema Investigation 
 // svgClick = Click a left mouse click in order to add a point.
 // prevRightClick = When right click is pressed prevent any other action. Lock the current schema.
@@ -742,6 +745,7 @@ function computeDistances(data, distFunc, transFunc) {
 // Function that updates embedding
 function updateEmbedding(AnalysisResults) {
 
+  inside = 0;
   points = [];
   points2d = [];
   if (AnalysisResults == ""){ // Check if the embedding does not need to load because we had a previous analysis uploaded.
@@ -1305,10 +1309,10 @@ var zoomer = d3v3.behavior.zoom()
 // Margin of the main barchart
 var main_margin = {top: 8, right: 10, bottom: 30, left: 100},
   main_width = 500 - main_margin.left - main_margin.right,
-  main_height = 320 - main_margin.top - main_margin.bottom;
+  main_height = 475 - main_margin.top - main_margin.bottom;
 // Margin of the mini barchart
 var mini_margin = {top: 8, right: 10, bottom: 30, left: 10},
-  mini_height = 320 - mini_margin.top - mini_margin.bottom;
+  mini_height = 475 - mini_margin.top - mini_margin.bottom;
   mini_width = 100 - mini_margin.left - mini_margin.right;
 
 // Create the svg correlation component
@@ -1583,11 +1587,11 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       for (var j = 0; j < correlationResults.length; j++) {
         for (var i = 0; i < SignStore.length; i++) {
           if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-            correlationResults[j][1] = parseInt(correlationResults[j][1] * 100) * (-1); // Give the negative sign if needed and multiply by 100
+            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
             correlationResults[j].push(j);
           }
           if (SignStore[i][1] == correlationResults[j][1]) {
-            correlationResults[j][1] = parseInt(correlationResults[j][1] * 100); // Give a positive sign and multiply by 100
+            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2); // Give a positive sign and multiply by 100
             correlationResults[j].push(j);
           }
         }
@@ -1692,8 +1696,8 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   /////////////////////// Update scales ///////////////////////
   /////////////////////////////////////////////////////////////
   //Update the scales
-  main_xScale.domain([-100, 100]);
-  mini_xScale.domain([-100, 100]);     
+  main_xScale.domain([-1, 1]);
+  mini_xScale.domain([-1, 1]);     
   main_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
   mini_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
 
@@ -2117,11 +2121,12 @@ var IDS = [];
 RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
 
 function BetatSNE(points){ // Run the main visualization
-
+inside = inside + 1;
 if (points.length) { // If points exist (at least 1 point)
 
     selectedPoints = [];
     var findNearestTable = [];
+    var findNearestTableCombination = [];
     for (let m=0; m<points.length; m++){
       if (points[m].selected == true){
           selectedPoints.push(points[m]); // Add the selected points in to a new variable
@@ -2140,12 +2145,10 @@ if (points.length) { // If points exist (at least 1 point)
       var vh = viewport[1] * 0.042;
 
       var maxKNN = document.getElementById("param-perplexity-value").value; // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
-
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
       });
     
-      $("#kNNDetails").html("Purity of the cluster was checked for k values starting from " + (1) + " to " + maxKNN + "."); // Print on the screen the number of k values of kNN which we present!
       for (k=maxKNN; k>0; k--){ // Start from the maximum k value and go to the minimum (k=2).
 
         findNearest = 0;
@@ -2223,46 +2226,64 @@ if (points.length) { // If points exist (at least 1 point)
             if (isNaN(findNearest)){
               findNearest = 0; // If kNN is fully uncorrelated then we say that the value is 0.
             }
-            findNearestTable.push(findNearest * vh * 2); // These values are multiplied by the height of the viewport because we need to draw the bins of the barchart representation
+            findNearestTable.push(findNearest.toFixed(2)); // These values are multiplied by the height of the viewport because we need to draw the bins of the barchart representation
       }
          
       findNearestTable.reverse();
 
-      var barPadding = 5; // Leave some space between the bars
-          d3v3.select("#knnBarChart").selectAll("rect").remove();
-
-      var svg2 = d3v3.select('#knnBarChart') // Create the barchart for the kNN
-        .attr("class", "bar-chart");
-
-      vw = dimensions;
-      var barWidth = (vw / findNearestTable.length); // Bar width.
-
-      var knnBarChartSVG = svg2.selectAll("rect") // Draw the barchart!
-        .data(findNearestTable)
-        .enter()
-        .append("rect")
-        .attr("y", function(d) {
-            return Math.round(vh*2 - d)
-        })
-        .attr("height", function(d) {
-          return d;
-        })
-        .attr("width", barWidth - barPadding)
-        .attr("transform", function (d, i) {
-            var translate = [barWidth * i, 0];
-            return "translate("+ translate +")";
-        });
-      // Here we have the code for the starplot
-      d3.select("#starPlot").selectAll('g').remove(); // Remove the starplot if there was one before
-
-      var coun = 0;
-      for (var i=0; i < selectedPoints.length; i++){
-        if (selectedPoints[i].starplot == true){ // Count the selected points
-          coun = coun + 1;
-        } 
+      var kValuesLegend = [];
+      for (var i=1; i<=maxKNN; i++){
+        kValuesLegend.push(i);
       }
+      if (inside == 1){
+        StoreInitialFindNearestTable = findNearestTable;
+      }
+        var trace1 = {
+          x: kValuesLegend, 
+          y: StoreInitialFindNearestTable, 
+          name: 'Entire Projection', 
+          type: 'bar',
+          marker: {
+            color: 'rgb(0,0,0)'
+          }
+        };
+        var trace2 = {
+          x: kValuesLegend, 
+          y: findNearestTable, 
+          name: 'Lasso Selected Cluster', 
+          type: 'bar',
+          marker: {
+            color: 'rgb(0, 187, 187)'
+          }
+        };
+        var LimitXaxis = Number(maxKNN) + 1;
+        var data = [trace1, trace2];
+        var layout = {
+          barmode: 'group',autosize: false,
+          width: dimensions*0.99,
+          height: vh*2.1,
+          margin: {
+            l: 30,
+            r: 30,
+            b: 20,
+            t: 20,
+            pad: 4
+          },
+          xaxis: {range: [0, LimitXaxis]},
+          yaxis: {range: [0, 1]}};
+        
+        Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false},{staticPlot: true});
 
-      
+              
+        // Here we have the code for the starplot
+        d3.select("#starPlot").selectAll('g').remove(); // Remove the starplot if there was one before
+
+        var coun = 0;
+        for (var i=0; i < selectedPoints.length; i++){
+          if (selectedPoints[i].starplot == true){ // Count the selected points
+            coun = coun + 1;
+          } 
+        }
 
       if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
     
