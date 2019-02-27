@@ -476,6 +476,7 @@ function init(data, results_all, fields) {
     d3.selectAll("#SvgAnnotator > *").remove(); 
     d3.selectAll("#sheparheat > *").remove(); 
     d3.selectAll("#knnBarChart > *").remove(); 
+    d3.selectAll("#costHist > *").remove(); 
 
     // Clear the previous t-SNE overview canvas. 
     var oldcanvOver = document.getElementById('tSNEcanvas');
@@ -1282,7 +1283,7 @@ function CostHistogram(points){
       type: "histogram", 
       xbins: {
         end: 1, 
-        size: 0.025,
+        size: 0.01,
         start: 0
       }
     };
@@ -1310,7 +1311,7 @@ function CostHistogram(points){
       type: "histogram", 
       xbins: {
         end: 1, 
-        size: 0.025,
+        size: 0.01,
         start: 0
       }
     };
@@ -1378,7 +1379,6 @@ function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anyth
     for (var i = 0 ; i < points.length ; i ++) {
       points[i].selected = true;
       points[i].starplot = false;
-      points2d[i].selected = true;
     }
 
   redraw(points);
@@ -1661,25 +1661,6 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
           }
         }
       }
-      correlationResults = correlationResults.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
-        function(a,b) {
-        if (a[1] == b[1])
-        return a[0] < b[0] ? -1 : 1;
-        return a[1] < b[1] ? 1 : -1;
-        }
-      );
-  
-      for (var j = 0; j < correlationResults.length; j++) {
-        for (var i = 0; i < SignStore.length; i++) {
-          if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
-          }
-          if (SignStore[i][1] == correlationResults[j][1]) {
-            correlationResults[j][1] = (correlationResults[j][1]).toFixed(2); // Give a positive sign and multiply by 100
-          }
-        }
-      }
-    }
 
     function getMinMaxOf2DIndex (arr, idx) {
       return {
@@ -1704,6 +1685,26 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
     for (var i=0; i<correlationResults.length; i++){
       correlationResultsFinal.push([correlationResults[i][0],(maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1],correlationResults[i][2]]);
     }
+
+    correlationResultsFinal = correlationResultsFinal.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
+    function(a,b) {
+      if (a[1] == b[1])
+        return a[0] < b[0] ? -1 : 1;
+        return a[1] < b[1] ? 1 : -1;
+      }
+    );
+
+  for (var j = 0; j < correlationResultsFinal.length; j++) {
+    for (var i = 0; i < SignStore.length; i++) {
+      if (SignStore[i][1]*(-1) == correlationResultsFinal[j][1]) {
+        correlationResultsFinal[j][1] = (correlationResultsFinal[j][1]).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+      }
+      if (SignStore[i][1] == correlationResultsFinal[j][1]) {
+        correlationResultsFinal[j][1] = (correlationResultsFinal[j][1]).toFixed(2); // Give a positive sign and multiply by 100
+      }
+    }
+  }
+}
 
     drawBarChart(); // Draw the horizontal barchart with the correlations.
     
@@ -2589,7 +2590,9 @@ if (points.length) { // If points exist (at least 1 point)
     let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
     pointsGeometry.vertices.push(vertex);
     geometry.vertices.push(vertex);
-    if (points[i].DimON != null) {
+    if(points[i].starplot == true){
+      var color = new THREE.Color(colorScl(points[i].id));
+    } else if (points[i].DimON != null) {
       let temp = points[i].DimON.match(/\d+/)[0];
       var maxDim = (d3.max(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));
       var minDim = (d3.min(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));  
@@ -2600,12 +2603,10 @@ if (points.length) { // If points exist (at least 1 point)
         .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
         .range(colorsBarChart);
       var color = new THREE.Color(colorScale(points[i][temp]));
-    } else if(points[i].starplot == true){
-      var color = new THREE.Color(colorScl(points[i].id));
+    } else if (points[i].selected == false && points[i].schemaInv == false){
+      var color = new THREE.Color("rgb(211, 211, 211)");
     } else if (points[i].selected == false && points[i].schemaInv == true){
       var color = new THREE.Color("rgb(145, 145, 145)");
-    } else if (points[i].selected == false){
-      var color = new THREE.Color("rgb(211, 211, 211)");
     } else if (ColSizeSelector == "color") {
       var color = new THREE.Color(colorScale(points[i].beta));
     }
