@@ -2686,7 +2686,7 @@ if (points.length) { // If points exist (at least 1 point)
           .labelFormat(d3.format(",.0f"))
           .cells(9)
           .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-          .title("1 / sigma")
+          .title("1/sigma")
           .scale(colorScale);
     
         svg.select(".legendLinear")
