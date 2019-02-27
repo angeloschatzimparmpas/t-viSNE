@@ -571,7 +571,7 @@ function init(data, results_all, fields) {
       }
     }
 
-    $("#datasetDetails").html("Number of Features: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length); // Print on the screen the number of features and instances of the data set, which is being analyzed.
+    $("#datasetDetails").html("(Number of Features: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
     if (Category == undefined){
       $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
     } else {
@@ -780,7 +780,7 @@ function updateEmbedding(AnalysisResults) {
       ParametersSet = AnalysisResults.slice(2*dataFeatures.length+length+1, 2*dataFeatures.length+length+7); // Load the parameters and set the necessary values to the visualization of those parameters.
       dists = AnalysisResults.slice(2*dataFeatures.length+length+7, 2*dataFeatures.length+length+8)[0]; // Load the parameters and set the necessary values to the visualization of those parameters.
       dists2d = AnalysisResults.slice(2*dataFeatures.length+length+8, 2*dataFeatures.length+length+9)[0]; // Load the parameters and set the necessary values to the visualization of those parameters.
-      $("#cost").html("Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost);
+      $("#cost").html("(Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
@@ -792,7 +792,7 @@ function updateEmbedding(AnalysisResults) {
       points2d = AnalysisResults.slice(length, 2*length); // Load the 2D points 
       overallCost = AnalysisResults.slice(2*length, 2*length+1); // Load the overall cost
       ParametersSet = AnalysisResults.slice(2*length+1, 2*length+7); // Load the parameters and set the necessary values to the visualization of those parameters.
-      $("#cost").html("Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost);
+      $("#cost").html("(Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
@@ -815,6 +815,7 @@ function updateEmbedding(AnalysisResults) {
   OverviewtSNE(points);
   ShepardHeatMap();
   BetatSNE(points);
+  CostHistogram(points);
 }
 
 function ShepardHeatMap () {
@@ -1016,7 +1017,7 @@ function step() {
           cost = tsne.step();
           cost_each = cost[1];
           for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
-          $("#cost").html("Number of Iteration: " + tsne.iter + ", Overall Cost: " + cost[0].toFixed(3));
+          $("#cost").html("(Number of Iteration: " + tsne.iter + ", Overall Cost: " + cost[0].toFixed(3) + ")");
         }
         else {
             clearInterval(runner);
@@ -1250,6 +1251,90 @@ function redraw(repoints){ // On redraw manipulate the points of the main and ov
   BetatSNE(repoints); // Redraw the points!
 }
 
+function CostHistogram(points){
+
+  var frequency = [];
+  var frequency2 = [];
+
+  points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
+    return a.id - b.id;
+  })
+
+  var max2 = (d3.max(points,function(d){ return d.beta; }));
+  var min2 = (d3.min(points,function(d){ return d.beta; }));
+
+  for (var i=0; i<points.length; i++){
+    frequency2.push((points[i].beta)/(max2));
+  }
+
+    var trace1 = {
+      x: frequency2,
+      name: '1/sigma',
+      autobinx: false, 
+      marker: {
+        color: "rgb(128,0,0)",
+        line: {
+          color:  "rgb(0, 0, 0)", 
+          width: 1
+        }
+      },  
+      opacity: 0.5, 
+      type: "histogram", 
+      xbins: {
+        end: 1, 
+        size: 0.025,
+        start: 0
+      }
+    };
+
+    var max = (d3.max(points,function(d){ return d.cost; }));
+    var min = (d3.min(points,function(d){ return d.cost; }));
+  
+    for (var i=0; i<points.length; i++){
+      frequency.push((points[i].cost-min)/(max-min));
+    }
+
+    var trace2 = {
+      x: frequency,
+      name: 'KLD(P||Q)',
+      autobinx: false, 
+      histnorm: "count", 
+      marker: {
+        color: "rgb(0,128,0)", 
+         line: {
+          color:  "rgb(0, 0, 0)", 
+          width: 1
+        }
+      },  
+      opacity: 0.5, 
+      type: "histogram", 
+      xbins: {
+        end: 1, 
+        size: 0.025,
+        start: 0
+      }
+    };
+
+  var data = [trace1, trace2];
+  var layout = {
+    barmode: "overlay",
+    bargroupgap: points.length,
+    autosize: false,
+    width: 550,
+    height: 240,
+    margin: {
+      l: 40,
+      r: 20,
+      b: 30,
+      t: 0,
+      pad: 4
+    },
+    xaxis:{range: [0,1]}
+  };
+
+  Plotly.newPlot('costHist', data, layout, {displayModeBar:false}, {staticPlot: true});
+}
+
 function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
 
   var countLassoFalse = 0;
@@ -1309,10 +1394,10 @@ var zoomer = d3v3.behavior.zoom()
 // Margin of the main barchart
 var main_margin = {top: 8, right: 10, bottom: 30, left: 100},
   main_width = 500 - main_margin.left - main_margin.right,
-  main_height = 475 - main_margin.top - main_margin.bottom;
+  main_height = 320 - main_margin.top - main_margin.bottom;
 // Margin of the mini barchart
 var mini_margin = {top: 8, right: 10, bottom: 30, left: 10},
-  mini_height = 475 - mini_margin.top - mini_margin.bottom;
+  mini_height = 320 - mini_margin.top - mini_margin.bottom;
   mini_width = 100 - mini_margin.left - mini_margin.right;
 
 // Create the svg correlation component
@@ -2270,7 +2355,7 @@ if (points.length) { // If points exist (at least 1 point)
           xaxis: {range: [0, LimitXaxis]},
           yaxis: {range: [0, 1]}};
         
-        Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false},{staticPlot: true});
+        Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
 
               
         // Here we have the code for the starplot
@@ -2402,7 +2487,7 @@ if (points.length) { // If points exist (at least 1 point)
         .labelFormat(d3.format(",.0f"))
         .cells(9)
         .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-        .title("1 / sigma")
+        .title("1/sigma")
         .scale(colorScale);
         
       svg.select(".legendLinear")

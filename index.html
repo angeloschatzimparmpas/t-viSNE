@@ -31,7 +31,6 @@
     <!-- CSS - Styling -->
     <link rel="stylesheet" href="./css/style.css"/>
     <link rel="stylesheet" href="./css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="./css/dc.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     
     <!-- Bootstrap -->
@@ -45,19 +44,20 @@
           <div class="col-md-3">
             <div class="panel panel-default">
               <div class="panel-heading">
-                  <h2 class="panel-title">t-SNE Overview</h2>
+                  <h2 class="panel-title" style="display:inline-block">t-SNE Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
               </div>
               <div class="row">
                 <div class="panel-body">
                     <div class="col-md-6">
                         <canvas id = "tSNEcanvas"></canvas>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-6">
+                        <div style="display:block" id="CategoryName"></div>
                         <div class="legend" id = "legend2"></div>
                     </div>
                 </div>
               </div>
-              <div id="control-panel">
+              <div id="control-panel" class="PoinRadius">
                 <div class="param">
                   <label for="param-lim" >Points radius scaling factor</label>
                   <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize();">
@@ -120,21 +120,21 @@
             </div>
           </div>
           <div class="col-md-3 col-md-offset-6">
-              <div class="panel panel-default right-side-cor">
-                  <div class="panel-heading">
-                      <h2 class="panel-title">Correlation Schema Investigation</h2>
-                  </div>
-                  <div class="panel-body">  
-                    <svg id="correlation"></svg>
-                  </div>
+            <div class="panel panel-default right-side-cor">
+                <div class="panel-heading">
+                    <h2 class="panel-title">Correlation Schema Investigation</h2>
                 </div>
-              </div>
+                <div class="panel-body">  
+                  <svg id="correlation"></svg>
+                </div>
+            </div>
           </div>
+        </div>
         <div class="row">
           <div class="col-md-3">
             <div class="panel panel-default" id="left-side-param">
                 <div class="panel-heading">
-                  <h2 class="panel-title">t-SNE Parameters</h2>
+                  <h2 class="panel-title" style="display:inline-block">t-SNE Parameters</h2><div id="cost" style="display:inline-block; float:right"></div>
                 </div>
               <div class="panel-body">
                 <div id="control-panel" data-sr="enter left over 8s">
@@ -246,17 +246,13 @@
               </div>
         </div>
         <div class="col-md-3" id="extra-information" style="width: 24.6vw">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                  <h2 class="panel-title">t-SNE and Data Set's Additional Information</h2>
-              </div>
-              <div class="panel-body">
-                <div id="cost"></div>
-                <br>
-                <div id="datasetDetails"></div>
-                <br>
-                <div id="CategoryName"></div>
-              </div>
+            <div class="panel panel-default right-side-hist">
+                <div class="panel-heading">
+                    <h2 class="panel-title">1/sigma and Kullback-Leibler Distributions</h2>
+                </div>
+                <div class="panel-body">  
+                  <div id="costHist"></div>
+                </div>
             </div>
           </div>
       </div>
@@ -264,9 +260,9 @@
 
     <script>
 
-      $("#cost").html('Uknown iteration and cost values.');
-      $("#datasetDetails").html('Uknown number of features and instances.');
-      $("#CategoryName").html('No specific classification.');
+      $("#cost").html('(Uknown iteration and cost values.)');
+      $("#datasetDetails").html('(Uknown number of features and instances.)');
+      $("#CategoryName").html('No Classification');
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });

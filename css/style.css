@@ -106,17 +106,20 @@ cursor: default;
   margin-top: -60px;
 }
 
+.right-side-hist {
+  margin-left:-2px;
+  margin-top: -2px;
+}
+
 .right-side-star {
   margin-left:12px;
-  margin-top: -5px;
+  margin-top: -50px;
 }
 
 #left-side-param{
-  margin-top: -115px;
 }
 
 #left-side-visual{
-  margin-top: -160px;
   margin-left: 15px;
   margin-right: -5px;
 }
@@ -142,9 +145,9 @@ cursor: default;
 /* A little styling for knn's bar chart */
 #knnBarChart {
   width: 50vw !important;
-  height: 5.5vw !important;
+  height: 5.4vw !important;
   border: 1px solid black !important;
-  margin-top: 0.2vw;
+  margin-top: 6.6vw;
   position: absolute !important;
 }
 
@@ -170,11 +173,17 @@ cursor: default;
 
 /* Legend of the Overview t-SNE canvas */
 #legend2 {
-   height: 11vw;
+   height: 9vw;
    width: 11vw;
    text-align: left;
    overflow: auto;
+   margin-left: -6px;
   }
+
+  /* Legend of the Overview t-SNE canvas */
+.PoinRadius {
+  margin-top: 30px;
+ }
 
   /* Legend of the Overview t-SNE canvas */
  #legend1 {
@@ -425,4 +434,9 @@ ul {
   position: absolute;
   left: 5px;
   top: 5px;
+}
+
+#costHist {
+  width: 6vw;
+  height: 9.55vw;
 }
