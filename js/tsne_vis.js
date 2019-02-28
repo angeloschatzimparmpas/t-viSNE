@@ -208,6 +208,7 @@ function setReset(){ // Reset only the filters which were applied into the data 
   d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
   d3.selectAll("#SvgAnnotator > *").remove(); 
+  d3.select("#starPlot").selectAll('g').remove();
   // Enable lasso interaction
   lassoEnable();
   // Disable Schema Investigation
@@ -224,6 +225,8 @@ function setReset(){ // Reset only the filters which were applied into the data 
   correlationResults = [];
   ArrayContainsDataFeaturesLimit = [];
   prevRightClick = false;
+
+  StarplotInitialize();
 
   // Reset the points into their initial state
   for (var i=0; i < InitialStatePoints.length; i++){
@@ -477,6 +480,9 @@ function init(data, results_all, fields) {
     d3.selectAll("#sheparheat > *").remove(); 
     d3.selectAll("#knnBarChart > *").remove(); 
     d3.selectAll("#costHist > *").remove(); 
+    d3.select("#starPlot").selectAll('g').remove();
+
+    StarplotInitialize();
 
     // Clear the previous t-SNE overview canvas. 
     var oldcanvOver = document.getElementById('tSNEcanvas');
@@ -546,7 +552,9 @@ function init(data, results_all, fields) {
       }
 
     });
-
+    ArrayContainsDataFeaturesCleared = [];
+    ArrayContainsDataFeaturesClearedwithoutNull = [];
+    ArrayContainsDataFeaturesClearedwithoutNullKeys = [];
     for (let k = 0; k < dataFeatures.length; k++){
 
       object = [];
@@ -1697,10 +1705,10 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
   for (var j = 0; j < correlationResultsFinal.length; j++) {
     for (var i = 0; i < SignStore.length; i++) {
       if (SignStore[i][1]*(-1) == correlationResultsFinal[j][1]) {
-        correlationResultsFinal[j][1] = (correlationResultsFinal[j][1]).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+        correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
       }
       if (SignStore[i][1] == correlationResultsFinal[j][1]) {
-        correlationResultsFinal[j][1] = (correlationResultsFinal[j][1]).toFixed(2); // Give a positive sign and multiply by 100
+        correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
       }
     }
   }
@@ -2178,7 +2186,6 @@ function clearThree(obj){ // Clear three.js object!
 
 }   
 
-
 var viewport3 = getViewport(); // Get the width and height of the main visualization
 var vw3 = viewport3[0] * 0.2; 
 
@@ -2186,23 +2193,31 @@ var margin = {top: 40, right: 100, bottom: 40, left: 190}, // Set the margins fo
 width = Math.min(vw3, window.innerWidth - 10) - margin.left - margin.right,
 height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
 
-var wrapData = [];
-var radarChartOptions = { // starplot options
-  w: width,
-  h: height,
-  margin: margin,
-  maxValue: 100,
-  roundStrokes: true
-};
-var colors;
-var IDS = [];
+function StarplotInitialize() {
+ 
+  var wrapData = [];
+  var radarChartOptions = { // starplot options
+    w: width,
+    h: height,
+    margin: margin,
+    maxValue: 100,
+    roundStrokes: true
+  };
+  var colors;
+  var IDS = [];
+  
+  ////////////////////////////////////////////////////////////// 
+  //////////////////// Draw the Chart ////////////////////////// 
+  ////////////////////////////////////////////////////////////// 
+  
+  //Call function to draw the Radar chart (starplot)
+  RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
+}
 
-////////////////////////////////////////////////////////////// 
-//////////////////// Draw the Chart ////////////////////////// 
-////////////////////////////////////////////////////////////// 
+StarplotInitialize();
 
-//Call function to draw the Radar chart (starplot)
-RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
+
+
 
 function BetatSNE(points){ // Run the main visualization
 inside = inside + 1;
@@ -2419,7 +2434,7 @@ if (points.length) { // If points exist (at least 1 point)
           for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id].length; j++){
               for (m=0; m < len; m++){
                 if (indices[m] == j){
-                    data.push({axis:ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m],value:Math.abs((ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m] - min[m])/(max[m] - min[m]))}); // Push the values into the starplot
+                    data.push({axis:ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m], value:Math.abs((ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m] - min[m])/(max[m] - min[m]))}); // Push the values into the starplot
                 }
               }
           }
@@ -2430,7 +2445,7 @@ if (points.length) { // If points exist (at least 1 point)
           ////////////////////////////////////////////////////////////// 
           //////////////////// Draw the Chart ////////////////////////// 
           ////////////////////////////////////////////////////////////// 
-          var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6']; // Colorscale for the starplot
+          var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the starplot
           var colorScl = d3v3.scale.ordinal()
             .domain(IDS)
             .range(colors);
@@ -2819,7 +2834,7 @@ if (points.length) { // If points exist (at least 1 point)
     geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
 
     let material = new THREE.PointsMaterial({
-      size: 26,
+      size: 35,
       sizeAttenuation: false,
       vertexColors: THREE.VertexColors,
       map: circle_sprite,

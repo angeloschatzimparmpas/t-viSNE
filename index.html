@@ -153,17 +153,17 @@
                   </div>
                       <div class="param">
                     <label for="param-perplexity">Perplexity</label>
-                    <input id="param-perplexity" type="range" min="2" max="100" value="30", step="1">
+                    <input id="param-perplexity" type="range" min="5" max="50" value="30", step="1">
                     <output for="param-perplexity" id="param-perplexity-value">30</output>
                       </div>
                       <div class="param">
                     <label for="param-learningrate">Learning rate</label>
-                    <input id="param-learningrate" type="range" min="1" max="300" value="10", step="1">
+                    <input id="param-learningrate" type="range" min="5" max="150" value="10", step="1">
                     <output for="param-learningrate" id="param-learningrate-value">10</output>
                       </div>
                       <div class="param">
                     <label for="param-maxiter">Max iterations</label>
-                    <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10">
+                    <input id="param-maxiter" type="range" min="100" max="1000" value="500", step="10">
                     <output for="param-maxiter" id="param-maxiter-value">500</output>
                       </div>
                       <div class="param">
@@ -210,13 +210,13 @@
                   <div class="panel-body">
                     <div class="col-md-12">
                       <div id="ThumbNailsList">
-                        <label for="male">Neighborhood Preservation</label>
+                        <label for="male">Neighborhood Preservation (1/sigma)</label>
                         <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize();">
                           <option selected="selected" value="color">Color</option>
                           <option value="size">Size</option>
                         </select>
                         <output for="param-neighborHood" id="param-neighborHood-value"></output>
-                        <label for="male">Final Cost (Kullback-Leibler)</label>
+                        <label for="male">Final Cost (Kullback-Leibler Divergence)</label>
                         <label id="selectionLabel" style="margin-top:4px">Size</label>
                         <div id="param-correlation">
                           <div class="param">
@@ -246,7 +246,7 @@
         <div class="col-md-3" id="extra-information" style="width: 24.6vw">
             <div class="panel panel-default right-side-hist">
                 <div class="panel-heading">
-                    <h2 class="panel-title">1/sigma and Kullback-Leibler Distributions</h2>
+                    <h2 class="panel-title">1/sigma and Kullback-Leibler Divergence Distributions</h2>
                 </div>
                 <div class="panel-body">  
                   <div id="costHist"></div>

@@ -17,7 +17,7 @@ function RadarChart(id, data, color, IDS, options) {
 	 opacityArea: 0.35, 	//The opacity of the area of the blob
 	 dotRadius: 4, 			//The size of the colored circles of each blog
 	 opacityCircles: 0.1, 	//The opacity of the circles of each blob
-	 strokeWidth: 2, 		//The width of the stroke around each blob
+	 strokeWidth: 2, 		//The wivar colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a'];dth of the stroke around each blob
 	 roundStrokes: false,	//If true the area and stroke will follow a round path (cardinal-closed)
 	};
 
