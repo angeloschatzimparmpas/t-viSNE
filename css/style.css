@@ -149,6 +149,17 @@ cursor: default;
   border: 1px solid black !important;
   margin-top: 6.6vw;
   position: absolute !important;
+  z-index: 1;
+}
+
+#hider {
+  width: 50vw !important;
+  height: 5.4vw !important;
+  border: 1px solid black !important;
+  margin-top: 6.6vw;
+  background-color: white;
+  position: absolute !important;
+  z-index: 2;
 }
 
 /* Styling of the main SVG behind canvas */

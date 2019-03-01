@@ -207,7 +207,6 @@ function setReset(){ // Reset only the filters which were applied into the data 
   d3.selectAll("#correlation > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
-  d3.selectAll("#SvgAnnotator > *").remove(); 
   d3.select("#starPlot").selectAll('g').remove();
   // Enable lasso interaction
   lassoEnable();
@@ -462,8 +461,6 @@ function MainVisual(){
   }
 
 }
-
-MainVisual();
  
 
 // The following function executes exactly after the data is successfully loaded. New EXECUTION!
@@ -481,8 +478,11 @@ function init(data, results_all, fields) {
     d3.selectAll("#knnBarChart > *").remove(); 
     d3.selectAll("#costHist > *").remove(); 
     d3.select("#starPlot").selectAll('g').remove();
-
+    MainVisual();
     StarplotInitialize();
+    
+    d3.select("#hider").style("z-index", 2);
+    d3.select("#knnBarChart").style("z-index", 1);
 
     // Clear the previous t-SNE overview canvas. 
     var oldcanvOver = document.getElementById('tSNEcanvas');
@@ -712,7 +712,7 @@ function logTrans(data) {
 
 }
 
-// Asinh tranformation
+// asinh tranformation
 function asinhTrans(data) {
 
   for(var i = 0; i < data.length; i++) {
@@ -1669,7 +1669,6 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
           }
         }
       }
-
     function getMinMaxOf2DIndex (arr, idx) {
       return {
         min: Math.min.apply(null, arr.map(function (e) { return e[idx]})),
@@ -1691,7 +1690,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
     }
     correlationResultsFinal = [];
     for (var i=0; i<correlationResults.length; i++){
-      correlationResultsFinal.push([correlationResults[i][0],(maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1],correlationResults[i][2]]);
+      correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
     }
 
     correlationResultsFinal = correlationResultsFinal.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
@@ -1702,12 +1701,20 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       }
     );
 
+    correlationResults = correlationResults.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
+    function(a,b) {
+      if (a[1] == b[1])
+        return a[0] < b[0] ? -1 : 1;
+        return a[1] < b[1] ? 1 : -1;
+      }
+    );
+
   for (var j = 0; j < correlationResultsFinal.length; j++) {
     for (var i = 0; i < SignStore.length; i++) {
-      if (SignStore[i][1]*(-1) == correlationResultsFinal[j][1]) {
+      if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
         correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
       }
-      if (SignStore[i][1] == correlationResultsFinal[j][1]) {
+      if (SignStore[i][1] == correlationResults[j][1]) {
         correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
       }
     }
@@ -2216,16 +2223,13 @@ function StarplotInitialize() {
 
 StarplotInitialize();
 
-
-
-
 function BetatSNE(points){ // Run the main visualization
 inside = inside + 1;
 if (points.length) { // If points exist (at least 1 point)
 
     selectedPoints = [];
     var findNearestTable = [];
-    var findNearestTableCombination = [];
+
     for (let m=0; m<points.length; m++){
       if (points[m].selected == true){
           selectedPoints.push(points[m]); // Add the selected points in to a new variable
@@ -2330,6 +2334,11 @@ if (points.length) { // If points exist (at least 1 point)
          
       findNearestTable.reverse();
 
+      d3.select("#hider").style("z-index", 1);
+      d3.select("#knnBarChart").style("z-index", 2);
+
+      var data = [];
+      var layout = [];
       var kValuesLegend = [];
       for (var i=1; i<=maxKNN; i++){
         kValuesLegend.push(i);
@@ -2356,8 +2365,8 @@ if (points.length) { // If points exist (at least 1 point)
           }
         };
         var LimitXaxis = Number(maxKNN) + 1;
-        var data = [trace1, trace2];
-        var layout = {
+        data = [trace1, trace2];
+        layout = {
           barmode: 'group',autosize: false,
           width: dimensions*0.99,
           height: vh*2.1,
