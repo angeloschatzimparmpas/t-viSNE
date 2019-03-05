@@ -15,7 +15,7 @@ var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedw
 var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = []; 
 
 // These are the dimensions for the Overview view and the Main view
-var dim = document.getElementById('tSNEcanvas').offsetWidth; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
+var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
 
 // Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
 // ColorsCategorical = the categorical colors (maximum value = 10).
@@ -25,6 +25,8 @@ var Category; var ColorsCategorical;
 var returnVal = false;
 
 var ArrayWithCosts = []; var Iterations = [];
+
+var VisiblePoints = [];
 
 // This variable is for the kNN Bar Chart in order to store the first execution.
 var inside = 0;
@@ -205,6 +207,7 @@ function setContinue(){ // This function allows the continuation of the analysis
 
 function setReset(){ // Reset only the filters which were applied into the data points.
 
+  emptyPCP();
   // Clear d3 SVGs
   d3.selectAll("#correlation > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
@@ -356,6 +359,12 @@ function lassoEnable(){ // The main Layer becomes the correlation (barchart)
 
 }
 
+function deleteAnnotations(){
+  AnnotationsAll = [];
+  ringNotes = [];
+  d3.selectAll("#SvgAnnotator > *").remove(); 
+}
+
 function setAnnotator(){ // Set a new annotation on top of the main visualization.
 
   vw2 = dimensions;
@@ -472,13 +481,17 @@ function MainVisual(){
 // data variable is all the columns except strings, undefined values, or "Version" plus beta and cost values."
 // fields variable is all the features (columns) plus beta and cost strings.  
 function init(data, results_all, fields) { 
-
+    ArrayWithCosts = [];
+    Iterations = [];
+    VisiblePoints = [];
+    points = [];
     // Remove all previously drawn SVGs
     d3.selectAll("#correlation > *").remove(); 
     d3.selectAll("#modtSNEcanvas_svg > *").remove();
     d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
     d3.selectAll("#SvgAnnotator > *").remove(); 
     d3.selectAll("#sheparheat > *").remove(); 
+    d3.selectAll("#overviewRect > *").remove(); 
     d3.selectAll("#knnBarChart > *").remove(); 
     d3.selectAll("#costHist > *").remove(); 
     d3.select("#starPlot").selectAll('g').remove();
@@ -488,10 +501,13 @@ function init(data, results_all, fields) {
     d3.select("#hider").style("z-index", 2);
     d3.select("#knnBarChart").style("z-index", 1);
 
+    d3.select("#hider2").style("z-index", 2);
+    d3.select("#PlotCost").style("z-index", 1);
+
     // Clear the previous t-SNE overview canvas. 
-    var oldcanvOver = document.getElementById('tSNEcanvas');
+    /*var oldcanvOver = document.getElementById('tSNEcanvas');
     var contxOver = oldcanvOver.getContext('experimental-webgl');
-    contxOver.clear(contxOver.COLOR_BUFFER_BIT);
+    contxOver.clear(contxOver.COLOR_BUFFER_BIT);*/
 
     // Clear the previously drawn main visualization canvas.
     scene = new THREE.Scene();
@@ -504,6 +520,7 @@ function init(data, results_all, fields) {
 
     // Enable again the lasso interaction.
     lassoEnable();
+    emptyPCP();
     // Empty all the Schema Investigation arrays.
     Arrayx = [];
     Arrayy = [];
@@ -617,7 +634,6 @@ function init(data, results_all, fields) {
         updateEmbedding(AnalysisResults);
     });
     }
-
 }
 
 // Initialize distance matrix
@@ -753,6 +769,52 @@ function computeDistances(data, distFunc, transFunc) {
 
 }
 
+function OverallCostLineChart(){
+
+  d3.select("#hider2").style("z-index", -1);
+  d3.select("#PlotCost").style("z-index", 2);
+
+  var trace1 = {
+    x: Iterations,
+    y: ArrayWithCosts,
+    mode: 'lines',
+    connectgaps: true,
+    marker: {
+      color: "rgb(0,128,0)", 
+       line: {
+        color:  "rgb(0, 0, 0)", 
+        width: 0.5
+      }
+    }
+  }
+  
+  var data = [trace1];
+  
+  var layout = {
+    showlegend: false,
+    width: 285,
+    height: 80,
+    xaxis:{title: 'Iterations',
+    titlefont: {
+      size: 12,
+      color: 'black'
+    }},
+    yaxis:{title: 'Ov. Cost',
+            titlefont: {
+              size: 12,
+              color: 'black'
+            }},
+    margin: {
+      l: 40,
+      r: 15,
+      b: 26,
+      t: 5
+    },
+  };
+  
+  Plotly.newPlot('PlotCost', data, layout,{displayModeBar:false}, {staticPlot: true});
+}
+
 // Function that updates embedding
 function updateEmbedding(AnalysisResults) {
   
@@ -780,45 +842,7 @@ function updateEmbedding(AnalysisResults) {
             points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
             points[i] = extend(points[i], dataFeatures[i]);
         }
-        var trace1 = {
-          x: Iterations,
-          y: ArrayWithCosts,
-          mode: 'lines',
-          connectgaps: true,
-          marker: {
-            color: "rgb(0,128,0)", 
-             line: {
-              color:  "rgb(0, 0, 0)", 
-              width: 1
-            }
-          }
-        }
-        
-        var data = [trace1];
-        
-        var layout = {
-          showlegend: false,
-          width: 285,
-          height: 80,
-          xaxis:{title: 'Iterations',
-          titlefont: {
-            size: 12,
-            color: 'black'
-          }},
-          yaxis:{title: 'Ov. Cost',
-                  titlefont: {
-                    size: 12,
-                    color: 'black'
-                  }},
-          margin: {
-            l: 40,
-            r: 15,
-            b: 26,
-            t: 5
-          },
-        };
-        
-        Plotly.newPlot('PlotCost', data, layout,{displayModeBar:false}, {staticPlot: true});
+    OverallCostLineChart();
   } else{
     if (flagAnalysis){
       var length = (AnalysisResults.length - dataFeatures.length*2 - 7 - 2);
@@ -1051,7 +1075,7 @@ function ShepardHeatMap () {
 
     var legend = d3.legendColor() // Legend color and title!
       .labelFormat(d3.format(",.0f"))
-      .cells(9)
+      .cells(7)
       .title("Number of Points")
       .scale(colorScale);
 
@@ -1095,17 +1119,10 @@ function resize(canvas) { // This is being used in the WebGL t-SNE for the overv
 }
 
 function OverviewtSNE(points){ // The overview t-SNE function
-   
-  var canvas = document.getElementById('tSNEcanvas');  // WebGL & canvas
-  gl = canvas.getContext('experimental-webgl');
 
-  // If we don't have a GL context, give up now
-  if (!gl) {
-    alert('Unable to initialize WebGL. Your browser or machine may not support it.');
-    return;
-  }
-
-  ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
+//Make an SVG Container
+d3.selectAll("#overviewRect > *").remove(); 
+ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
 
   if (all_labels[0] == undefined){
     var colorScale = d3.scaleOrdinal().domain(["No Category"]).range(["#00000"]); // If no category then grascale.
@@ -1113,6 +1130,7 @@ function OverviewtSNE(points){ // The overview t-SNE function
   } else{
     var colorScale = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical); // We use the color scale here!
   }
+
   d3.select("#legend2").select("svg").remove(); // Create the legend2 which is for the overview panel.
   var svg = d3.select("#legend2").append("svg");
 
@@ -1128,175 +1146,75 @@ function OverviewtSNE(points){ // The overview t-SNE function
   svg.select(".legendOrdinal")
     .call(legendOrdinal);
 
-  let vertices = [];
-  let colors = [];
+// CREATE THE SVG
+var svg = d3.select('#overviewRect').append('svg')
+  .attr('width', dim)
+  .attr('height', dim)
+  .append('g');
 
-  for (var i=0; i<points.length; i++){
-    let singleObj = {};
-    // convert the position from pixels to 0.0 to 1.0
-    let zeroToOne = points[i].x / dimensions;
-    let zeroToOne2 = points[i].y / dimensions;
+// CREATE THE GROUP
+var theGroup = svg.append('g')
+  .attr('class', 'the-group');
 
-    // convert from 0->1 to 0->2
-    let zeroToTwo = zeroToOne * 2.0;
-    let zeroToTwo2 = zeroToOne2 * 2.0;
+// CREATE ITS BOUNDING RECT
+var theRect = theGroup.append('rect')
+  .attr('class', 'bounding-rect');
 
-    // convert from 0->2 to -1->+1 (clipspace)
-    let clipSpace = zeroToTwo - 1.0;
-    let clipSpace2 = zeroToTwo2 - 1.0;
-      singleObj = clipSpace;
-      vertices.push(singleObj);
-      singleObj = clipSpace2 * -1;
-      vertices.push(singleObj);
-      singleObj = 0.0;
-      vertices.push(singleObj);
-  }
-  
-  for (var i=0; i<points.length; i++){
-    var singleCol = {};
-    if (points[i].selected == false){
-      var colval2 = d3.rgb(211,211,211); // Grayscale for the points that are not selected
-      singleCol = colval2.r/255;
-      colors.push(singleCol);
-      singleCol = colval2.g/255;
-      colors.push(singleCol);
-      singleCol = colval2.b/255;
-      colors.push(singleCol);
-    } else{
-      if (all_labels[0] != undefined){
-        var colval = d3.rgb(colorScale(points[i][Category])); // Normal color for the points that are selected
-      } else {
-        colval = d3.rgb(0,0,0);
+  function updateRect() {
+    // SELECT ALL CHILD NODES EXCEPT THE BOUNDING RECT
+    var AllSelectedChildNodes = [];
+    var allChildNodes = svg.selectAll(':not(.bounding-rect)')._groups[0]
+    for (var i = 0; i<VisiblePoints.length; i++){
+      for (var j = 1; j<allChildNodes.length; j++){
+        if (VisiblePoints[i] == allChildNodes[j].id){
+          AllSelectedChildNodes.push(allChildNodes[j])
+        }
       }
-      singleCol = colval.r/255;
-      colors.push(singleCol);
-      singleCol = colval.g/255;
-      colors.push(singleCol);
-      singleCol = colval.b/255;
-      colors.push(singleCol);
     }
+    // `x` AND `y` ARE SIMPLY THE MIN VALUES OF ALL CHILD BBOXES
+    var x = d3.min(AllSelectedChildNodes, function(d) {return d.getBBox().x;}),
+        y = d3.min(AllSelectedChildNodes, function(d) {return d.getBBox().y;}),
+        
+        // WIDTH AND HEIGHT REQUIRE A BIT OF CALCULATION
+        width = d3.max(AllSelectedChildNodes, function(d) {
+          var bb = d.getBBox();
+          return (bb.x + bb.width) - x;
+        }),
+        
+        height = d3.max(AllSelectedChildNodes, function(d) {
+          var bb = d.getBBox();
+          return (bb.y + bb.height) - y;
+        });
+     
+    // UPDATE THE ATTRS FOR THE RECT
+    theRect.transition().duration(1000)
+       .attr('x', x)
+       .attr('y', y)
+       .attr('width', width)
+       .attr('height', height);
   }
 
-  // Create an empty buffer object and store vertex data
-  var vertex_buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-  gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-  // Create an empty buffer object and store color data
-  var color_buffer = gl.createBuffer ();
-  gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-  // vertex shader source code
-  var vertCode = 'attribute vec3 coordinates;'+
-    'attribute vec3 color;'+
-    'varying vec3 vColor;'+
-    'void main(void) {' +
-       ' gl_Position = vec4(coordinates, 1.0);' +
-       'vColor = color;'+
-       'gl_PointSize = 3.5;'+ // Set the size of the points for the t-SNE overview.
-    '}';
-
-  // Create a vertex shader object
-  var vertShader = gl.createShader(gl.VERTEX_SHADER);
-
-  // Attach vertex shader source code
-  gl.shaderSource(vertShader, vertCode);
-
-  // Compile the vertex shader
-  gl.compileShader(vertShader);
-
-    var fragCode = `
-    #ifdef GL_OES_standard_derivatives
-    #extension GL_OES_standard_derivatives : enable
-    #endif
-
-    precision mediump float;
-    varying  vec3 vColor;
-
-    void main()
-    {
-        float r = 0.0, delta = 0.0, alpha = 1.0;
-        vec2 cxy = 2.0 * gl_PointCoord - 1.0;
-        r = dot(cxy, cxy);
-    #ifdef GL_OES_standard_derivatives
-        delta = fwidth(r);
-        alpha = 1.0 - smoothstep(1.0 - delta, 1.0 + delta, r);
-    #endif
-
-    gl_FragColor = vec4(vColor, alpha);
-    }`; // Make circles
-
-  gl.getExtension('OES_standard_derivatives');
-
-  // Create fragment shader object
-  var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-  // Attach fragment shader source code
-  gl.shaderSource(fragShader, fragCode);
-
-  // Compile the fragmentt shader
-  gl.compileShader(fragShader);
-
-  // Create a shader program object to
-  // Store the combined shader program
-  var shaderProgram = gl.createProgram();
-
-  // Attach a vertex shader
-  gl.attachShader(shaderProgram, vertShader);
-
-  // Attach a fragment shader
-  gl.attachShader(shaderProgram, fragShader);
-
-  // Link both the programs
-  gl.linkProgram(shaderProgram);
-
-  // Use the combined shader program object
-  gl.useProgram(shaderProgram);
-
-
-
-  // Bind vertex buffer object
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
-
-  // Get the attribute location
-  var coord = gl.getAttribLocation(shaderProgram, "coordinates");
-
-  // point an attribute to the currently bound VBO
-  gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-
-  // Enable the attribute
-  gl.enableVertexAttribArray(coord);
-
-  // Bind the color buffer
-  gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
-
-  // Get the attribute location
-  var color = gl.getAttribLocation(shaderProgram, "color");
-
-  // Point attribute to the volor buffer object
-  gl.vertexAttribPointer(color, 3, gl.FLOAT, false,0,0) ;
-
-  // Enable the color attribute
-  gl.enableVertexAttribArray(color);
-
-  // Clear the canvas
-  gl.clearColor(1.0, 1.0, 1.0, 1.0);
-
-  // Enable the depth test
-  gl.disable(gl.DEPTH_TEST);
-
-  // Clear the color buffer bit
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  resize(gl.canvas);
-
-  gl.viewport(0, 0, dim, dim);
-
-  //Draw the triangle
-  gl.drawArrays(gl.POINTS, 0, points.length);
-
+    for (var i = 0; i < points.length; i++) {
+    svg.selectAll("circle")
+    .data(points)
+    .enter().append("circle")
+    .attr("fill",function(d){
+      if (!d.selected){
+        return "#D3D3D3";
+      } else{
+        if (all_labels[0] != undefined){
+          return colorScale(d[Category]); // Normal color for the points that are selected
+        } else {
+          return "#00000";
+        }
+      }
+    })
+    .attr("id", function(d){return d.id;})
+    .attr("r", 2)
+    .attr("cx", function(d){return ((d.x/dimensions)*dim);})
+    .attr("cy", function(d){return ((d.y/dimensions)*dim);});
+    }
+    updateRect();
 }
 
 function redraw(repoints){ // On redraw manipulate the points of the main and overview visualizations.
@@ -1319,7 +1237,7 @@ function CostHistogram(points){
   for (var i=0; i<points.length; i++){
     frequency2.push((points[i].beta-min2)/(max2-min2));
   }
-
+  
     var trace1 = {
       x: frequency2,
       name: '1/sigma',
@@ -1376,20 +1294,21 @@ function CostHistogram(points){
     width: 560,
     height: 250,
     margin: {
-      l: 40,
+      l: 50,
       r: 20,
       b: 40,
-      t: 0,
+      t: 10,
       pad: 4
     },
     xaxis:{range: [0,1],title: 'Normalized Bins from Min to Max Values.',
               titlefont: {
-                size: 12,
+                size: 14,
                 color: 'black'
               }},
-    yaxis:{title: 'Number of Points',
+    yaxis:{title: 'Number of Points (log)',
+          type: "log",
             titlefont: {
-              size: 12,
+              size: 14,
               color: 'black'
             }}
   };
@@ -1430,9 +1349,36 @@ function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
     redraw(points);
  
 }
+function emptyPCP(){
+  wrapData=[];
+  IDS=[];
+          ////////////////////////////////////////////////////////////// 
+        //////////////////// Draw the Chart ////////////////////////// 
+        ////////////////////////////////////////////////////////////// 
+        var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the starplot
+        var colorScl = d3v3.scale.ordinal()
+          .domain(IDS)
+          .range(colors);
 
+      var color = function(d) { return colors(d.group); };
+
+      var parcoords = d3v3.parcoords()("#starPlot")
+        .data(wrapData)
+        .alpha(0.75)
+        .composite("darken")
+        .margin({ top: 20, left: 0, bottom: 5, right: 0 })
+        .mode("queue")
+        .color(function(d, i) { return colorScl(IDS[i]); })
+        .render()
+        .brushMode("1D-axes")  // enable brushing
+        .reorderable();
+    
+      parcoords.svg.selectAll("text")
+        .style("font", "14px");
+}
 
 function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anything.  
+    emptyPCP();
     KNNEnabled = false;
     for (var i = 0 ; i < points.length ; i ++) {
       points[i].selected = true;
@@ -2477,7 +2423,7 @@ if (points.length) { // If points exist (at least 1 point)
               color: 'black'
             }},
           yaxis: {
-            title: 'Clu. Purity',
+            title: 'Cl. Purity',
             titlefont: {
               size: 12,
               color: 'black'
@@ -2601,8 +2547,8 @@ if (points.length) { // If points exist (at least 1 point)
     var max = (d3.max(points,function(d){ return d.beta; }));
     var min = (d3.min(points,function(d){ return d.beta; }));
     // colors
-    var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
-    var calcStep = (max-min)/7;
+    var colorbrewer = ["#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
+    var calcStep = (max-min)/5;
     var colorScale = d3.scaleLinear()
       .domain(d3.range(0, max+calcStep, calcStep))
       .range(colorbrewer);
@@ -2622,7 +2568,7 @@ if (points.length) { // If points exist (at least 1 point)
     var labels_beta = [];
     var abbr_labels_beta = [];
     labels_beta = d3.range(0, max+calcStep, calcStep);
-    for (var i=0; i<9; i++){
+    for (var i=0; i<7; i++){
       labels_beta[i] = parseInt(labels_beta[i]);
       abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
     }
@@ -2634,8 +2580,8 @@ if (points.length) { // If points exist (at least 1 point)
 
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.0f"))
-        .cells(9)
-        .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
+        .cells(7)
+        .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6]])
         .title("1/sigma")
         .scale(colorScale);
         
@@ -2656,7 +2602,7 @@ if (points.length) { // If points exist (at least 1 point)
 
         var ordinal = d3.scaleOrdinal()
         .domain(["0.00000"])
-        .range(["rgb(255,255,229)"]);
+        .range(["rgb(217,240,163)"]);
       
         var svg = d3.select("#legend1");
 
@@ -2672,8 +2618,8 @@ if (points.length) { // If points exist (at least 1 point)
       svg.select(".legendOrdinal")
         .call(legendOrdinal);
     } else{
-      var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
-      var calcStep = (max-min)/9;
+      var colorbrewer = ['#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529'];
+      var calcStep = (max-min)/7;
       var colorScale = d3.scaleLinear()
         .domain(d3.range(min, max, calcStep))
         .range(colorbrewer);
@@ -2685,7 +2631,7 @@ if (points.length) { // If points exist (at least 1 point)
       var labels_cost = [];
       var abbr_labels_cost = [];
       labels_cost = d3.range(min, max, calcStep);
-      for (var i=0; i<9; i++){
+      for (var i=0; i<7; i++){
         labels_cost[i] = labels_cost[i].toFixed(5);
         abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
       }
@@ -2698,8 +2644,8 @@ if (points.length) { // If points exist (at least 1 point)
 
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.5f"))
-        .cells(9)
-        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+        .cells(7)
+        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6]])
         .title("KLD(P||Q)")
         .scale(colorScale);
 
@@ -2723,12 +2669,34 @@ if (points.length) { // If points exist (at least 1 point)
         return a[tempSort] - b[tempSort];
     })
   }
-
+  var temp = 0;
   let zoom = d3.zoom()
     .scaleExtent([getScaleFromZ(far), getScaleFromZ(near)])
     .on('zoom', () =>  {
+      temp = temp + 1;
+
       let d3_transform = d3.event.transform;
       zoomHandler(d3_transform);
+      if (temp > 2){
+        var frustum = new THREE.Frustum();
+        var cameraViewProjectionMatrix = new THREE.Matrix4();
+        
+        // every time the camera or objects change position (or every frame)
+        
+        camera.updateMatrixWorld(); // make sure the camera matrix is updated
+        camera.matrixWorldInverse.getInverse( camera.matrixWorld );
+        cameraViewProjectionMatrix.multiplyMatrices( camera.projectionMatrix, camera.matrixWorldInverse );
+        frustum.setFromMatrix( cameraViewProjectionMatrix );
+        
+        // frustum is now ready to check all the objects you need
+        VisiblePoints = [];
+        for (var l = 0; l<scene.children.length-1; l++){
+          if (frustum.intersectsObject(scene.children[l])){
+            VisiblePoints.push(scene.children[l].geometry.name);
+          }
+        }
+        OverviewtSNE(points);
+      }
     });
 
   view = d3.select(renderer.domElement);
@@ -2760,6 +2728,7 @@ if (points.length) { // If points exist (at least 1 point)
     let pointsGeometry = new THREE.Geometry();
     let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
     pointsGeometry.vertices.push(vertex);
+    pointsGeometry.name = points[i].id;
     geometry.vertices.push(vertex);
     if(points[i].starplot == true){
       var color = new THREE.Color(colorScl(points[i].id));
@@ -2783,7 +2752,7 @@ if (points.length) { // If points exist (at least 1 point)
     }
     else{
       if (document.getElementById("param-costlim").value*max < max) {
-        var color = new THREE.Color("rgb(255,255,229)");
+        var color = new THREE.Color("rgb(217,240,163)");
       }
       else {
         var color = new THREE.Color(colorScale(points[i].cost));
@@ -2816,7 +2785,6 @@ if (points.length) { // If points exist (at least 1 point)
     var particles = new THREE.Points(pointsGeometry, pointsMaterial);
     scene.add(particles);
   }
-
   // This is for the legend
   var temporal = 0;
   for (var j=0; j < points.length; j++){
@@ -2826,7 +2794,7 @@ if (points.length) { // If points exist (at least 1 point)
       var abbr_labels_dim = [];
       labels_dim = d3.range(minDim, maxDim+calcStepDim, calcStepDim);
 
-      for (var i=0; i<9; i++){
+      for (var i=0; i<7; i++){
         labels_dim[i] = labels_dim[i].toFixed(2);
         abbr_labels_dim[i] = abbreviateNumber(labels_dim[i]);
       }
@@ -2839,8 +2807,8 @@ if (points.length) { // If points exist (at least 1 point)
         
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.0f"))
-        .cells(9)
-        .labels([abbr_labels_dim[0],abbr_labels_dim[1],abbr_labels_dim[2],abbr_labels_dim[3],abbr_labels_dim[4],abbr_labels_dim[5],abbr_labels_dim[6],abbr_labels_dim[7],abbr_labels_dim[8]])
+        .cells(7)
+        .labels([abbr_labels_dim[0],abbr_labels_dim[1],abbr_labels_dim[2],abbr_labels_dim[3],abbr_labels_dim[4],abbr_labels_dim[5],abbr_labels_dim[6]])
         .title(points[j].DimON)
         .scale(colorScale);
 
@@ -2861,8 +2829,8 @@ if (points.length) { // If points exist (at least 1 point)
     
         var legend = d3.legendColor()
           .labelFormat(d3.format(",.0f"))
-          .cells(9)
-          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
+          .cells(7)
+          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6]])
           .title("1/sigma")
           .scale(colorScale);
     
@@ -2884,7 +2852,7 @@ if (points.length) { // If points exist (at least 1 point)
   
           var ordinal = d3.scaleOrdinal()
           .domain(["0.00000"])
-          .range(["rgb(255,255,229)"]);
+          .range(["rgb(217,240,163)"]);
         
           var svg = d3.select("#legend1");
         d3.select("#legend1");
@@ -2899,8 +2867,8 @@ if (points.length) { // If points exist (at least 1 point)
         svg.select(".legendOrdinal")
           .call(legendOrdinal);
       } else{
-        var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
-        var calcStep = (max-min)/9;
+        var colorbrewer = ["#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
+        var calcStep = (max-min)/7;
         var colorScale = d3.scaleLinear()
           .domain(d3.range(min, max, calcStep))
           .range(colorbrewer);
@@ -2912,7 +2880,7 @@ if (points.length) { // If points exist (at least 1 point)
         var labels_cost = [];
         var abbr_labels_cost = [];
         labels_cost = d3.range(min, max, calcStep);
-        for (var i=0; i<9; i++){
+        for (var i=0; i<7; i++){
           labels_cost[i] = labels_cost[i].toFixed(5);
           abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
         }
@@ -2924,7 +2892,7 @@ if (points.length) { // If points exist (at least 1 point)
   
         var legend = d3.legendColor()
           .labelFormat(d3.format(",.5f"))
-          .cells(9)
+          .cells(7)
           .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
           .title("KLD(P||Q)")
           .scale(colorScale);
@@ -2936,199 +2904,199 @@ if (points.length) { // If points exist (at least 1 point)
   }
 }
 
-  function zoomHandler(d3_transform) {
-    let scale = d3_transform.k;
-    let x = -(d3_transform.x - dimensions/2) / scale;
-    let y = (d3_transform.y - dimensions/2) / scale;
-    let z = getZFromScale(scale);
-    camera.position.set(x, y, z);
-  }
+function zoomHandler(d3_transform) {
+  let scale = d3_transform.k;
+  let x = -(d3_transform.x - dimensions/2) / scale;
+  let y = (d3_transform.y - dimensions/2) / scale;
+  let z = getZFromScale(scale);
+  camera.position.set(x, y, z);
+}
 
-  function getScaleFromZ (camera_z_position) {
-    let half_fov = fov/2;
-    let half_fov_radians = toRadians(half_fov);
-    let half_fov_height = Math.tan(half_fov_radians) * camera_z_position;
-    let fov_height = half_fov_height * 2;
-    let scale = dimensions / fov_height; // Divide visualization height by height derived from field of view
-    return scale;
-  }
+function getScaleFromZ (camera_z_position) {
+  let half_fov = fov/2;
+  let half_fov_radians = toRadians(half_fov);
+  let half_fov_height = Math.tan(half_fov_radians) * camera_z_position;
+  let fov_height = half_fov_height * 2;
+  let scale = dimensions / fov_height; // Divide visualization height by height derived from field of view
+  return scale;
+}
 
-  function getZFromScale(scale) {
-    let half_fov = fov/2;
-    let half_fov_radians = toRadians(half_fov);
-    let scale_height = dimensions / scale;
-    let camera_z_position = scale_height / (2 * Math.tan(half_fov_radians));
-    return camera_z_position;
-  }
+function getZFromScale(scale) {
+  let half_fov = fov/2;
+  let half_fov_radians = toRadians(half_fov);
+  let scale_height = dimensions / scale;
+  let camera_z_position = scale_height / (2 * Math.tan(half_fov_radians));
+  return camera_z_position;
+}
 
-  function toRadians (angle) {
-    return angle * (Math.PI / 180);
-  }
+function toRadians (angle) {
+  return angle * (Math.PI / 180);
+}
 
-  // Hover and tooltip interaction
+// Hover and tooltip interaction
 
-  raycaster = new THREE.Raycaster();
-  raycaster.params.Points.threshold = 10;
+raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = 10;
 
-  view.on("mousemove", () => {
-    let [mouseX, mouseY] = d3.mouse(view.node());
-    let mouse_position = [mouseX, mouseY];
-  checkIntersects(mouse_position);
-  });
+view.on("mousemove", () => {
+  let [mouseX, mouseY] = d3.mouse(view.node());
+  let mouse_position = [mouseX, mouseY];
+checkIntersects(mouse_position);
+});
 
-  function mouseToThree(mouseX, mouseY) {
-    return new THREE.Vector3(
-      mouseX / dimensions * 2 - 1,
-      -(mouseY / dimensions) * 2 + 1,
-      1
-    );
-  }
-  
-  function checkIntersects(mouse_position) {
-    let mouse_vector = mouseToThree(...mouse_position);
-    raycaster.setFromCamera(mouse_vector, camera);
-    let intersects = raycaster.intersectObject(particlesDuplic);
-    if (intersects[0]) {
-      if (ColSizeSelector == "color"){
+function mouseToThree(mouseX, mouseY) {
+  return new THREE.Vector3(
+    mouseX / dimensions * 2 - 1,
+    -(mouseY / dimensions) * 2 + 1,
+    1
+  );
+}
+
+function checkIntersects(mouse_position) {
+  let mouse_vector = mouseToThree(...mouse_position);
+  raycaster.setFromCamera(mouse_vector, camera);
+  let intersects = raycaster.intersectObject(particlesDuplic);
+  if (intersects[0]) {
+    if (ColSizeSelector == "color"){
+      points = points.sort(function(a, b) {
+      return a.beta - b.beta;
+    })
+    } else{
         points = points.sort(function(a, b) {
-        return a.beta - b.beta;
+        return a.cost - b.cost;
       })
-      } else{
-          points = points.sort(function(a, b) {
-          return a.cost - b.cost;
-        })
-      }
-      let sorted_intersects = sortIntersectsByDistanceToRay(intersects);
-      let intersect = sorted_intersects[0];
-      let index = intersect.index;
-      let datum = points[index];
-      highlightPoint(datum);
-      showTooltip(mouse_position, datum);
-    } else {
-      removeHighlights();
-      hideTooltip();
     }
-  }
-
-  function sortIntersectsByDistanceToRay(intersects) {
-    return _.sortBy(intersects, "distanceToRay");
-  }
-
-  hoverContainer = new THREE.Object3D()
-  scene.add(hoverContainer);
-
-  function highlightPoint(datum) {
+    let sorted_intersects = sortIntersectsByDistanceToRay(intersects);
+    let intersect = sorted_intersects[0];
+    let index = intersect.index;
+    let datum = points[index];
+    highlightPoint(datum);
+    showTooltip(mouse_position, datum);
+  } else {
     removeHighlights();
-    
-    let geometry = new THREE.Geometry();
+    hideTooltip();
+  }
+}
 
-    geometry.vertices.push(
-      new THREE.Vector3(
-        (((datum.x/dimensions)*2) - 1)*dimensions,
-        (((datum.y/dimensions)*2) - 1)*dimensions*-1,
-        0
-      )
-    );
+function sortIntersectsByDistanceToRay(intersects) {
+  return _.sortBy(intersects, "distanceToRay");
+}
 
+hoverContainer = new THREE.Object3D()
+scene.add(hoverContainer);
+
+function highlightPoint(datum) {
+  removeHighlights();
+  
+  let geometry = new THREE.Geometry();
+
+  geometry.vertices.push(
+    new THREE.Vector3(
+      (((datum.x/dimensions)*2) - 1)*dimensions,
+      (((datum.y/dimensions)*2) - 1)*dimensions*-1,
+      0
+    )
+  );
+
+  if (all_labels[0] == undefined){
+    var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
+  }
+  else{
+    var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
+  }
+
+  geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
+
+  let material = new THREE.PointsMaterial({
+    size: 26,
+    sizeAttenuation: false,
+    vertexColors: THREE.VertexColors,
+    map: circle_sprite,
+    transparent: true
+  });
+  
+  let point = new THREE.Points(geometry, material);
+  hoverContainer.add(point);
+}
+
+function removeHighlights() {
+  hoverContainer.remove(...hoverContainer.children);
+}
+
+view.on("mouseleave", () => {
+  removeHighlights()
+});
+
+  // Initial tooltip state
+  let tooltip_state = { display: "none" }
+  let tooltip_dimensions;
+  let tooltip_template = document.createRange().createContextualFragment(`<div id="tooltip" style="display: none; z-index: 2; position: absolute; pointer-events: none; font-size: 13px; width: 240px; text-align: center; line-height: 1; padding: 6px; background: white; font-family: sans-serif;">
+    <div id="point_tip" style="padding: 4px; margin-bottom: 4px;"></div>
+    <div id="group_tip" style="padding: 4px;"></div>
+  </div>`);
+  document.body.append(tooltip_template);
+
+  let $tooltip = document.querySelector('#tooltip');
+  let $point_tip = document.querySelector('#point_tip');
+  let $group_tip = document.querySelector('#group_tip');
+
+  function updateTooltip() {
     if (all_labels[0] == undefined){
       var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
     }
     else{
       var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
     }
-
-    geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
-
-    let material = new THREE.PointsMaterial({
-      size: 35,
-      sizeAttenuation: false,
-      vertexColors: THREE.VertexColors,
-      map: circle_sprite,
-      transparent: true
-    });
+    $tooltip.style.display = tooltip_state.display;
+    $tooltip.style.left = tooltip_state.left + 'px';
+    $tooltip.style.top = tooltip_state.top + 'px';
+    $point_tip.innerText = tooltip_state[Category];
+    $point_tip.style.background = colorScaleCat(tooltip_state.color);
+    var tooltipComb = [];
+    tooltipComb = "Data set's features: " + "\n";
+    if (tooltip_dimensions){
+      for (var i=0; i<tooltip_dimensions[0].length; i++){
+        if (tooltip_dimensions[0][i][0] == Category){
     
-    let point = new THREE.Points(geometry, material);
-    hoverContainer.add(point);
-  }
-
-  function removeHighlights() {
-    hoverContainer.remove(...hoverContainer.children);
-  }
-
-  view.on("mouseleave", () => {
-    removeHighlights()
-  });
-
-    // Initial tooltip state
-    let tooltip_state = { display: "none" }
-    let tooltip_dimensions;
-    let tooltip_template = document.createRange().createContextualFragment(`<div id="tooltip" style="display: none; z-index: 2; position: absolute; pointer-events: none; font-size: 13px; width: 240px; text-align: center; line-height: 1; padding: 6px; background: white; font-family: sans-serif;">
-      <div id="point_tip" style="padding: 4px; margin-bottom: 4px;"></div>
-      <div id="group_tip" style="padding: 4px;"></div>
-    </div>`);
-    document.body.append(tooltip_template);
-
-    let $tooltip = document.querySelector('#tooltip');
-    let $point_tip = document.querySelector('#point_tip');
-    let $group_tip = document.querySelector('#group_tip');
-
-    function updateTooltip() {
-      if (all_labels[0] == undefined){
-        var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
-      }
-      else{
-        var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
-      }
-      $tooltip.style.display = tooltip_state.display;
-      $tooltip.style.left = tooltip_state.left + 'px';
-      $tooltip.style.top = tooltip_state.top + 'px';
-      $point_tip.innerText = tooltip_state[Category];
-      $point_tip.style.background = colorScaleCat(tooltip_state.color);
-      var tooltipComb = [];
-      tooltipComb = "Data set's features: " + "\n";
-      if (tooltip_dimensions){
-        for (var i=0; i<tooltip_dimensions[0].length; i++){
-          if (tooltip_dimensions[0][i][0] == Category){
-      
-          } else{
-            tooltipComb = tooltipComb + tooltip_dimensions[0][i];
-            tooltipComb = tooltipComb + "\n";
-          }
-        }
-      } else{
-        tooltipComb = "-";
-      }
-      $group_tip.innerText = tooltipComb;
-    }
-
-    function showTooltip(mouse_position, datum) {
-      let tooltip_width = 240;
-      let x_offset = tooltip_width + tooltip_width;
-      let y_offset = 30;
-      tooltip_state.display = "block";
-      tooltip_state.left = mouse_position[0] + x_offset;
-      tooltip_state.top = mouse_position[1] + y_offset;
-      if (all_labels[0] == undefined){
-        tooltip_state[Category] = "Point ID: " + datum.id;
-        tooltip_state.color = datum.id;
-      } else{
-        tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
-        tooltip_state.color = datum[Category];
-      }
-      tooltip_dimensions = [];
-      for (var i=0; i < dataFeatures.length - 1; i++){
-        if (datum.id == i){
-            tooltip_dimensions.push(Object.entries(dataFeatures[i]));
+        } else{
+          tooltipComb = tooltipComb + tooltip_dimensions[0][i];
+          tooltipComb = tooltipComb + "\n";
         }
       }
-      updateTooltip();
+    } else{
+      tooltipComb = "-";
     }
-
-    function hideTooltip() {
-      tooltip_state.display = "none";
-      updateTooltip();
-    }
+    $group_tip.innerText = tooltipComb;
   }
+
+  function showTooltip(mouse_position, datum) {
+    let tooltip_width = 240;
+    let x_offset = tooltip_width + tooltip_width;
+    let y_offset = 30;
+    tooltip_state.display = "block";
+    tooltip_state.left = mouse_position[0] + x_offset;
+    tooltip_state.top = mouse_position[1] + y_offset;
+    if (all_labels[0] == undefined){
+      tooltip_state[Category] = "Point ID: " + datum.id;
+      tooltip_state.color = datum.id;
+    } else{
+      tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
+      tooltip_state.color = datum[Category];
+    }
+    tooltip_dimensions = [];
+    for (var i=0; i < dataFeatures.length - 1; i++){
+      if (datum.id == i){
+          tooltip_dimensions.push(Object.entries(dataFeatures[i]));
+      }
+    }
+    updateTooltip();
+  }
+
+  function hideTooltip() {
+    tooltip_state.display = "none";
+    updateTooltip();
+  }
+}
   
 }
 

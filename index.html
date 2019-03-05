@@ -51,7 +51,7 @@
               <div class="row">
                 <div class="panel-body">
                     <div class="col-md-6">
-                        <canvas id = "tSNEcanvas"></canvas>
+                        <div id="overviewRect"></div>
                     </div>
                     <div class="col-md-6">
                         <div style="display:block" id="CategoryName"></div>
@@ -116,6 +116,7 @@
                 </div>
                 <div class="col-md-2">
                   <svg id="legend3"></svg>
+                  <div id="hider2"></div>
                   <div id="PlotCost"></div>
                 </div>
               </div>
@@ -159,7 +160,7 @@
                   </div>
                       <div class="param">
                     <label for="param-perplexity">Perplexity</label>
-                    <input id="param-perplexity" type="range" min="5" max="50" value="30", step="1">
+                    <input id="param-perplexity" type="range" min="5" max="100" value="30", step="1">
                     <output for="param-perplexity" id="param-perplexity-value">30</output>
                       </div>
                       <div class="param">
@@ -169,7 +170,7 @@
                       </div>
                       <div class="param">
                     <label for="param-maxiter">Max iterations</label>
-                    <input id="param-maxiter" type="range" min="100" max="1000" value="500", step="10">
+                    <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10">
                     <output for="param-maxiter" id="param-maxiter-value">500</output>
                       </div>
                       <div class="param">
@@ -216,11 +217,14 @@
                   <div class="panel-body">
                     <div class="col-md-12">
                       <div id="ThumbNailsList">
+                        <div class="param" >
                         <label for="male">Density (1/sigma)</label>
-                        <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);">
+                        <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);" style="display:inline-block">
                           <option selected="selected" value="color">Color-encoding</option>
                           <option value="size">Size-encoding</option>
                         </select>
+                          <button class="button" onclick="deleteAnnotations();" style="display:inline-block; float:right">Delete Annotations</button>
+                        </div>
                         <output for="param-neighborHood" id="param-neighborHood-value"></output>
                         <label for="male">Final Cost (Kullback-Leibler Divergence)</label>
                         <label id="selectionLabel" style="margin-top:4px">Size-encoding</label>

@@ -135,12 +135,22 @@ cursor: default;
     z-index: 2;
 }
 
-/* Styling of the overview canvas */
-#tSNEcanvas {
+.dot {
+  fill: steelblue;
+}
+
+.bounding-rect {
+  stroke: red;
+  stroke-width: 1;
+  fill: transparent;
+}
+
+#overviewRect {
   border: 1px solid black;
   width: 11vw;
   height: 11vw;
   position: absolute;
+  z-index: 1;
 }
 
 /* A little styling for knn's bar chart */
@@ -153,7 +163,7 @@ cursor: default;
 
 #hider {
   width: 48.7vw !important;
-  height: 2.8vw;
+  height: 3.2vw;
   background-color: white;
   position: absolute !important;
   z-index: 2;
@@ -233,12 +243,22 @@ svg#legend3 {
   overflow: auto;
 }
 
-/* Styling of the ShepardHeatmap */
 #PlotCost {
   height: 3vw;
   width: 11vw;
   margin-left: -5px;
   text-align: left;
+  z-index: 1;
+}
+
+#hider2 {
+  height: 3vw;
+  width: 11vw;
+  margin-left: -5px;
+  text-align: left;
+  background-color: white;
+  position: absolute !important;
+  z-index: 2;
 }
 
 /* ShepardHeatmap Styling for the different rectangles used there */
