@@ -4,9 +4,9 @@
     <!-- Ignore Favicon -> Solved the warning in console of the browser. -->
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
-    <!-- To be removed!!!-->
+    <!-- Three.js and Lodash libraries-->
     <script src='./modules/three.js-r101/three.js'></script>
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.5/lodash.js'></script>
+    <script src='./modules/lodash/lodash.js'></script>
 
     <!-- Importing D3 minified versions v3 and v5. -->
     <script src='./modules/d3v3/d3.min.js'></script>
@@ -19,6 +19,7 @@
     <script src="./modules/d3-legend/d3-legend.min.js"></script>
     <script src="./modules/d3-lasso/lasso.js"></script>
     <script src="./modules/plotly/plotly_min.js"></script>
+    <script src="./modules/pcp/d3v3.parcoords.js"></script>
     
     <script src="./modules/papa/papaparse.min.js"></script>
     <script src="./modules/jquery/jquery.min.js"></script>
@@ -31,7 +32,8 @@
     <!-- CSS - Styling -->
     <link rel="stylesheet" href="./css/style.css"/>
     <link rel="stylesheet" href="./css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
+    <link rel="stylesheet" href="./css/d3.parcoords.css">
+    <link rel="stylesheet" href="./css/reset.css">
     
     <!-- Bootstrap -->
     <script src="./modules/bootstrap/bootstrap.min.js"></script>
@@ -60,7 +62,7 @@
               <div id="control-panel" class="PoinRadius">
                 <div class="param">
                   <label for="param-lim" >Points radius scaling factor</label>
-                  <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize();">
+                  <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize(true);">
                   <output for="param-lim" id="param-lim-value" >3</output>
                 </div>
               </div>
@@ -114,6 +116,7 @@
                 </div>
                 <div class="col-md-2">
                   <svg id="legend3"></svg>
+                  <div id="PlotCost"></div>
                 </div>
               </div>
             </div>
@@ -122,7 +125,9 @@
           <div class="col-md-3 col-md-offset-6">
             <div class="panel panel-default right-side-cor">
                 <div class="panel-heading">
-                    <h2 class="panel-title">Correlation Schema Investigation</h2>
+                    <h2 class="panel-title" style="display:inline-block">Correl. Schema Investigation</h2><div class="param" style="display:inline-block; float:right"><label for="param-corlim" style="display:inline-block; float: right">Mininum Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.5</output></label>
+                    <input id="param-corlim" type="range" min="0" max="1" value="0.5", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
+                    </div>
                 </div>
                 <div class="panel-body">  
                   <svg id="correlation"></svg>
@@ -142,9 +147,10 @@
                       <label id="data" for="param-dataset">Data sets</label>
                       <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
                         <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
-                        <option value="bank-additional_s.csv">Bank Marketing</option>
-                        <option value="winequality-red.csv">Red Wine - Quality</option>
+                        <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
                         <option value="iris.csv">Iris</option>
+                        <option value="winequality-red.csv">Red Wine - Quality</option>
+                        <option value="bank-additional_s.csv">Bank Marketing</option>
                         <option value="mnist.csv" >Mnist</option>
                         <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
                         <option value="empty">Upload New File</option>
@@ -196,7 +202,7 @@
               <h2 class="panel-title">Starplot with PCA Calculation</h2>
           </div>
           <div class="panel-body">
-            <div id="starPlot"></div>
+            <div id="starPlot" class="parcoords"></div>
         </div>
        </div>
       </div>
@@ -210,18 +216,18 @@
                   <div class="panel-body">
                     <div class="col-md-12">
                       <div id="ThumbNailsList">
-                        <label for="male">Neighborhood Preservation (1/sigma)</label>
-                        <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize();">
-                          <option selected="selected" value="color">Color</option>
-                          <option value="size">Size</option>
+                        <label for="male">Density (1/sigma)</label>
+                        <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);">
+                          <option selected="selected" value="color">Color-encoding</option>
+                          <option value="size">Size-encoding</option>
                         </select>
                         <output for="param-neighborHood" id="param-neighborHood-value"></output>
                         <label for="male">Final Cost (Kullback-Leibler Divergence)</label>
-                        <label id="selectionLabel" style="margin-top:4px">Size</label>
+                        <label id="selectionLabel" style="margin-top:4px">Size-encoding</label>
                         <div id="param-correlation">
                           <div class="param">
                             <label for="param-corr">Correlation threshold</label>
-                            <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel();">
+                            <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel(true);">
                             <output for="param-corr" id="param-corr-value">150</output>
                           </div>
                           Annotation: <textarea type="text" id="comment" name="textforAnnotator" style="margin-top:4px" placeholder="Please, provide your comment."></textarea>
@@ -241,14 +247,23 @@
               </div>
         </div>
         <div class = col-md-6>
+          <div class="panel panel-default med-bottom">
+            <div class="panel-heading">
+              <h2 class="panel-title" style="display:inline-block">Neighborhood Preservation</h2><div id="knnBarChartDetails"style="display:inline-block; float:right"></div>
+            </div>
+            <div class="panel-body">
               <div id="hider"></div>
               <div id="knnBarChart"></div>
+            </div>
+          </div>
         </div>
         <div class="col-md-3" id="extra-information" style="width: 24.6vw">
             <div class="panel panel-default right-side-hist">
                 <div class="panel-heading">
-                    <h2 class="panel-title">1/sigma and Kullback-Leibler Divergence Distributions</h2>
-                </div>
+                    <h2 class="panel-title" style="display:inline-block;">1/sigma and KLD Distributions</h2><div class="param" style="display:inline-block; float:right"><label for="param-costlim" style="display:inline-block; float: right">Minimum Cost Boundary: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
+                      <input id="param-costlim" type="range" min="0" max="1" value="1", step="1" style="display:inline-block; float:right" onchange="setReInitialize(false);">
+                      </div>
+                  </div>
                 <div class="panel-body">  
                   <div id="costHist"></div>
                 </div>
@@ -259,12 +274,15 @@
 
     <script>
 
-      $("#cost").html('(Uknown iteration and cost values.)');
-      $("#datasetDetails").html('(Uknown number of features and instances.)');
+      $("#cost").html('(Unknown iteration and cost values.)');
+      $("#datasetDetails").html('(Unknown number of features and instances.)');
       $("#CategoryName").html('No Classification');
+      $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });
+      $('#param-corlim').bind('input', function () { $('#param-corlim-value').text($('#param-corlim').val()); });
+      $('#param-costlim').bind('input', function () { $('#param-costlim-value').text($('#param-costlim').val()); });
       $('#param-perplexity').bind('input', function () { $('#param-perplexity-value').text($('#param-perplexity').val()); });
       $('#param-earlyexag').bind('input', function () { $('#param-earlyexag-value').text($('#param-earlyexag').val()); });
       $('#param-learningrate').bind('input', function () { $('#param-learningrate-value').text($('#param-learningrate').val()); });

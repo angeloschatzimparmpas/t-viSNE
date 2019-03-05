@@ -4,10 +4,11 @@
 html, body {
     max-width: 100%;
     font-family: sans-serif !important;
+    font-size: 15px !important;
 }
 
 .container-fluid {
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 #param-correlation {
@@ -108,7 +109,7 @@ cursor: default;
 
 .right-side-hist {
   margin-left:-2px;
-  margin-top: -2px;
+  margin-top: 1px;
 }
 
 .right-side-star {
@@ -144,22 +145,24 @@ cursor: default;
 
 /* A little styling for knn's bar chart */
 #knnBarChart {
-  width: 50vw !important;
-  height: 5.4vw !important;
-  border: 1px solid black !important;
-  margin-top: 6.6vw;
+  width: 48.7vw !important;
+  height: 2.8vw;
   position: absolute !important;
   z-index: 1;
 }
 
 #hider {
-  width: 50vw !important;
-  height: 5.4vw !important;
-  border: 1px solid black !important;
-  margin-top: 6.6vw;
+  width: 48.7vw !important;
+  height: 2.8vw;
   background-color: white;
   position: absolute !important;
   z-index: 2;
+}
+
+.med-bottom {
+  margin-top: 6.7vw;
+  width: 50vw !important;
+  height: 5.4vw !important;
 }
 
 /* Styling of the main SVG behind canvas */
@@ -200,6 +203,7 @@ cursor: default;
  #legend1 {
   height: 11vw;
   width: 5vw;
+  margin-left:-8px;
   text-align: left;
  }
 
@@ -218,15 +222,23 @@ text.legendtitle {
 
 /* Number of Points font-size */
 text.label {
-  font-size: 12px;
+  font-size: 15px;
 }
 
 /* Styling of the ShepardHeatmap */
 svg#legend3 {
-  height: 11vw;
+  height: 8vw;
   width: 11vw;
   text-align: left;
   overflow: auto;
+}
+
+/* Styling of the ShepardHeatmap */
+#PlotCost {
+  height: 3vw;
+  width: 11vw;
+  margin-left: -5px;
+  text-align: left;
 }
 
 /* ShepardHeatmap Styling for the different rectangles used there */
@@ -376,11 +388,14 @@ rect {
 
 #selectionLabel{
   border: 1px solid black;
+  padding: 5px 5px 5px 5px;
 }
 
 #starPlot{
   margin-left:-15px;
   margin-top:0px;
+  width: 23.2vw;
+  height: 11.6vw;
 }
 
 .parent-row{

@@ -152,7 +152,6 @@ var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 		Pout[i*N+j] = Math.max((P[i*N+j] + P[j*N+i])/N2, 1e-100);
 	    }
 	}
-
 	return [Pout, beta];
   }
 
@@ -175,7 +174,7 @@ var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 	// matrix P from them.
 	// D is assumed to be provided as a list of lists, and should be symmetric
 	initDataDist: function(D) {
-	    var N = D.length;
+		var N = D.length;
 	    assert(N > 0, " X is empty? You must have some data!");
 	    // convert D to a (fast) typed array version
 	    var dists = zeros(N * N); // allocate contiguous array
@@ -185,11 +184,11 @@ var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 		    dists[i*N+j] = d;
 		    dists[j*N+i] = d;
 		}
-	    }
-	    var results = d2p(dists, this.perplexity, 1e-4);
-      	this.P = results[0];
+		}
+		var results = d2p(dists, this.perplexity, 1e-4);
+		this.P = results[0];
      	this.beta = results[1];
-	    this.N = N;
+		this.N = N;
 	    this.initSolution(); // refresh this
 	},
 

@@ -24,6 +24,8 @@ var Category; var ColorsCategorical;
 // This is for the removal of the distances cache. 
 var returnVal = false;
 
+var ArrayWithCosts = []; var Iterations = [];
+
 // This variable is for the kNN Bar Chart in order to store the first execution.
 var inside = 0;
 
@@ -225,7 +227,7 @@ function setReset(){ // Reset only the filters which were applied into the data 
   ArrayContainsDataFeaturesLimit = [];
   prevRightClick = false;
 
-  StarplotInitialize();
+  //StarplotInitialize();
 
   // Reset the points into their initial state
   for (var i=0; i < InitialStatePoints.length; i++){
@@ -238,14 +240,16 @@ function setReset(){ // Reset only the filters which were applied into the data 
 
 }
 
-function setReInitialize(){
-
-  // Change between color-encoding and size-encoding mapped to 1/sigma and KLD.
-  if (document.getElementById('selectionLabel').innerHTML == 'Size'){
-    document.getElementById('selectionLabel').innerHTML = 'Color';
-  } else{
-    document.getElementById('selectionLabel').innerHTML = 'Size';
+function setReInitialize(flag){
+  if(flag){
+    // Change between color-encoding and size-encoding mapped to 1/sigma and KLD.
+    if (document.getElementById('selectionLabel').innerHTML == 'Size-encoding'){
+      document.getElementById('selectionLabel').innerHTML = 'Color-encoding';
+    } else{
+      document.getElementById('selectionLabel').innerHTML = 'Size-encoding';
+    }
   }
+
 
   // Clear d3 SVGs
   d3.selectAll("#correlation > *").remove(); 
@@ -479,7 +483,7 @@ function init(data, results_all, fields) {
     d3.selectAll("#costHist > *").remove(); 
     d3.select("#starPlot").selectAll('g').remove();
     MainVisual();
-    StarplotInitialize();
+    //StarplotInitialize();
     
     d3.select("#hider").style("z-index", 2);
     d3.select("#knnBarChart").style("z-index", 1);
@@ -524,7 +528,6 @@ function init(data, results_all, fields) {
     opt.epsilon = document.getElementById("param-learningrate-value").value; // Epsilon is learning rate (10 = default)
     opt.perplexity = document.getElementById("param-perplexity-value").value; // Roughly how many neighbors each point influences (30 = default)
 
-
     // Put the input variables into more properly named variables and store them.
     final_dataset = data;
     dataFeatures = results_all;
@@ -532,7 +535,7 @@ function init(data, results_all, fields) {
     } else{
       tsne = new tsnejs.tSNE(opt); // Set new t-SNE with specific perplexity.
       dists = [];
-      dists = computeDistances(final_dataset, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
+      dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
       InitialFormDists.push(dists);
       tsne.initDataDist(dists); // Init t-SNE with dists.
       for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];} // Calculate beta and bring it back from the t-SNE algorithm.
@@ -744,7 +747,6 @@ function binTrans(data) {
 
 // Compute the distances by applying the chosen distance functions and transformation functions.
 function computeDistances(data, distFunc, transFunc) {
-
   dist = eval(distFunc)(eval(transFunc)(data));
   dist = normDist(data, dist);
   return dist;
@@ -753,7 +755,7 @@ function computeDistances(data, distFunc, transFunc) {
 
 // Function that updates embedding
 function updateEmbedding(AnalysisResults) {
-
+  
   inside = 0;
   points = [];
   points2d = [];
@@ -774,10 +776,49 @@ function updateEmbedding(AnalysisResults) {
         x_position[i] = x(Y[i][0]); // x points position
         y_position[i] = y(Y[i][1]); // y points position
             points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, schemaInv: false, DimON: null, starplot: false}; // Create the points and points2D (2 dimensions) 
-            points2d[i] = {id: i, x: x_position[i], y: y_position[i], selected: true}; // and add everything that we know about the points (e.g., selected = true, starplot = false in the beginning and so on)
+            points2d[i] = {x: x_position[i], y: y_position[i]}; // and add everything that we know about the points (e.g., selected = true, starplot = false in the beginning and so on)
             points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
             points[i] = extend(points[i], dataFeatures[i]);
         }
+        var trace1 = {
+          x: Iterations,
+          y: ArrayWithCosts,
+          mode: 'lines',
+          connectgaps: true,
+          marker: {
+            color: "rgb(0,128,0)", 
+             line: {
+              color:  "rgb(0, 0, 0)", 
+              width: 1
+            }
+          }
+        }
+        
+        var data = [trace1];
+        
+        var layout = {
+          showlegend: false,
+          width: 285,
+          height: 80,
+          xaxis:{title: 'Iterations',
+          titlefont: {
+            size: 12,
+            color: 'black'
+          }},
+          yaxis:{title: 'Ov. Cost',
+                  titlefont: {
+                    size: 12,
+                    color: 'black'
+                  }},
+          margin: {
+            l: 40,
+            r: 15,
+            b: 26,
+            t: 5
+          },
+        };
+        
+        Plotly.newPlot('PlotCost', data, layout,{displayModeBar:false}, {staticPlot: true});
   } else{
     if (flagAnalysis){
       var length = (AnalysisResults.length - dataFeatures.length*2 - 7 - 2);
@@ -1027,6 +1068,8 @@ function step() {
           cost_each = cost[1];
           for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
           $("#cost").html("(Number of Iteration: " + tsne.iter + ", Overall Cost: " + cost[0].toFixed(3) + ")");
+          ArrayWithCosts.push(cost[0].toFixed(3));
+          Iterations.push(step_counter);
         }
         else {
             clearInterval(runner);
@@ -1066,6 +1109,7 @@ function OverviewtSNE(points){ // The overview t-SNE function
 
   if (all_labels[0] == undefined){
     var colorScale = d3.scaleOrdinal().domain(["No Category"]).range(["#00000"]); // If no category then grascale.
+    $("#CategoryName").html('');
   } else{
     var colorScale = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical); // We use the color scale here!
   }
@@ -1273,7 +1317,7 @@ function CostHistogram(points){
   var min2 = (d3.min(points,function(d){ return d.beta; }));
 
   for (var i=0; i<points.length; i++){
-    frequency2.push((points[i].beta)/(max2));
+    frequency2.push((points[i].beta-min2)/(max2-min2));
   }
 
     var trace1 = {
@@ -1329,16 +1373,25 @@ function CostHistogram(points){
     barmode: "overlay",
     bargroupgap: points.length,
     autosize: false,
-    width: 550,
-    height: 240,
+    width: 560,
+    height: 250,
     margin: {
       l: 40,
       r: 20,
-      b: 30,
+      b: 40,
       t: 0,
       pad: 4
     },
-    xaxis:{range: [0,1]}
+    xaxis:{range: [0,1],title: 'Normalized Bins from Min to Max Values.',
+              titlefont: {
+                size: 12,
+                color: 'black'
+              }},
+    yaxis:{title: 'Number of Points',
+            titlefont: {
+              size: 12,
+              color: 'black'
+            }}
   };
 
   Plotly.newPlot('costHist', data, layout, {displayModeBar:false}, {staticPlot: true});
@@ -1353,17 +1406,14 @@ function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
         y = points[i].y;
         if (d3.polygonContains(lassoPolygon, [x, y])){
             points[i].selected = true;
-            points2d[i].selected = true;
         } else{
           countLassoFalse = countLassoFalse + 1;
           points[i].selected = false;
-          points2d[i].selected = true;
         }
     }
     if (countLassoFalse == points.length){
       for (var i = 0 ; i < points.length ; i ++) {
         points[i].selected = true;
-        points2d[i].selected = true;
       }
     }
     if (points.length - countLassoFalse <= 10 && points.length - countLassoFalse != 0){
@@ -1469,13 +1519,13 @@ function click(){ // This is the click of the Schema Investigation scenario
       d3.event.preventDefault();
 
       flagForSchema = true; // Schema is activated.
-      CalculateCorrel(); // Calculate the correlations
+      CalculateCorrel(flagForSchema); // Calculate the correlations
     }
   });
 
 }
 
-function CalculateCorrel(){ // Calculate the correlation is a function which has all the computations for the schema ordering (investigation).
+function CalculateCorrel(flagForSchema){ // Calculate the correlation is a function which has all the computations for the schema ordering (investigation).
  
   if (flagForSchema == false){
     alert("Please, draw a schema first!"); // If no Schema is drawn then ask the user!
@@ -1655,6 +1705,7 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
       var SignStore = [];
       correlationResults = [];
       const arrayColumn = (arr, n) => arr.map(x => x[n]);
+
       for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
         if (ArrayContainsDataFeaturesLimit[0][temp] == null){ // Match the data features with every dimension, which is a number!
         } else {
@@ -1664,8 +1715,8 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
           );
           if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
           } else{
-            SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign 
-            correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+            SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
+              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
           }
         }
       }
@@ -1690,7 +1741,9 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
     }
     correlationResultsFinal = [];
     for (var i=0; i<correlationResults.length; i++){
-      correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
+      if (parseFloat(document.getElementById("param-corlim-value").value) < Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])){
+        correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
+      }
     }
 
     correlationResultsFinal = correlationResultsFinal.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
@@ -1728,7 +1781,6 @@ function CalculateCorrel(){ // Calculate the correlation is a function which has
 }
 
 function drawBarChart(){ // Draw the horizontal barchart with the correlations.
-
   // Remove any previous barchart.
   d3.selectAll("#correlation > *").remove(); 
 
@@ -1743,7 +1795,7 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   .append("g") //another one for the clip path - due to not wanting to clip the labels
   .attr("clip-path", "url(#clip)")
   .style("clip-path", "url(#clip)")
-  .attr("class","mainGroup")
+  .attr("class","mainGroup");
 
   var miniGroup = svg.append("g")
           .attr("class","miniGroup")
@@ -1818,11 +1870,9 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   /////////////////////////////////////////////////////////////
 
   //What should the first extent of the brush become - a bit arbitrary this
-  var brushExtent = parseInt(Math.max( 1, Math.min( 20, Math.round(correlationResultsFinal.length * 0.75) ) ));
-
   brush = d3v3.svg.brush()
   .y(mini_yScale)
-  .extent([mini_yScale(correlationResultsFinal[0][0]), mini_yScale(correlationResultsFinal[brushExtent][0])])
+  .extent([mini_yScale(correlationResultsFinal[0][0]), main_height])
   .on("brush", brushmove)
 
   //Set up the visual part of the brush
@@ -1916,7 +1966,7 @@ function updateBarChart() {
     .attr("width", function(d) { return Math.abs(main_xScale(d[1]) - main_xScale(0)); })
     .attr("y", function(d,i) { return main_yScale(d[0]); })
     .attr("height", main_yScale.rangeBand());
-  
+
   //ENTER
   bar.enter().append("rect")
     .attr("class", "bar")
@@ -1928,12 +1978,56 @@ function updateBarChart() {
     .on("mouseover", () => {
       svg.select('.tooltip').style('display', 'none'); 
     })
-    .on("mousemove", function(d) {
+    .on("click", function(d) {
+      var flag = false;
       points.forEach(function (p) {
-        if (p.schemaInv == true) {
-          p.DimON = d[0];
+        if (p.DimON == d[0])
+        {
+          flag = true;
         }
-      })
+      });
+      if (flag == false){
+        correlationResultsFinal.forEach(function(corr){
+          var str2 = corr[0];
+            var elements2 = $("*:contains('"+ str2 +"')").filter(
+                    function(){
+                        return $(this).find("*:contains('"+ str2 +"')").length == 0
+                    }
+                 );
+                 elements2[0].style.fontWeight = 'normal';
+                 if (typeof elements2[1] != "undefined"){
+                  elements2[1].style.fontWeight = 'normal';
+                 }
+        });
+        points.forEach(function (p) {
+          if (p.schemaInv == true) {
+            p.DimON = d[0];
+            var str = p.DimON;
+            var elements = $("*:contains('"+ str +"')").filter(
+                    function(){
+                        return $(this).find("*:contains('"+ str +"')").length == 0
+                    }
+                 );
+                 elements[0].style.fontWeight = 'bold';
+          }
+        })
+      } else{
+        correlationResultsFinal.forEach(function(corr){
+          var str2 = corr[0];
+            var elements2 = $("*:contains('"+ str2 +"')").filter(
+                    function(){
+                        return $(this).find("*:contains('"+ str2 +"')").length == 0
+                    }
+                 );
+                 elements2[0].style.fontWeight = 'normal';
+                 if (typeof elements2[1] != "undefined"){
+                  elements2[1].style.fontWeight = 'normal';
+                 }
+        });
+        points.forEach(function (p) {
+          p.DimON = null;
+        });
+      }
       BetatSNE(points);
     });
     
@@ -1963,6 +2057,7 @@ function brushmove() {
   //Update the y axis of the big chart
   d3v3.select(".mainGroup")
     .select(".y.axis")
+    .select("textLength","10")
     .call(main_yAxis);
     
   //Which bars are still "selected"
@@ -2200,7 +2295,7 @@ var margin = {top: 40, right: 100, bottom: 40, left: 190}, // Set the margins fo
 width = Math.min(vw3, window.innerWidth - 10) - margin.left - margin.right,
 height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
 
-function StarplotInitialize() {
+/*function StarplotInitialize() {
  
   var wrapData = [];
   var radarChartOptions = { // starplot options
@@ -2219,9 +2314,9 @@ function StarplotInitialize() {
   
   //Call function to draw the Radar chart (starplot)
   RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
-}
+}*/
 
-StarplotInitialize();
+//StarplotInitialize();
 
 function BetatSNE(points){ // Run the main visualization
 inside = inside + 1;
@@ -2229,10 +2324,11 @@ if (points.length) { // If points exist (at least 1 point)
 
     selectedPoints = [];
     var findNearestTable = [];
-
+    var howManyPoints = 0;
     for (let m=0; m<points.length; m++){
       if (points[m].selected == true){
-          selectedPoints.push(points[m]); // Add the selected points in to a new variable
+        howManyPoints = howManyPoints + 1;
+        selectedPoints.push(points[m]); // Add the selected points in to a new variable
       }
     }
 
@@ -2248,18 +2344,18 @@ if (points.length) { // If points exist (at least 1 point)
       var vh = viewport[1] * 0.042;
 
       var maxKNN = document.getElementById("param-perplexity-value").value; // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
+      //var maxKNN = 3;
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
       });
     
       for (k=maxKNN; k>0; k--){ // Start from the maximum k value and go to the minimum (k=2).
 
-        findNearest = 0;
+        var findNearest = [];
         var indexOrderSliced = [];
         var indexOrderSliced2d = [];
         var count = [];
-        var sumIntersectionAvg = 0;
-        var sumUnionAvg = 0;
+        var findNearestAVG = 0;
         var sumIntersection = [];
         var sumUnion = [];
         for (var i=0; i<selectedPoints.length;i++){
@@ -2306,6 +2402,7 @@ if (points.length) { // If points exist (at least 1 point)
               indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
             for (var m=0; m < indexOrderSliced2d[i].length; m++){
               if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){ // Union
+
                 count[i] = count[i] + 1;
               }
             }
@@ -2315,21 +2412,16 @@ if (points.length) { // If points exist (at least 1 point)
           }
 
           for (var i=0; i<selectedPoints.length;i++){
-            sumIntersectionAvg = sumIntersection[i] + sumIntersectionAvg;
-            sumUnionAvg = sumUnion[i] + sumUnionAvg;
+            findNearest[i] = sumIntersection[i] / sumUnion[i];
+            findNearestAVG = findNearestAVG + findNearest[i];
           }
-          sumIntersectionAvg = sumIntersectionAvg / selectedPoints.length;
-          sumUnionAvg = sumUnionAvg / selectedPoints.length;
-            if (sumIntersectionAvg == 0){
-              findNearest = 0;
-            } else{
-              findNearest = sumIntersectionAvg / sumUnionAvg; // Nearest neighbor!
-            }
-  
-            if (isNaN(findNearest)){
-              findNearest = 0; // If kNN is fully uncorrelated then we say that the value is 0.
-            }
-            findNearestTable.push(findNearest.toFixed(2)); // These values are multiplied by the height of the viewport because we need to draw the bins of the barchart representation
+
+          findNearestAVG = findNearestAVG / selectedPoints.length; // Nearest neighbor!
+
+          if (isNaN(findNearestAVG)){
+            findNearestAVG = 0; // If kNN is fully uncorrelated then we say that the value is 0.
+          }
+          findNearestTable.push(findNearestAVG.toFixed(2)); // These values are multiplied by the height of the viewport because we need to draw the bins of the barchart representation
       }
          
       findNearestTable.reverse();
@@ -2346,6 +2438,7 @@ if (points.length) { // If points exist (at least 1 point)
       if (inside == 1){
         StoreInitialFindNearestTable = findNearestTable;
       }
+
         var trace1 = {
           x: kValuesLegend, 
           y: StoreInitialFindNearestTable, 
@@ -2368,18 +2461,28 @@ if (points.length) { // If points exist (at least 1 point)
         data = [trace1, trace2];
         layout = {
           barmode: 'group',autosize: false,
-          width: dimensions*0.99,
-          height: vh*2.1,
+          width: dimensions*0.97,
+          height: vh * 1.38,
           margin: {
-            l: 30,
+            l: 50,
             r: 30,
-            b: 25,
-            t: 20,
+            b: 30,
+            t: 5,
             pad: 4
           },
-          xaxis: {range: [0, LimitXaxis]},
-          yaxis: {range: [0, 1]}};
-        
+          xaxis: {range: [0, LimitXaxis],
+            title: 'K Values for K-NN',
+            titlefont: {
+              size: 12,
+              color: 'black'
+            }},
+          yaxis: {
+            title: 'Clu. Purity',
+            titlefont: {
+              size: 12,
+              color: 'black'
+            }}};
+        $("#knnBarChartDetails").html("(Number of Selected Points: "+howManyPoints+"/"+dataFeatures.length+")");
         Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
 
               
@@ -2394,7 +2497,7 @@ if (points.length) { // If points exist (at least 1 point)
         }
 
       if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
-    
+
         var FeatureWise = [];
         for (var j=0; j<Object.values(dataFeatures[0]).length; j++){ // Get the features of the data set.
           for (var i=0;i<dataFeatures.length;i++){
@@ -2435,6 +2538,9 @@ if (points.length) { // If points exist (at least 1 point)
         var indices = new Array(len);
         for (var i = 0; i < len; ++i) indices[i] = i;
         indices = indices.sort(function (a, b) { return PCASelVec[a] < PCASelVec[b] ? -1 : PCASelVec[a] > PCASelVec[b] ? 1 : 0; }); // Get the most important features first! Clockwise ordering 
+        if (len > 10){
+          indices = indices.slice(0,9);
+        }
 
         var wrapData = [];
         var IDS = [];
@@ -2443,10 +2549,10 @@ if (points.length) { // If points exist (at least 1 point)
           for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id].length; j++){
               for (m=0; m < len; m++){
                 if (indices[m] == j){
-                    data.push({axis:ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m], value:Math.abs((ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m] - min[m])/(max[m] - min[m]))}); // Push the values into the starplot
+                  Object.assign(data,{[ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m]]:parseFloat(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m]).toFixed(1)}); // Push the values into the starplot
                 }
               }
-          }
+            } 
             wrapData.push(data); // Wrap everything together 
             IDS.push(selectedPoints[i].id); // Push all the IDs of the selected points 
         }
@@ -2459,6 +2565,24 @@ if (points.length) { // If points exist (at least 1 point)
             .domain(IDS)
             .range(colors);
 
+        var color = function(d) { return colors(d.group); };
+
+        var parcoords = d3v3.parcoords()("#starPlot")
+          .data(wrapData)
+          .alpha(0.75)
+          .composite("darken")
+          .margin({ top: 20, left: 0, bottom: 5, right: 0 })
+          .mode("queue")
+          .color(function(d, i) { return colorScl(IDS[i]); })
+          .render()
+          .brushMode("1D-axes")  // enable brushing
+          .reorderable();
+      
+        parcoords.svg.selectAll("text")
+          .style("font", "14px");
+    /*
+     
+
           var radarChartOptions = { // Starplot options
             w: width,
             h: height,
@@ -2468,7 +2592,7 @@ if (points.length) { // If points exist (at least 1 point)
           };
 
           //Call function to draw the Radar chart (starplot)
-          RadarChart("#starPlot", wrapData, colorScl, IDS, radarChartOptions);
+          RadarChart("#starPlot", wrapData, colorScl, IDS, radarChartOptions);*/
     }
 
   var ColSizeSelector = document.getElementById("param-neighborHood").value; // This is the mapping of the color/size in beta/KLD
@@ -2486,9 +2610,9 @@ if (points.length) { // If points exist (at least 1 point)
     var maxSize1 = (d3.max(points,function(d){ return d.cost; }));
     var minSize1 = (d3.min(points,function(d){ return d.cost; }));
     var rscale1 = d3.scaleLinear()
-      .domain([minSize1, maxSize1])
-      .range([5,12]);
-
+    .domain([minSize1, maxSize1])
+    .range([5,parseInt(12-(1-document.getElementById("param-costlim").value)*7)]);
+    
     var colorScale = d3.scaleLinear()
       .domain(d3.range(0, max+calcStep, calcStep))
       .range(colorbrewer);
@@ -2520,46 +2644,69 @@ if (points.length) { // If points exist (at least 1 point)
   } else { // If we have cost into color then calculate the color scales
     var max = (d3.max(points,function(d){ return d.cost; }));
     var min = (d3.min(points,function(d){ return d.cost; }));
-
     var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
     var minSize2 = (d3.min(points,function(d){ return d.beta; }));
     var rscale2 = d3.scaleLinear()
       .domain([minSize2, maxSize2])
       .range([5,12]);
+      
+      d3.selectAll("#legend1 > *").remove();
 
-    var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
-    var calcStep = (max-min)/9;
-    var colorScale = d3.scaleLinear()
-      .domain(d3.range(min, max, calcStep))
-      .range(colorbrewer);
+    if (document.getElementById("param-costlim").value*max < max){
 
-    points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
-      return a.cost - b.cost;
-    })
+        var ordinal = d3.scaleOrdinal()
+        .domain(["0.00000"])
+        .range(["rgb(255,255,229)"]);
+      
+        var svg = d3.select("#legend1");
 
-    var labels_cost = [];
-    var abbr_labels_cost = [];
-    labels_cost = d3.range(min, max, calcStep);
-    for (var i=0; i<9; i++){
-      labels_cost[i] = labels_cost[i].toFixed(5);
-      abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+      svg.append("g")
+          .attr("class", "legendOrdinal")
+          .attr("transform", "translate(10,15)");
+      
+      var legendOrdinal = d3.legendColor()
+        .title("KLD(P||Q)")
+        .cells(1)
+        .scale(ordinal);
+      
+      svg.select(".legendOrdinal")
+        .call(legendOrdinal);
+    } else{
+      var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
+      var calcStep = (max-min)/9;
+      var colorScale = d3.scaleLinear()
+        .domain(d3.range(min, max, calcStep))
+        .range(colorbrewer);
+          
+      points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
+        return a.cost - b.cost;
+      })
+
+      var labels_cost = [];
+      var abbr_labels_cost = [];
+      labels_cost = d3.range(min, max, calcStep);
+      for (var i=0; i<9; i++){
+        labels_cost[i] = labels_cost[i].toFixed(5);
+        abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+      }
+
+      var svg = d3.select("#legend1"); // Add the legend for the beta/cost
+      
+      svg.append("g")
+          .attr("class", "legendLinear")
+          .attr("transform", "translate(10,15)");
+
+      var legend = d3.legendColor()
+        .labelFormat(d3.format(",.5f"))
+        .cells(9)
+        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+        .title("KLD(P||Q)")
+        .scale(colorScale);
+
+      svg.select(".legendLinear")
+        .call(legend);
     }
 
-    var svg = d3.select("#legend1"); // Add the legend for the beta/cost
-
-    svg.append("g")
-        .attr("class", "legendLinear")
-        .attr("transform", "translate(10,15)");
-
-    var legend = d3.legendColor()
-      .labelFormat(d3.format(",.5f"))
-      .cells(9)
-      .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-      .title("KLD(P||Q)")
-      .scale(colorScale);
-
-    svg.select(".legendLinear")
-      .call(legend);
   }
 
   
@@ -2635,7 +2782,12 @@ if (points.length) { // If points exist (at least 1 point)
       var color = new THREE.Color(colorScale(points[i].beta));
     }
     else{
-      var color = new THREE.Color(colorScale(points[i].cost));
+      if (document.getElementById("param-costlim").value*max < max) {
+        var color = new THREE.Color("rgb(255,255,229)");
+      }
+      else {
+        var color = new THREE.Color(colorScale(points[i].cost));
+      }
     }
     if (ColSizeSelector == "color") {
       let sizePoint = rscale1(points[i].cost);
@@ -2718,23 +2870,68 @@ if (points.length) { // If points exist (at least 1 point)
           .call(legend);
         break;
      } else {
-      d3.select("#legend1").selectAll('*').remove();
-      var svg = d3.select("#legend1");
-
-      svg.append("g")
-        .attr("class", "legendLinear")
-        .attr("transform", "translate(10,15)");
-
-      var legend = d3.legendColor()
-        .labelFormat(d3.format(".4f"))
-        .cells(9)
-        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-        .title("KLD(P||Q)")
-        .scale(colorScale);
-
-      svg.select(".legendLinear")
-        .call(legend);
-      break;
+      var max = (d3.max(points,function(d){ return d.cost; }));
+      var min = (d3.min(points,function(d){ return d.cost; }));
+      var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
+      var minSize2 = (d3.min(points,function(d){ return d.beta; }));
+      var rscale2 = d3.scaleLinear()
+        .domain([minSize2, maxSize2])
+        .range([5,12]);
+        
+        d3.selectAll("#legend1 > *").remove();
+  
+      if (document.getElementById("param-costlim").value*max < max){
+  
+          var ordinal = d3.scaleOrdinal()
+          .domain(["0.00000"])
+          .range(["rgb(255,255,229)"]);
+        
+          var svg = d3.select("#legend1");
+        d3.select("#legend1");
+        svg.append("g")
+          .attr("class", "legendOrdinal")
+          .attr("transform", "translate(10,15)");
+        
+        var legendOrdinal = d3.legendColor()
+          .title("KLD(P||Q)")
+          .scale(ordinal);
+        
+        svg.select(".legendOrdinal")
+          .call(legendOrdinal);
+      } else{
+        var colorbrewer = ["#ffffe5","#f7fcb9","#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
+        var calcStep = (max-min)/9;
+        var colorScale = d3.scaleLinear()
+          .domain(d3.range(min, max, calcStep))
+          .range(colorbrewer);
+            
+        points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
+          return a.cost - b.cost;
+        })
+  
+        var labels_cost = [];
+        var abbr_labels_cost = [];
+        labels_cost = d3.range(min, max, calcStep);
+        for (var i=0; i<9; i++){
+          labels_cost[i] = labels_cost[i].toFixed(5);
+          abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+        }
+  
+        var svg = d3.select("#legend1"); // Add the legend for the beta/cost
+        svg.append("g")
+            .attr("class", "legendLinear")
+            .attr("transform", "translate(10,15)");
+  
+        var legend = d3.legendColor()
+          .labelFormat(d3.format(",.5f"))
+          .cells(9)
+          .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+          .title("KLD(P||Q)")
+          .scale(colorScale);
+  
+        svg.select(".legendLinear")
+          .call(legend);
+      }
     }
   }
 }
