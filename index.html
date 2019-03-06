@@ -12,8 +12,7 @@
     <script src='./modules/d3v3/d3.min.js'></script>
     <script src='./modules/d3/d3.min.js'></script>
     
-    <!-- Importing additional modules such as starPlot, annotator, tip, legend, lasso, papaParse, and Jquery. -->
-    <script src='./modules/d3-star/d3-starPlot.js'></script>
+    <!-- Importing additional modules such as PCP, annotator, tip, legend, lasso, papaParse, and Jquery. -->
     <script src='./modules/d3-annotations/d3-annotator.js'></script>
     <script src="./modules/d3-tip/tip.js"></script>
     <script src="./modules/d3-legend/d3-legend.min.js"></script>
@@ -97,7 +96,7 @@
                   </label>
                   <label style="margin-top: 15px">
                       <input id="downloadDists" checked type="checkbox">
-                      Distances cache (Save Exec)
+                      Distances cache (Save Exec.)
                   </label>
                 </div>
             </div>
@@ -165,7 +164,7 @@
                       </div>
                       <div class="param">
                     <label for="param-learningrate">Learning rate</label>
-                    <input id="param-learningrate" type="range" min="5" max="150" value="10", step="1">
+                    <input id="param-learningrate" type="range" min="1" max="150" value="10", step="1">
                     <output for="param-learningrate" id="param-learningrate-value">10</output>
                       </div>
                       <div class="param">
@@ -200,10 +199,10 @@
       <div class="col-md-3 col-md-offset-6">
         <div class="panel panel-default right-side-star">
           <div class="panel-heading">
-              <h2 class="panel-title">Starplot with PCA Calculation</h2>
+              <h2 class="panel-title">Parallel Coordinates Plot with Local PCA Calculation</h2>
           </div>
           <div class="panel-body">
-            <div id="starPlot" class="parcoords"></div>
+            <div id="PCP" class="parcoords"></div>
         </div>
        </div>
       </div>

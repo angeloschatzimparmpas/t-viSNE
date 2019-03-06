@@ -19,7 +19,7 @@ var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions 
 
 // Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
 // ColorsCategorical = the categorical colors (maximum value = 10).
-var Category; var ColorsCategorical; 
+var Category; var ColorsCategorical; var valCategExists = 0;
 
 // This is for the removal of the distances cache. 
 var returnVal = false;
@@ -29,7 +29,9 @@ var ArrayWithCosts = []; var Iterations = [];
 var VisiblePoints = [];
 
 // This variable is for the kNN Bar Chart in order to store the first execution.
-var inside = 0;
+var inside = 0;  
+
+var format; 
 
 // Schema Investigation 
 // svgClick = Click a left mouse click in order to add a point.
@@ -87,7 +89,6 @@ function fetchVal(callback) {
 var getData = function() {
 
   PreComputFlagCorrelation = true;
-  let format; 
   let value;
   if (typeof window.FileReader !== 'function') {
     alert("The file API is not supported on this browser yet.");
@@ -212,7 +213,7 @@ function setReset(){ // Reset only the filters which were applied into the data 
   d3.selectAll("#correlation > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
   d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove(); 
-  d3.select("#starPlot").selectAll('g').remove();
+  d3.select("#PCP").selectAll('g').remove();
   // Enable lasso interaction
   lassoEnable();
   // Disable Schema Investigation
@@ -230,12 +231,12 @@ function setReset(){ // Reset only the filters which were applied into the data 
   ArrayContainsDataFeaturesLimit = [];
   prevRightClick = false;
 
-  //StarplotInitialize();
+  //pcpInitialize();
 
   // Reset the points into their initial state
   for (var i=0; i < InitialStatePoints.length; i++){
     InitialStatePoints[i].selected = true;
-    InitialStatePoints[i].starplot = false;
+    InitialStatePoints[i].pcp = false;
     InitialStatePoints[i].schemaInv = false;
     InitialStatePoints[i].DimON = null;
   }
@@ -285,14 +286,14 @@ function setReInitialize(flag){
   // Reset the points into their initial state
   for (var i=0; i < InitialStatePoints.length; i++){
     InitialStatePoints[i].selected = true;
-    InitialStatePoints[i].starplot = false;
+    InitialStatePoints[i].pcp = false;
   }
   redraw(InitialStatePoints);
 
 }
 
 function setLayerProj(){ // The main Layer becomes the projection
-
+  VisiblePoints = [];
   d3.select("#modtSNEcanvas").style("z-index", 2);
   d3.select("#modtSNEcanvas_svg").style("z-index", 1);
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
@@ -300,8 +301,8 @@ function setLayerProj(){ // The main Layer becomes the projection
 
 }
 
-function setLayerComp(){ // The main Layer becomes the comparison (starplot)
-
+function setLayerComp(){ // The main Layer becomes the comparison (pcp)
+  VisiblePoints = [];
   d3.selectAll("#modtSNEcanvas_svg > *").remove();
   d3.select("#modtSNEcanvas_svg").style("z-index", 2);
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
@@ -317,22 +318,18 @@ function setLayerComp(){ // The main Layer becomes the comparison (starplot)
 }
 
 function setLayerSche(){ // The main Layer becomes the correlation (barchart)
-
+  VisiblePoints = [];
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 2);
   d3.select("#modtSNEcanvas").style("z-index", 1);
   d3.select("#modtSNEcanvas_svg").style("z-index", 1);
   d3.select("#SvgAnnotator").style("z-index", 1);
-  let c = 0;
   for (var i=0; i < points.length; i++){
     points[i].selected = true;
-    if (points[i].starplot == true){
-      c = c + 1;
-      if (c == 1){
-        alert("The starplot visualization will be lost!"); // Alert the user that the starplot will be lost!
-      }
-      points[i].starplot = false;
+    if (points[i].pcp == true){
+      points[i].pcp = false;
     }
   }
+  emptyPCP();
   redraw(points);
   click();
   if (prevRightClick == true){
@@ -481,6 +478,7 @@ function MainVisual(){
 // data variable is all the columns except strings, undefined values, or "Version" plus beta and cost values."
 // fields variable is all the features (columns) plus beta and cost strings.  
 function init(data, results_all, fields) { 
+
     ArrayWithCosts = [];
     Iterations = [];
     VisiblePoints = [];
@@ -494,9 +492,9 @@ function init(data, results_all, fields) {
     d3.selectAll("#overviewRect > *").remove(); 
     d3.selectAll("#knnBarChart > *").remove(); 
     d3.selectAll("#costHist > *").remove(); 
-    d3.select("#starPlot").selectAll('g').remove();
+    d3.select("#PCP").selectAll('g').remove();
     MainVisual();
-    //StarplotInitialize();
+    //pcpInitialize();
     
     d3.select("#hider").style("z-index", 2);
     d3.select("#knnBarChart").style("z-index", 1);
@@ -517,6 +515,10 @@ function init(data, results_all, fields) {
     d3.selectAll("#legend1 > *").remove();
     d3.selectAll("#legend2 > *").remove();
     d3.selectAll("#legend3 > *").remove();
+
+    $("#datasetDetails").html('(Unknown number of features and instances.)');
+    $("#CategoryName").html('No Classification');
+    $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
 
     // Enable again the lasso interaction.
     lassoEnable();
@@ -593,24 +595,24 @@ function init(data, results_all, fields) {
       ArrayContainsDataFeaturesClearedwithoutNull.push(object2);
       ArrayContainsDataFeaturesClearedwithoutNullKeys.push(object3);
     }
-    var valCategExists = 0;
+    valCategExists = 0;
     for (var i=0; i<Object.keys(dataFeatures[0]).length; i++){
       if (Object.keys(dataFeatures[0])[i] == Category){
         valCategExists = valCategExists + 1;
       }
     }
 
-    $("#datasetDetails").html("(Number of Features: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
-    if (Category == undefined){
-      $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
-    } else {
-      $("#CategoryName").html("Classification label: "+Category.replace('*','')); // Print on the screen the classification label.
-    }
-
-
     for(var i = 0; i < dataFeatures.length; i++) {
       if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){ // If a categorization label exist then add it into all_labels variable.
-        all_labels[i] = dataFeatures[i][Category];
+        if (format[0] == "diabetes"){
+          if (dataFeatures[i][Category] == 1){
+            all_labels[i] = "Positive";
+          } else{
+            all_labels[i] = "Negative";
+          }
+        } else{
+          all_labels[i] = dataFeatures[i][Category];
+        }
       }
     }
 
@@ -837,8 +839,8 @@ function updateEmbedding(AnalysisResults) {
       for(var i = 0; i < final_dataset.length; i++) {
         x_position[i] = x(Y[i][0]); // x points position
         y_position[i] = y(Y[i][1]); // y points position
-            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, schemaInv: false, DimON: null, starplot: false}; // Create the points and points2D (2 dimensions) 
-            points2d[i] = {x: x_position[i], y: y_position[i]}; // and add everything that we know about the points (e.g., selected = true, starplot = false in the beginning and so on)
+            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, schemaInv: false, DimON: null, pcp: false}; // Create the points and points2D (2 dimensions) 
+            points2d[i] = {x: x_position[i], y: y_position[i]}; // and add everything that we know about the points (e.g., selected = true, pcp = false in the beginning and so on)
             points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
             points[i] = extend(points[i], dataFeatures[i]);
         }
@@ -1075,7 +1077,7 @@ function ShepardHeatMap () {
 
     var legend = d3.legendColor() // Legend color and title!
       .labelFormat(d3.format(",.0f"))
-      .cells(7)
+      .cells(9)
       .title("Number of Points")
       .scale(colorScale);
 
@@ -1120,9 +1122,32 @@ function resize(canvas) { // This is being used in the WebGL t-SNE for the overv
 
 function OverviewtSNE(points){ // The overview t-SNE function
 
+  if (format[0] == "diabetes"){
+  for(var i = 0; i < dataFeatures.length; i++) {
+    if (dataFeatures[i][Category] != "" || dataFeatures[i][Category] != "undefined"){ // If a categorization label exist then add it into all_labels variable.
+        if (dataFeatures[i][Category] == 1){
+          all_labels[i] = "Positive";
+        } else{
+          all_labels[i] = "Negative";
+        }
+      }
+    }
+  }
+  $("#datasetDetails").html("(Number of Features: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
+  if (Category == undefined){
+    $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
+  } else {
+    $("#CategoryName").html("Classification label: "+Category.replace('*','')); // Print on the screen the classification label.
+  }
+
 //Make an SVG Container
 d3.selectAll("#overviewRect > *").remove(); 
-ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
+if (format[0] == "diabetes"){
+  ColorsCategorical = ['#fb9a99','#a6cee3','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
+} else{
+  ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
+}
+
 
   if (all_labels[0] == undefined){
     var colorScale = d3.scaleOrdinal().domain(["No Category"]).range(["#00000"]); // If no category then grascale.
@@ -1203,7 +1228,15 @@ var theRect = theGroup.append('rect')
         return "#D3D3D3";
       } else{
         if (all_labels[0] != undefined){
-          return colorScale(d[Category]); // Normal color for the points that are selected
+          if (format[0] == "diabetes"){
+            if (d[Category] == 1){
+              return colorScale("Positive");
+            } else{
+              return colorScale("Negative");
+            }
+          } else{
+            return colorScale(d[Category]); // Normal color for the points that are selected
+          }
         } else {
           return "#00000";
         }
@@ -1338,12 +1371,12 @@ function handleLassoEnd(lassoPolygon) { // This is for the lasso interaction
     if (points.length - countLassoFalse <= 10 && points.length - countLassoFalse != 0){
       for (var i = 0 ; i < points.length ; i ++) {
         if (points[i].selected == true){
-          points[i].starplot = true;
+          points[i].pcp = true;
         }
       }
     } else{
       for (var i = 0 ; i < points.length ; i ++) {
-        points[i].starplot = false;
+        points[i].pcp = false;
       }
     }
     redraw(points);
@@ -1355,16 +1388,15 @@ function emptyPCP(){
           ////////////////////////////////////////////////////////////// 
         //////////////////// Draw the Chart ////////////////////////// 
         ////////////////////////////////////////////////////////////// 
-        var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the starplot
+        var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the pcp
         var colorScl = d3v3.scale.ordinal()
           .domain(IDS)
           .range(colors);
 
       var color = function(d) { return colors(d.group); };
 
-      var parcoords = d3v3.parcoords()("#starPlot")
+      var parcoords = d3v3.parcoords()("#PCP")
         .data(wrapData)
-        .alpha(0.75)
         .composite("darken")
         .margin({ top: 20, left: 0, bottom: 5, right: 0 })
         .mode("queue")
@@ -1382,7 +1414,7 @@ function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anyth
     KNNEnabled = false;
     for (var i = 0 ; i < points.length ; i ++) {
       points[i].selected = true;
-      points[i].starplot = false;
+      points[i].pcp = false;
     }
 
   redraw(points);
@@ -1638,7 +1670,7 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
 
       for (var i=0; i < InitialStatePoints.length; i++){
         InitialStatePoints[i].selected = true;
-        InitialStatePoints[i].starplot = false;
+        InitialStatePoints[i].pcp = false;
       }
       redraw(InitialStatePoints);
 
@@ -2237,14 +2269,14 @@ function clearThree(obj){ // Clear three.js object!
 var viewport3 = getViewport(); // Get the width and height of the main visualization
 var vw3 = viewport3[0] * 0.2; 
 
-var margin = {top: 40, right: 100, bottom: 40, left: 190}, // Set the margins for the starplot
+var margin = {top: 40, right: 100, bottom: 40, left: 190}, // Set the margins for the pcp
 width = Math.min(vw3, window.innerWidth - 10) - margin.left - margin.right,
 height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
 
-/*function StarplotInitialize() {
+/*function pcpInitialize() {
  
   var wrapData = [];
-  var radarChartOptions = { // starplot options
+  var radarChartOptions = { // pcp options
     w: width,
     h: height,
     margin: margin,
@@ -2258,11 +2290,11 @@ height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
   //////////////////// Draw the Chart ////////////////////////// 
   ////////////////////////////////////////////////////////////// 
   
-  //Call function to draw the Radar chart (starplot)
-  RadarChart("#starPlot", wrapData, colors, IDS, radarChartOptions);
+  //Call function to draw the Radar chart (pcp)
+  RadarChart("#PCP", wrapData, colors, IDS, radarChartOptions);
 }*/
 
-//StarplotInitialize();
+//pcpInitialize();
 
 function BetatSNE(points){ // Run the main visualization
 inside = inside + 1;
@@ -2432,17 +2464,16 @@ if (points.length) { // If points exist (at least 1 point)
         Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
 
               
-        // Here we have the code for the starplot
-        d3.select("#starPlot").selectAll('g').remove(); // Remove the starplot if there was one before
+        // Here we have the code for the pcp
+        d3.select("#PCP").selectAll('g').remove(); // Remove the pcp if there was one before
 
         var coun = 0;
         for (var i=0; i < selectedPoints.length; i++){
-          if (selectedPoints[i].starplot == true){ // Count the selected points
+          if (selectedPoints[i].pcp == true){ // Count the selected points
             coun = coun + 1;
           } 
         }
 
-      if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
 
         var FeatureWise = [];
         for (var j=0; j<Object.values(dataFeatures[0]).length; j++){ // Get the features of the data set.
@@ -2484,9 +2515,13 @@ if (points.length) { // If points exist (at least 1 point)
         var indices = new Array(len);
         for (var i = 0; i < len; ++i) indices[i] = i;
         indices = indices.sort(function (a, b) { return PCASelVec[a] < PCASelVec[b] ? -1 : PCASelVec[a] > PCASelVec[b] ? 1 : 0; }); // Get the most important features first! Clockwise ordering 
-        if (len > 10){
-          indices = indices.slice(0,9);
+        if (len > 8){
+          indices = indices.slice(0,8);
         }
+
+      emptyPCP();
+      var parcoords = d3v3.parcoords()("#PCP");
+      if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
 
         var wrapData = [];
         var IDS = [];
@@ -2495,50 +2530,138 @@ if (points.length) { // If points exist (at least 1 point)
           for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id].length; j++){
               for (m=0; m < len; m++){
                 if (indices[m] == j){
-                  Object.assign(data,{[ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m]]:parseFloat(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m]).toFixed(1)}); // Push the values into the starplot
+                  Object.assign(data,{[ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m]]:parseFloat(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m]).toFixed(1)}); // Push the values into the pcp
                 }
               }
             } 
-            wrapData.push(data); // Wrap everything together 
+            Object.assign(data,{"ID":selectedPoints[i].id});
+            wrapData.push(data);
             IDS.push(selectedPoints[i].id); // Push all the IDs of the selected points 
+        }
+
+        var AllPointsWrapData = [];
+        for (var i=0; i<points.length; i++){
+          var data = [];
+          for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[points[i].id].length; j++){
+              for (m=0; m < len; m++){
+                if (indices[m] == j){
+                  Object.assign(data,{[ArrayContainsDataFeaturesClearedwithoutNullKeys[points[i].id][m]]:parseFloat(ArrayContainsDataFeaturesClearedwithoutNull[points[i].id][m]).toFixed(1)}); // Push the values into the pcp
+                }
+              }
+            } 
+            Object.assign(data,{"ID":points[i].id});
+            AllPointsWrapData.push(data);
         }
 
           ////////////////////////////////////////////////////////////// 
           //////////////////// Draw the Chart ////////////////////////// 
           ////////////////////////////////////////////////////////////// 
-          var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the starplot
+          var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the pcp
           var colorScl = d3v3.scale.ordinal()
             .domain(IDS)
             .range(colors);
 
-        var color = function(d) { return colors(d.group); };
+        var color = function(d) {
+            return colorScl(d.ID); 
+        };
 
-        var parcoords = d3v3.parcoords()("#starPlot")
-          .data(wrapData)
-          .alpha(0.75)
+          parcoords
+          .data(AllPointsWrapData)
+          .alpha(0.1)
+          .hideAxis(["ID"])
           .composite("darken")
-          .margin({ top: 20, left: 0, bottom: 5, right: 0 })
-          .mode("queue")
-          .color(function(d, i) { return colorScl(IDS[i]); })
+          .margin({ top: 20, left: 0, bottom: 5, right: -5 })
+          .mode("default")
+          .color(color)
           .render()
-          .brushMode("1D-axes")  // enable brushing
-          .reorderable();
-      
+          .highlight(wrapData)
+          .createAxes();
+
         parcoords.svg.selectAll("text")
           .style("font", "14px");
-    /*
-     
+          
+    } else {
 
-          var radarChartOptions = { // Starplot options
-            w: width,
-            h: height,
-            margin: margin,
-            levels: 10,
-            roundStrokes: true,
-          };
+      var wrapData2 = [];
+      for (var i=0; i<selectedPoints.length; i++){
+        var data = [];
+        for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
+            for (m=0; m < len; m++){
+              if (j == Object.keys(dataFeatures[selectedPoints[i].id]).length -1){
+                if(format[0] == "diabetes"){
+                  if (Object.values(dataFeatures[selectedPoints[i].id])[j] == 1){
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Positive"}); // Push the values into the pcp
+                  } else{
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Negative"}); // Push the values into the pcp
+                  }
+                } else{
+                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:(Object.values(dataFeatures[selectedPoints[i].id])[j])}); // Push the values into the pcp
+                }
+              } else{
+                if (indices[m] == j){
+                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[m]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[m]).toFixed(1)}); // Push the values into the pcp
+                }
+              }
+            }
+          } 
+          wrapData2.push(data);
+      }
 
-          //Call function to draw the Radar chart (starplot)
-          RadarChart("#starPlot", wrapData, colorScl, IDS, radarChartOptions);*/
+      var AllPointsWrapData2 = [];
+      for (var i=0; i<points.length; i++){
+        var data = [];
+        for (var j=0; j< Object.keys(dataFeatures[points[i].id]).length; j++){
+            for (m=0; m < len; m++){
+              if (j == Object.keys(dataFeatures[points[i].id]).length -1){
+                if(format[0] == "diabetes"){
+                  if (Object.values(dataFeatures[points[i].id])[j] == 1){
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Positive"}); // Push the values into the pcp
+                  } else{
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Negative"}); // Push the values into the pcp
+                  }
+                } else{
+                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:(Object.values(dataFeatures[points[i].id])[j])}); // Push the values into the pcp
+                }
+              } else{
+                if (indices[m] == j){
+                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[m]]:parseFloat(Object.values(dataFeatures[points[i].id])[m]).toFixed(1)}); // Push the values into the pcp
+                }
+              }
+            }
+          } 
+          AllPointsWrapData2.push(data);
+      }
+
+      if (all_labels[0] == undefined){
+        var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
+      }
+      else{
+        if(format[0] == "diabetes"){
+          for (var i=0; i<all_labels.length; i++){
+            if (all_labels[i] == 1){
+              all_labels[i] = "Positive";
+            } else{
+              all_labels[i] = "Negative";
+            }
+          }
+        }
+        var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
+      }
+      console.log(wrapData2);
+
+      parcoords
+      .data(AllPointsWrapData2)
+      .alpha(0.95)
+      .composite("darken")
+      .margin({ top: 20, left: 0, bottom: 5, right: -5 })
+      .mode("default")
+      .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{console.log(d[Category]);return colorScaleCat(d[Category]);}})
+      .render()
+      .highlight(wrapData2)
+      .createAxes();
+
+    parcoords.svg.selectAll("text")
+      .style("font", "14px");
     }
 
   var ColSizeSelector = document.getElementById("param-neighborHood").value; // This is the mapping of the color/size in beta/KLD
@@ -2730,7 +2853,7 @@ if (points.length) { // If points exist (at least 1 point)
     pointsGeometry.vertices.push(vertex);
     pointsGeometry.name = points[i].id;
     geometry.vertices.push(vertex);
-    if(points[i].starplot == true){
+    if(points[i].pcp == true){
       var color = new THREE.Color(colorScl(points[i].id));
     } else if (points[i].DimON != null) {
       let temp = points[i].DimON.match(/\d+/)[0];
@@ -3002,13 +3125,22 @@ function highlightPoint(datum) {
     var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
   }
   else{
+    if(format[0] == "diabetes"){
+      for (var i=0; i<all_labels.length; i++){
+        if (all_labels[i] == "Positive"){
+          all_labels[i] = 0;
+        } else{
+          all_labels[i] = 1;
+        }
+      }
+    }
     var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
-  }
 
+  }
   geometry.colors = [ new THREE.Color(colorScaleCat(datum[Category])) ];
 
   let material = new THREE.PointsMaterial({
-    size: 26,
+    size: 35,
     sizeAttenuation: false,
     vertexColors: THREE.VertexColors,
     map: circle_sprite,

@@ -197,7 +197,7 @@ var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 	    // generate random solution to t-SNE
 	    this.Y = randn2d(this.N, this.dim); // the solution
 	    this.gains = randn2d(this.N, this.dim, 1.0); // step gains to accelerate progress in unchanging directions
-	    this.ystep = randn2d(this.N, this.dim, 0.0); // momentum accumulator
+		this.ystep = randn2d(this.N, this.dim, 0.0); // momentum accumulator
 	    this.iter = 0;
 	},
 
@@ -229,10 +229,9 @@ var tsnejs = tsnejs || { REVISION: 'ALPHA' };
 		    this.gains[i][d] = newgain; // store for next turn
 
 		    // compute momentum step direction
-		    var momval = this.iter < 250 ? 0.5 : 0.8;
+			var momval = this.iter < 250 ? 0.5 : 0.8;
 		    var newsid = momval * sid - this.epsilon * newgain * grad[i][d];
 		    this.ystep[i][d] = newsid; // remember the step we took
-
 		    // step!
 		    this.Y[i][d] += newsid;
 

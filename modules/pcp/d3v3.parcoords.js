@@ -207,7 +207,6 @@ pc.autoscale = function() {
   };
 
   __.dimensions.forEach(function(k) {
-    console.log(k);
     yscale[k] = defaultScales[__.types[k]](k);
   });
 
