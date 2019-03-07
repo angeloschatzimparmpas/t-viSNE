@@ -2843,10 +2843,8 @@ if (points.length) { // If points exist (at least 1 point)
         .call(legendSize2);
 
         var circles = document.getElementsByClassName("swatch");
-        console.log(circles);
         for (var i=0; i<circles.length; i++){
           if(circles[i].localName == "circle"){
-            console.log("test");
             circles[i].style.fill = "rgb(128,0,0)";
           }
         }
