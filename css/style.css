@@ -194,6 +194,9 @@ cursor: default;
   z-index: 2;
 }
 
+circle.swatch{
+  opacity: 0.5;
+}
 
 /* Legend of the Overview t-SNE canvas */
 #legend2 {
@@ -213,9 +216,17 @@ cursor: default;
  #legend1 {
   height: 11vw;
   width: 5vw;
-  margin-left:-8px;
+  margin-left:-10px;
   text-align: left;
  }
+/* Legend of the Overview t-SNE canvas */
+#legend4 {
+height: 7vw;
+width: 5vw;
+margin-top:-80px;
+margin-left:-10px;
+text-align: left;
+}
 
 /* Styling of the ShepardHeatmap */
 #sheparheat {

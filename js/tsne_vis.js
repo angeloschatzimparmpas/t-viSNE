@@ -12,7 +12,7 @@ var final_dataset; var points = []; var cost = []; var cost_each; var beta_all =
 var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedwithoutNull = []; var ArrayContainsDataFeaturesClearedwithoutNullKeys = []; var flagAnalysis = false;
 
 // The distances in the high dimensional space and in the 2D space. All the labels that were found in the selected data set.
-var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = []; 
+var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = []; var IterationsList = []; var ArrayWithCostsList = [];
 
 // These are the dimensions for the Overview view and the Main view
 var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
@@ -113,13 +113,13 @@ var getData = function() {
 
       // Load an analysis and parse the previous points and parameters information.
       AnalysisResults = JSON.parse(lines); 
-      var length = (AnalysisResults.length - 7);
+      var length = (AnalysisResults.length - 9);
 
       ParametersSet = AnalysisResults.slice(length+1, AnalysisResults.length+7)
       value = ParametersSet[0];
       if (!isNaN(parseInt(value))){
         flagAnalysis = true;
-        length = (AnalysisResults.length - 9);
+        length = (AnalysisResults.length - 11);
         ParametersSet = AnalysisResults.slice(length+1, length+7);
 
         value = ParametersSet[0];
@@ -208,6 +208,7 @@ function setContinue(){ // This function allows the continuation of the analysis
 
 function setReset(){ // Reset only the filters which were applied into the data points.
 
+  VisiblePoints = [];
   emptyPCP();
   // Clear d3 SVGs
   d3.selectAll("#correlation > *").remove(); 
@@ -502,11 +503,6 @@ function init(data, results_all, fields) {
     d3.select("#hider2").style("z-index", 2);
     d3.select("#PlotCost").style("z-index", 1);
 
-    // Clear the previous t-SNE overview canvas. 
-    /*var oldcanvOver = document.getElementById('tSNEcanvas');
-    var contxOver = oldcanvOver.getContext('experimental-webgl');
-    contxOver.clear(contxOver.COLOR_BUFFER_BIT);*/
-
     // Clear the previously drawn main visualization canvas.
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xffffff);
@@ -515,8 +511,9 @@ function init(data, results_all, fields) {
     d3.selectAll("#legend1 > *").remove();
     d3.selectAll("#legend2 > *").remove();
     d3.selectAll("#legend3 > *").remove();
+    d3.selectAll("#legend4 > *").remove();
 
-    $("#datasetDetails").html('(Unknown number of features and instances.)');
+    $("#datasetDetails").html('(Unknown Number of Features and Instances.)');
     $("#CategoryName").html('No Classification');
     $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
 
@@ -844,10 +841,9 @@ function updateEmbedding(AnalysisResults) {
             points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
             points[i] = extend(points[i], dataFeatures[i]);
         }
-    OverallCostLineChart();
   } else{
     if (flagAnalysis){
-      var length = (AnalysisResults.length - dataFeatures.length*2 - 7 - 2);
+      var length = (AnalysisResults.length - dataFeatures.length*2 - 9 - 2);
       points = AnalysisResults.slice(0, dataFeatures.length); // Load the points from the previous analysis
       points2d = AnalysisResults.slice(dataFeatures.length, 2*dataFeatures.length); // Load the 2D points 
       dist_list = AnalysisResults.slice(2*dataFeatures.length, 2*dataFeatures.length+length/2); // Load the parameters and set the necessary values to the visualization of those parameters.
@@ -856,6 +852,10 @@ function updateEmbedding(AnalysisResults) {
       ParametersSet = AnalysisResults.slice(2*dataFeatures.length+length+1, 2*dataFeatures.length+length+7); // Load the parameters and set the necessary values to the visualization of those parameters.
       dists = AnalysisResults.slice(2*dataFeatures.length+length+7, 2*dataFeatures.length+length+8)[0]; // Load the parameters and set the necessary values to the visualization of those parameters.
       dists2d = AnalysisResults.slice(2*dataFeatures.length+length+8, 2*dataFeatures.length+length+9)[0]; // Load the parameters and set the necessary values to the visualization of those parameters.
+      IterationsList = AnalysisResults.slice(2*dataFeatures.length+length+9, 2*dataFeatures.length+length+10);
+      ArrayWithCostsList = AnalysisResults.slice(2*dataFeatures.length+length+10, 2*dataFeatures.length+length+11);
+      Iterations = IterationsList[0];
+      ArrayWithCosts = ArrayWithCostsList[0];
       $("#cost").html("(Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
@@ -863,11 +863,15 @@ function updateEmbedding(AnalysisResults) {
       document.getElementById("param-distance").value = ParametersSet[4];
       document.getElementById("param-transform").value = ParametersSet[5];
     } else{
-      var length = (AnalysisResults.length - 7) / 2;
+      var length = (AnalysisResults.length - 9) / 2;
       points = AnalysisResults.slice(0, length); // Load the points from the previous analysis
       points2d = AnalysisResults.slice(length, 2*length); // Load the 2D points 
       overallCost = AnalysisResults.slice(2*length, 2*length+1); // Load the overall cost
       ParametersSet = AnalysisResults.slice(2*length+1, 2*length+7); // Load the parameters and set the necessary values to the visualization of those parameters.
+      IterationsList = AnalysisResults.slice(2*length+7, 2*length+8);
+      ArrayWithCostsList = AnalysisResults.slice(2*length+8, 2*length+9);
+      Iterations = IterationsList[0];
+      ArrayWithCosts = ArrayWithCostsList[0];
       $("#cost").html("(Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
@@ -878,6 +882,8 @@ function updateEmbedding(AnalysisResults) {
     $("#data").html(ParametersSet[0]); // Print on the screen the classification label.
     $("#param-dataset").html('-');
   }
+
+  OverallCostLineChart(); // Cost plot
   InitialStatePoints = points; // Initial Points will not be modified!
 
   function extend(obj, src) { // Call this function to add additional information to the points such as dataFeatures and Array which contains the data features without strings.
@@ -1101,6 +1107,8 @@ function step() {
             clearInterval(runner);
         }
         if (step_counter == max_counter){
+          ArrayWithCostsList.push(ArrayWithCosts);
+          IterationsList.push(Iterations);
           updateEmbedding(AnalysisResults);
         }
 }
@@ -1270,7 +1278,6 @@ function CostHistogram(points){
   for (var i=0; i<points.length; i++){
     frequency2.push((points[i].beta-min2)/(max2-min2));
   }
-  
     var trace1 = {
       x: frequency2,
       name: '1/sigma',
@@ -1285,7 +1292,7 @@ function CostHistogram(points){
       opacity: 0.5, 
       type: "histogram", 
       xbins: {
-        end: 1, 
+        end: 1.01, 
         size: 0.01,
         start: 0
       }
@@ -1293,11 +1300,9 @@ function CostHistogram(points){
 
     var max = (d3.max(points,function(d){ return d.cost; }));
     var min = (d3.min(points,function(d){ return d.cost; }));
-  
     for (var i=0; i<points.length; i++){
       frequency.push((points[i].cost-min)/(max-min));
     }
-
     var trace2 = {
       x: frequency,
       name: 'KLD(P||Q)',
@@ -1313,7 +1318,7 @@ function CostHistogram(points){
       opacity: 0.5, 
       type: "histogram", 
       xbins: {
-        end: 1, 
+        end: 1.01, 
         size: 0.01,
         start: 0
       }
@@ -1333,7 +1338,7 @@ function CostHistogram(points){
       t: 10,
       pad: 4
     },
-    xaxis:{range: [0,1],title: 'Normalized Bins from Min to Max Values.',
+    xaxis:{range: [0,1.01],title: 'Normalized Bins from Min to Max Values.',
               titlefont: {
                 size: 14,
                 color: 'black'
@@ -1398,7 +1403,7 @@ function emptyPCP(){
       var parcoords = d3v3.parcoords()("#PCP")
         .data(wrapData)
         .composite("darken")
-        .margin({ top: 20, left: 0, bottom: 5, right: 0 })
+        .margin({ top: 20, left: 0, bottom: 10, right: 0 })
         .mode("queue")
         .color(function(d, i) { return colorScl(IDS[i]); })
         .render()
@@ -2273,29 +2278,6 @@ var margin = {top: 40, right: 100, bottom: 40, left: 190}, // Set the margins fo
 width = Math.min(vw3, window.innerWidth - 10) - margin.left - margin.right,
 height = Math.min(width, window.innerHeight - margin.top - margin.bottom);
 
-/*function pcpInitialize() {
- 
-  var wrapData = [];
-  var radarChartOptions = { // pcp options
-    w: width,
-    h: height,
-    margin: margin,
-    maxValue: 100,
-    roundStrokes: true
-  };
-  var colors;
-  var IDS = [];
-  
-  ////////////////////////////////////////////////////////////// 
-  //////////////////// Draw the Chart ////////////////////////// 
-  ////////////////////////////////////////////////////////////// 
-  
-  //Call function to draw the Radar chart (pcp)
-  RadarChart("#PCP", wrapData, colors, IDS, radarChartOptions);
-}*/
-
-//pcpInitialize();
-
 function BetatSNE(points){ // Run the main visualization
 inside = inside + 1;
 if (points.length) { // If points exist (at least 1 point)
@@ -2321,7 +2303,7 @@ if (points.length) { // If points exist (at least 1 point)
       var vw = viewport[0] * 0.5;
       var vh = viewport[1] * 0.042;
 
-      var maxKNN = document.getElementById("param-perplexity-value").value; // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
+      var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
       //var maxKNN = 3;
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
@@ -2361,7 +2343,6 @@ if (points.length) { // If points exist (at least 1 point)
                   }
                   return 0;
                 });
-        
                 indexOrder[i] = indices[i].map(function(value) { return value[0]; });
                 // Sorting the mapped array containing the reduced values
                 indices2d[i].sort(function(a, b) {
@@ -2373,7 +2354,6 @@ if (points.length) { // If points exist (at least 1 point)
                   }
                   return 0;
                 });
-
                 indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
               }
               indexOrderSliced[i] = indexOrder[i].slice(0,k);
@@ -2570,7 +2550,7 @@ if (points.length) { // If points exist (at least 1 point)
           .alpha(0.1)
           .hideAxis(["ID"])
           .composite("darken")
-          .margin({ top: 20, left: 0, bottom: 5, right: -5 })
+          .margin({ top: 20, left: 0, bottom: 10, right: -5 })
           .mode("default")
           .color(color)
           .render()
@@ -2647,15 +2627,14 @@ if (points.length) { // If points exist (at least 1 point)
         }
         var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
       }
-      console.log(wrapData2);
 
       parcoords
       .data(AllPointsWrapData2)
       .alpha(0.95)
       .composite("darken")
-      .margin({ top: 20, left: 0, bottom: 5, right: -5 })
+      .margin({ top: 20, left: 0, bottom: 10, right: -5 })
       .mode("default")
-      .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{console.log(d[Category]);return colorScaleCat(d[Category]);}})
+      .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category]);}})
       .render()
       .highlight(wrapData2)
       .createAxes();
@@ -2666,22 +2645,35 @@ if (points.length) { // If points exist (at least 1 point)
 
   var ColSizeSelector = document.getElementById("param-neighborHood").value; // This is the mapping of the color/size in beta/KLD
 
+  d3.selectAll("#legend4 > *").remove();
+
   if (ColSizeSelector == "color") { // If we have beta into color then calculate the color scales
+
     var max = (d3.max(points,function(d){ return d.beta; }));
     var min = (d3.min(points,function(d){ return d.beta; }));
     // colors
-    var colorbrewer = ["#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
-    var calcStep = (max-min)/5;
+    var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
+    var calcStep = (max)/8;
     var colorScale = d3.scaleLinear()
       .domain(d3.range(0, max+calcStep, calcStep))
       .range(colorbrewer);
 
     var maxSize1 = (d3.max(points,function(d){ return d.cost; }));
     var minSize1 = (d3.min(points,function(d){ return d.cost; }));
+
     var rscale1 = d3.scaleLinear()
     .domain([minSize1, maxSize1])
     .range([5,parseInt(12-(1-document.getElementById("param-costlim").value)*7)]);
-    
+
+    var calcStepSize1 = (maxSize1-minSize1);
+
+    var limitdist = document.getElementById("param-lim-value").value;
+    limitdist = parseFloat(limitdist).toFixed(1);
+
+    var legendScale1 = d3.scaleLinear()
+    .domain(d3.range(minSize1, maxSize1+calcStepSize1, calcStepSize1))
+    .range([5*limitdist/2,(parseInt(12-(1-document.getElementById("param-costlim").value)*7))*limitdist/2]);
+
     var colorScale = d3.scaleLinear()
       .domain(d3.range(0, max+calcStep, calcStep))
       .range(colorbrewer);
@@ -2690,8 +2682,9 @@ if (points.length) { // If points exist (at least 1 point)
     })
     var labels_beta = [];
     var abbr_labels_beta = [];
+    var calcStep = (max)/8;
     labels_beta = d3.range(0, max+calcStep, calcStep);
-    for (var i=0; i<7; i++){
+    for (var i=0; i<9; i++){
       labels_beta[i] = parseInt(labels_beta[i]);
       abbr_labels_beta[i] = abbreviateNumber(labels_beta[i]);
     }
@@ -2703,20 +2696,55 @@ if (points.length) { // If points exist (at least 1 point)
 
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.0f"))
-        .cells(7)
-        .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6]])
+        .cells(9)
+        .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
         .title("1/sigma")
         .scale(colorScale);
         
       svg.select(".legendLinear")
         .call(legend);
+      
+      var svg = d3.select("#legend4");
+
+      svg.append("g")
+        .attr("class", "legendSize")
+        .attr("transform", "translate(10,20)");
+
+      var SizeRange1 = [];
+      SizeRange1.push((minSize1).toFixed(3));
+      SizeRange1.push(((maxSize1-minSize1)/2).toFixed(3));
+      SizeRange1.push((maxSize1).toFixed(3));
+
+      var legendSize1 = d3.legendSize()
+        .scale(legendScale1)
+        .labelFormat(d3.format(",.5f"))
+        .cells(3)
+        .shape('circle')
+        .labels([SizeRange1[0],SizeRange1[1],SizeRange1[2]])
+        .shapePadding(10)
+        .labelOffset(5)
+        .title("KLD(P||Q)")
+        .orient('vertical');
+        
+      svg.select(".legendSize")
+        .call(legendSize1);
+
+        var circles = document.getElementsByClassName("swatch");
+        for (var i=0; i<circles.length; i++){
+          if(circles[i].localName == "circle"){
+            circles[i].style.fill = "rgb(0,128,0)";
+          }
+        }
   } else { // If we have cost into color then calculate the color scales
+
     var max = (d3.max(points,function(d){ return d.cost; }));
     var min = (d3.min(points,function(d){ return d.cost; }));
+
     var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
     var minSize2 = (d3.min(points,function(d){ return d.beta; }));
+
     var rscale2 = d3.scaleLinear()
-      .domain([minSize2, maxSize2])
+      .domain([0, maxSize2])
       .range([5,12]);
       
       d3.selectAll("#legend1 > *").remove();
@@ -2741,10 +2769,11 @@ if (points.length) { // If points exist (at least 1 point)
       svg.select(".legendOrdinal")
         .call(legendOrdinal);
     } else{
+
       var colorbrewer = ['#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529'];
-      var calcStep = (max-min)/7;
+      var calcStep = (max-min)/6;
       var colorScale = d3.scaleLinear()
-        .domain(d3.range(min, max, calcStep))
+        .domain(d3.range(min, max+calcStep, calcStep))
         .range(colorbrewer);
           
       points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
@@ -2753,7 +2782,7 @@ if (points.length) { // If points exist (at least 1 point)
 
       var labels_cost = [];
       var abbr_labels_cost = [];
-      labels_cost = d3.range(min, max, calcStep);
+      labels_cost = d3.range(min, max+calcStep, calcStep);
       for (var i=0; i<7; i++){
         labels_cost[i] = labels_cost[i].toFixed(5);
         abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
@@ -2774,7 +2803,53 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.select(".legendLinear")
         .call(legend);
+
     }
+
+    var calcStepSize2 = parseInt(maxSize2/2);
+
+    var limitdist = document.getElementById("param-lim-value").value;
+    limitdist = parseFloat(limitdist).toFixed(1);
+
+    var legendScale2 = d3.scaleLinear()
+    .domain(d3.range(0, abbreviateNumber(parseInt(maxSize2)), calcStepSize2))
+    .range([5*limitdist/2,12*limitdist/2]);
+
+      
+      var svg = d3.select("#legend4");
+
+      svg.append("g")
+        .attr("class", "legendSize")
+        .attr("transform", "translate(10,20)");
+
+      var SizeRange2 = [];
+      SizeRange2.push(0);
+      var temporalvalue = parseInt(maxSize2/2);
+      SizeRange2.push(abbreviateNumber(temporalvalue));
+      SizeRange2.push(abbreviateNumber(parseInt(maxSize2)));
+
+      var legendSize2 = d3.legendSize()
+        .scale(legendScale2)
+        .labelFormat(d3.format(",.0f"))
+        .cells(3)
+        .shape('circle')
+        .labels([SizeRange2[0],SizeRange2[1],SizeRange2[2]])
+        .shapePadding(10)
+        .labelOffset(5)
+        .title("1/sigma")
+        .orient('vertical');
+        
+      svg.select(".legendSize")
+        .call(legendSize2);
+
+        var circles = document.getElementsByClassName("swatch");
+        console.log(circles);
+        for (var i=0; i<circles.length; i++){
+          if(circles[i].localName == "circle"){
+            console.log("test");
+            circles[i].style.fill = "rgb(128,0,0)";
+          }
+        }
 
   }
 
@@ -2860,8 +2935,8 @@ if (points.length) { // If points exist (at least 1 point)
       var maxDim = (d3.max(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));
       var minDim = (d3.min(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));  
 
-      let colorsBarChart = ['#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
-      var calcStepDim = (maxDim-minDim)/8;
+      let colorsBarChart = ['#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#54278f','#3f007d'];
+      var calcStepDim = (maxDim-minDim)/6;
       var colorScale = d3.scaleLinear()
         .domain(d3.range(minDim, maxDim+calcStepDim, calcStepDim))
         .range(colorsBarChart);
@@ -2952,8 +3027,8 @@ if (points.length) { // If points exist (at least 1 point)
     
         var legend = d3.legendColor()
           .labelFormat(d3.format(",.0f"))
-          .cells(7)
-          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6]])
+          .cells(9)
+          .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
           .title("1/sigma")
           .scale(colorScale);
     
@@ -2963,11 +3038,9 @@ if (points.length) { // If points exist (at least 1 point)
      } else {
       var max = (d3.max(points,function(d){ return d.cost; }));
       var min = (d3.min(points,function(d){ return d.cost; }));
+
       var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
       var minSize2 = (d3.min(points,function(d){ return d.beta; }));
-      var rscale2 = d3.scaleLinear()
-        .domain([minSize2, maxSize2])
-        .range([5,12]);
         
         d3.selectAll("#legend1 > *").remove();
   
@@ -2991,9 +3064,9 @@ if (points.length) { // If points exist (at least 1 point)
           .call(legendOrdinal);
       } else{
         var colorbrewer = ["#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
-        var calcStep = (max-min)/7;
+        var calcStep = (max-min)/6;
         var colorScale = d3.scaleLinear()
-          .domain(d3.range(min, max, calcStep))
+          .domain(d3.range(min, max+calcStep, calcStep))
           .range(colorbrewer);
             
         points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
@@ -3002,7 +3075,7 @@ if (points.length) { // If points exist (at least 1 point)
   
         var labels_cost = [];
         var abbr_labels_cost = [];
-        labels_cost = d3.range(min, max, calcStep);
+        labels_cost = d3.range(min, max+calcStep, calcStep);
         for (var i=0; i<7; i++){
           labels_cost[i] = labels_cost[i].toFixed(5);
           abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
@@ -3016,7 +3089,7 @@ if (points.length) { // If points exist (at least 1 point)
         var legend = d3.legendColor()
           .labelFormat(d3.format(",.5f"))
           .cells(7)
-          .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
+          .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6]])
           .title("KLD(P||Q)")
           .scale(colorScale);
   
@@ -3296,16 +3369,16 @@ function SaveAnalysis(){ // Save the analysis into a .txt file
   Parameters.push(parTrans);
   AllData = [];
   if (cost[0] != undefined){
-    if (!returnVal){
-      AllData = points.concat(points2d).concat(dist_list).concat(dist_list2d).concat(cost[0].toFixed(3)).concat(Parameters).concat(InitialFormDists).concat(InitialFormDists2D);
+    if (!returnVal){ // Add here if you want to save more parameters from a previous execution.
+      AllData = points.concat(points2d).concat(dist_list).concat(dist_list2d).concat(cost[0].toFixed(3)).concat(Parameters).concat(InitialFormDists).concat(InitialFormDists2D).concat(IterationsList).concat(ArrayWithCostsList);
     } else {
-      AllData = points.concat(points2d).concat(cost[0].toFixed(3)).concat(Parameters);
+      AllData = points.concat(points2d).concat(cost[0].toFixed(3)).concat(Parameters).concat(IterationsList).concat(ArrayWithCostsList);
     }
   } else{
     if (!returnVal){
-      AllData = points.concat(points2d).concat(dist_list).concat(dist_list2d).concat(overallCost).concat(Parameters).concat(InitialFormDists).concat(InitialFormDists2D);
+      AllData = points.concat(points2d).concat(dist_list).concat(dist_list2d).concat(overallCost).concat(Parameters).concat(InitialFormDists).concat(InitialFormDists2D).concat(IterationsList).concat(ArrayWithCostsList);
     } else {
-      AllData = points.concat(points2d).concat(overallCost).concat(Parameters);
+      AllData = points.concat(points2d).concat(overallCost).concat(Parameters).concat(IterationsList).concat(ArrayWithCostsList);
     }
   }
   download(JSON.stringify(AllData),'Analysis'+measureSaves+'.txt', 'text/plain');

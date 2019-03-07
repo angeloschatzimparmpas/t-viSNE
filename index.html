@@ -61,7 +61,7 @@
               <div id="control-panel" class="PoinRadius">
                 <div class="param">
                   <label for="param-lim" >Points radius scaling factor</label>
-                  <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize(true);">
+                  <input id="param-lim" type="range" min="1" max="3" value="3", step="0.5" onchange="setReInitialize(true);">
                   <output for="param-lim" id="param-lim-value" >3</output>
                 </div>
               </div>
@@ -77,6 +77,7 @@
           </div>
           <div class="col-md-1" style="width: 3.499999995%">
             <svg id="legend1"></svg>
+            <svg id="legend4"></svg>
           </div>
           <div class="col-md-2" style="width: 21.499999995%">
             <div class="panel panel-default">
@@ -150,12 +151,9 @@
                         <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
                         <option value="iris.csv">Iris</option>
                         <option value="winequality-red.csv">Red Wine - Quality</option>
-                        <option value="bank-additional_s.csv">Bank Marketing</option>
-                        <option value="mnist.csv" >Mnist</option>
-                        <option value="Frogs_MFCCs_s.csv" >Frogs</option> 
                         <option value="empty">Upload New File</option>
                       </select>
-                      <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
+                      <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory Reset</button>
                   </div>
                       <div class="param">
                     <label for="param-perplexity">Perplexity</label>
@@ -277,8 +275,8 @@
 
     <script>
 
-      $("#cost").html('(Unknown iteration and cost values.)');
-      $("#datasetDetails").html('(Unknown number of features and instances.)');
+      $("#cost").html('(Unknown Iteration and Cost Values.)');
+      $("#datasetDetails").html('(Unknown Number of Features and Instances.)');
       $("#CategoryName").html('No Classification');
       $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
