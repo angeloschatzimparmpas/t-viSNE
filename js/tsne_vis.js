@@ -1699,7 +1699,7 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
           if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
           } else{
             SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
-              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))*Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
           }
         }
       }
@@ -1725,7 +1725,7 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
     correlationResultsFinal = [];
     for (var i=0; i<correlationResults.length; i++){
       if (parseFloat(document.getElementById("param-corlim-value").value) < Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])){
-        correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
+        correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])*Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
       }
     }
 
@@ -1747,10 +1747,10 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
 
   for (var j = 0; j < correlationResultsFinal.length; j++) {
     for (var i = 0; i < SignStore.length; i++) {
-      if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
+     /* if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
         correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
-      }
-      if (SignStore[i][1] == correlationResults[j][1]) {
+      }*/
+      if (SignStore[i][1] == correlationResults[j][1] || SignStore[i][1]*(-1) == correlationResults[j][1]) {
         correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
       }
     }
@@ -1830,8 +1830,8 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   /////////////////////// Update scales ///////////////////////
   /////////////////////////////////////////////////////////////
   //Update the scales
-  main_xScale.domain([-1, 1]);
-  mini_xScale.domain([-1, 1]);     
+  main_xScale.domain([0, 1]);
+  mini_xScale.domain([0, 1]);     
   main_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
   mini_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
 
