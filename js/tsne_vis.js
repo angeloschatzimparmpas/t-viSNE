@@ -1699,7 +1699,8 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
           if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
           } else{
             SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
-              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1))*Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+              //correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
           }
         }
       }
@@ -1725,7 +1726,7 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
     correlationResultsFinal = [];
     for (var i=0; i<correlationResults.length; i++){
       if (parseFloat(document.getElementById("param-corlim-value").value) < Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])){
-        correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])*Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
+        correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
       }
     }
 
@@ -1747,10 +1748,10 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
 
   for (var j = 0; j < correlationResultsFinal.length; j++) {
     for (var i = 0; i < SignStore.length; i++) {
-     /* if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
+      if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
         correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
-      }*/
-      if (SignStore[i][1] == correlationResults[j][1] || SignStore[i][1]*(-1) == correlationResults[j][1]) {
+      }
+      if (SignStore[i][1] == correlationResults[j][1]) {
         correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
       }
     }
@@ -1830,8 +1831,8 @@ function drawBarChart(){ // Draw the horizontal barchart with the correlations.
   /////////////////////// Update scales ///////////////////////
   /////////////////////////////////////////////////////////////
   //Update the scales
-  main_xScale.domain([0, 1]);
-  mini_xScale.domain([0, 1]);     
+  main_xScale.domain([-1, 1]);
+  mini_xScale.domain([-1, 1]);     
   main_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
   mini_yScale.domain(correlationResultsFinal.map(function(d) { return d[0]; }));
 
@@ -2501,6 +2502,8 @@ if (points.length) { // If points exist (at least 1 point)
 
       emptyPCP();
       var parcoords = d3v3.parcoords()("#PCP");
+      // Remove or add that if you want to achieve a different effect when you have less than 10 points.
+      /*
       if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
 
         var wrapData = [];
@@ -2561,7 +2564,7 @@ if (points.length) { // If points exist (at least 1 point)
           .style("font", "14px");
           
     } else {
-
+*/
       var wrapData2 = [];
       for (var i=0; i<selectedPoints.length; i++){
         var data = [];
@@ -2570,12 +2573,12 @@ if (points.length) { // If points exist (at least 1 point)
               if (j == Object.keys(dataFeatures[selectedPoints[i].id]).length -1){
                 if(format[0] == "diabetes"){
                   if (Object.values(dataFeatures[selectedPoints[i].id])[j] == 1){
-                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Positive"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j].replace("*","")]:"Positive"}); // Push the values into the pcp
                   } else{
-                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Negative"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j].replace("*","")]:"Negative"}); // Push the values into the pcp
                   }
                 } else{
-                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:(Object.values(dataFeatures[selectedPoints[i].id])[j])}); // Push the values into the pcp
+                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j].replace("*","")]:(Object.values(dataFeatures[selectedPoints[i].id])[j])}); // Push the values into the pcp
                 }
               } else{
                 if (indices[m] == j){
@@ -2586,6 +2589,32 @@ if (points.length) { // If points exist (at least 1 point)
           } 
           wrapData2.push(data);
       }
+    var CategoryReplaced = Category.replace("*","");
+
+    wrapData2.sort(function(a, b){
+      if(a[CategoryReplaced] < b[CategoryReplaced]) { return -1; }
+      if(a[CategoryReplaced] > b[CategoryReplaced]) { return 1; }
+      return 0;
+  })
+  
+  function sortByFrequency(array) {
+    var frequency = {};
+    var CategoryReplaced = Category.replace("*","");
+    array.forEach(function(value) { frequency[value[CategoryReplaced]] = 0; });
+
+    var uniques = array.filter(function(value) {
+        return ++frequency[value[CategoryReplaced]] == 1;
+    });
+    var result = uniques.map(function(value) {
+      return frequency[value[CategoryReplaced]];
+    });
+    return result;
+  }
+
+  var lessmore = sortByFrequency(wrapData2);
+  if (lessmore[0] < lessmore[1]){
+    wrapData2.reverse();
+  }
 
       var AllPointsWrapData2 = [];
       for (var i=0; i<points.length; i++){
@@ -2595,12 +2624,12 @@ if (points.length) { // If points exist (at least 1 point)
               if (j == Object.keys(dataFeatures[points[i].id]).length -1){
                 if(format[0] == "diabetes"){
                   if (Object.values(dataFeatures[points[i].id])[j] == 1){
-                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Positive"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j].replace("*","")]:"Positive"}); // Push the values into the pcp
                   } else{
-                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Negative"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j].replace("*","")]:"Negative"}); // Push the values into the pcp
                   }
                 } else{
-                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:(Object.values(dataFeatures[points[i].id])[j])}); // Push the values into the pcp
+                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j].replace("*","")]:(Object.values(dataFeatures[points[i].id])[j])}); // Push the values into the pcp
                 }
               } else{
                 if (indices[m] == j){
@@ -2611,6 +2640,13 @@ if (points.length) { // If points exist (at least 1 point)
           } 
           AllPointsWrapData2.push(data);
       }
+
+      AllPointsWrapData2.sort(function(a, b){
+        if(a[CategoryReplaced] < b[CategoryReplaced]) { return -1; }
+        if(a[CategoryReplaced] > b[CategoryReplaced]) { return 1; }
+        return 0;
+    })
+  
 
       if (all_labels[0] == undefined){
         var colorScaleCat = d3.scaleOrdinal().domain(["No Category"]).range(["#C0C0C0"]);
@@ -2627,21 +2663,32 @@ if (points.length) { // If points exist (at least 1 point)
         }
         var colorScaleCat = d3.scaleOrdinal().domain(all_labels).range(ColorsCategorical);
       }
-
-      parcoords
-      .data(AllPointsWrapData2)
-      .alpha(0.95)
-      .composite("darken")
-      .margin({ top: 20, left: 0, bottom: 10, right: -5 })
-      .mode("default")
-      .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category]);}})
-      .render()
-      .highlight(wrapData2)
-      .createAxes();
-
-    parcoords.svg.selectAll("text")
-      .style("font", "14px");
-    }
+      if (AllPointsWrapData2.length == wrapData2.length){
+        parcoords
+        .data(AllPointsWrapData2)
+        .alpha(0.35)
+        .composite("darken")
+        .margin({ top: 20, left: 0, bottom: 10, right: -5 })
+        .mode("default")
+        .color(function(d){if(format[0] == "diabetes"){if(d[Category.replace("*","")] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category.replace("*","")]);}})
+        .render()
+        .createAxes();
+  
+      parcoords.svg.selectAll("text")
+        .style("font", "14px");
+      } else{
+        parcoords
+        .data(AllPointsWrapData2)
+        .composite("darken")
+        .margin({ top: 20, left: 0, bottom: 10, right: -5 })
+        .mode("default")
+        .color(function(d){if(format[0] == "diabetes"){if(d[Category.replace("*","")] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category.replace("*","")]);}})
+        .render()
+        .highlight(wrapData2)
+        .createAxes();
+      }
+      
+    //}
 
   var ColSizeSelector = document.getElementById("param-neighborHood").value; // This is the mapping of the color/size in beta/KLD
 
@@ -2812,7 +2859,7 @@ if (points.length) { // If points exist (at least 1 point)
     limitdist = parseFloat(limitdist).toFixed(1);
 
     var legendScale2 = d3.scaleLinear()
-    .domain(d3.range(0, abbreviateNumber(parseInt(maxSize2)), calcStepSize2))
+    .domain(d3.range(0, parseInt(maxSize2), calcStepSize2))
     .range([5*limitdist/2,12*limitdist/2]);
 
       
@@ -2820,7 +2867,7 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.append("g")
         .attr("class", "legendSize")
-        .attr("transform", "translate(10,20)");
+        .attr("transform", "translate(10,10)");
 
       var SizeRange2 = [];
       SizeRange2.push(0);
@@ -2926,9 +2973,10 @@ if (points.length) { // If points exist (at least 1 point)
     pointsGeometry.vertices.push(vertex);
     pointsGeometry.name = points[i].id;
     geometry.vertices.push(vertex);
-    if(points[i].pcp == true){
+    /*if(points[i].pcp == true){
       var color = new THREE.Color(colorScl(points[i].id));
-    } else if (points[i].DimON != null) {
+    }*/
+    if (points[i].DimON != null) {
       let temp = points[i].DimON.match(/\d+/)[0];
       var maxDim = (d3.max(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));
       var minDim = (d3.min(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));  
