@@ -2505,68 +2505,6 @@ if (points.length) { // If points exist (at least 1 point)
       emptyPCP();
       var parcoords = d3v3.parcoords()("#PCP");
       // Remove or add that if you want to achieve a different effect when you have less than 10 points.
-      /*
-      if(selectedPoints.length <= 10 && coun > 0){ // If points > 10 then do not draw! If points = 0 then do not draw!
-
-        var wrapData = [];
-        var IDS = [];
-        for (var i=0; i<selectedPoints.length; i++){
-          var data = [];
-          for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id].length; j++){
-              for (m=0; m < len; m++){
-                if (indices[m] == j){
-                  Object.assign(data,{[ArrayContainsDataFeaturesClearedwithoutNullKeys[selectedPoints[i].id][m]]:parseFloat(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id][m]).toFixed(1)}); // Push the values into the pcp
-                }
-              }
-            } 
-            Object.assign(data,{"ID":selectedPoints[i].id});
-            wrapData.push(data);
-            IDS.push(selectedPoints[i].id); // Push all the IDs of the selected points 
-        }
-
-        var AllPointsWrapData = [];
-        for (var i=0; i<points.length; i++){
-          var data = [];
-          for (var j=0; j< ArrayContainsDataFeaturesClearedwithoutNull[points[i].id].length; j++){
-              for (m=0; m < len; m++){
-                if (indices[m] == j){
-                  Object.assign(data,{[ArrayContainsDataFeaturesClearedwithoutNullKeys[points[i].id][m]]:parseFloat(ArrayContainsDataFeaturesClearedwithoutNull[points[i].id][m]).toFixed(1)}); // Push the values into the pcp
-                }
-              }
-            } 
-            Object.assign(data,{"ID":points[i].id});
-            AllPointsWrapData.push(data);
-        }
-
-          ////////////////////////////////////////////////////////////// 
-          //////////////////// Draw the Chart ////////////////////////// 
-          ////////////////////////////////////////////////////////////// 
-          var colors = ['#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colorscale for the pcp
-          var colorScl = d3v3.scale.ordinal()
-            .domain(IDS)
-            .range(colors);
-
-        var color = function(d) {
-            return colorScl(d.ID); 
-        };
-
-          parcoords
-          .data(AllPointsWrapData)
-          .alpha(0.1)
-          .hideAxis(["ID"])
-          .composite("darken")
-          .margin({ top: 20, left: 0, bottom: 10, right: -5 })
-          .mode("default")
-          .color(color)
-          .render()
-          .highlight(wrapData)
-          .createAxes();
-
-        parcoords.svg.selectAll("text")
-          .style("font", "14px");
-          
-    } else {
-*/
       var wrapData2 = [];
       for (var i=0; i<selectedPoints.length; i++){
         var data = [];
@@ -2974,9 +2912,6 @@ if (points.length) { // If points exist (at least 1 point)
     pointsGeometry.vertices.push(vertex);
     pointsGeometry.name = points[i].id;
     geometry.vertices.push(vertex);
-    /*if(points[i].pcp == true){
-      var color = new THREE.Color(colorScl(points[i].id));
-    }*/
     if (points[i].DimON != null) {
       let temp = points[i].DimON.match(/\d+/)[0];
       var maxDim = (d3.max(points,function(d){ if(d.schemaInv == true){return d[temp]}; }));
