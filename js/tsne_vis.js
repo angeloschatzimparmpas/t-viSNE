@@ -2287,8 +2287,8 @@ if (points.length) { // If points exist (at least 1 point)
     var findNearestTable = [];
     var howManyPoints = 0;
     for (let m=0; m<points.length; m++){
-      if (points[m].id == 257){
-      //if (points[m].selected == true){
+      //if (points[m].id == 257){
+      if (points[m].selected == true){
         howManyPoints = howManyPoints + 1;
         selectedPoints.push(points[m]); // Add the selected points in to a new variable
       }
@@ -2305,8 +2305,8 @@ if (points.length) { // If points exist (at least 1 point)
       var vw = viewport[0] * 0.5;
       var vh = viewport[1] * 0.042;
 
-      //var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
-      var maxKNN = 1;
+      var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
+      //var maxKNN = 1;
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
       });
