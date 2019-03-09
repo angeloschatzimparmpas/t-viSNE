@@ -2287,7 +2287,8 @@ if (points.length) { // If points exist (at least 1 point)
     var findNearestTable = [];
     var howManyPoints = 0;
     for (let m=0; m<points.length; m++){
-      if (points[m].selected == true){
+      if (points[m].id == 257){
+      //if (points[m].selected == true){
         howManyPoints = howManyPoints + 1;
         selectedPoints.push(points[m]); // Add the selected points in to a new variable
       }
@@ -2304,8 +2305,8 @@ if (points.length) { // If points exist (at least 1 point)
       var vw = viewport[0] * 0.5;
       var vh = viewport[1] * 0.042;
 
-      var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
-      //var maxKNN = 3;
+      //var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
+      var maxKNN = 1;
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
       });
@@ -2355,6 +2356,7 @@ if (points.length) { // If points exist (at least 1 point)
                   }
                   return 0;
                 });
+
                 indexOrder2d[i] = indices2d[i].map(function(value) { return value[0]; });
               }
               indexOrderSliced[i] = indexOrder[i].slice(0,k);
@@ -2698,6 +2700,8 @@ if (points.length) { // If points exist (at least 1 point)
 
     var max = (d3.max(points,function(d){ return d.beta; }));
     var min = (d3.min(points,function(d){ return d.beta; }));
+
+
     // colors
     var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
     var calcStep = (max)/8;
@@ -2705,13 +2709,25 @@ if (points.length) { // If points exist (at least 1 point)
       .domain(d3.range(0, max+calcStep, calcStep))
       .range(colorbrewer);
 
+
+    var costLimiter = document.getElementById("param-costlim").value;
+
     var maxSize1 = (d3.max(points,function(d){ return d.cost; }));
-    var minSize1 = (d3.min(points,function(d){ return d.cost; }));
+
+    points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
+      return a.cost - b.cost;
+    })
+    var temp = parseInt((1-costLimiter)*points.length);
+    var minSize1 = points[temp].cost;
+    for (var i=temp+1; i<points.length; i++){
+      if (minSize1 > points[i].cost){
+        minSize1 = points[i].cost;
+      }
+    }
 
     var rscale1 = d3.scaleLinear()
     .domain([minSize1, maxSize1])
     .range([5,parseInt(12-(1-document.getElementById("param-costlim").value)*7)]);
-
     var calcStepSize1 = (maxSize1-minSize1);
 
     var limitdist = document.getElementById("param-lim-value").value;
@@ -2784,8 +2800,20 @@ if (points.length) { // If points exist (at least 1 point)
         }
   } else { // If we have cost into color then calculate the color scales
 
+    var costLimiter = document.getElementById("param-costlim").value;
+          
+    points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
+      return a.cost - b.cost;
+    })
+    var temp = parseInt((1-costLimiter)*points.length);
+    var min = points[temp].cost;
+    for (var i=temp+1; i<points.length; i++){
+      if (min > points[i].cost){
+        min = points[i].cost;
+      }
+    }
+
     var max = (d3.max(points,function(d){ return d.cost; }));
-    var min = (d3.min(points,function(d){ return d.cost; }));
 
     var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
     var minSize2 = (d3.min(points,function(d){ return d.beta; }));
@@ -2796,36 +2824,11 @@ if (points.length) { // If points exist (at least 1 point)
       
       d3.selectAll("#legend1 > *").remove();
 
-    if (document.getElementById("param-costlim").value*max < max){
-
-        var ordinal = d3.scaleOrdinal()
-        .domain(["0.00000"])
-        .range(["rgb(217,240,163)"]);
-      
-        var svg = d3.select("#legend1");
-
-      svg.append("g")
-          .attr("class", "legendOrdinal")
-          .attr("transform", "translate(10,15)");
-      
-      var legendOrdinal = d3.legendColor()
-        .title("KLD(P||Q)")
-        .cells(1)
-        .scale(ordinal);
-      
-      svg.select(".legendOrdinal")
-        .call(legendOrdinal);
-    } else{
-
       var colorbrewer = ['#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529'];
-      var calcStep = (max-min)/6;
+      var calcStep = ((max-min)/6);
       var colorScale = d3.scaleLinear()
         .domain(d3.range(min, max+calcStep, calcStep))
         .range(colorbrewer);
-          
-      points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
-        return a.cost - b.cost;
-      })
 
       var labels_cost = [];
       var abbr_labels_cost = [];
@@ -2850,8 +2853,6 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.select(".legendLinear")
         .call(legend);
-
-    }
 
     var calcStepSize2 = parseInt(maxSize2/2);
 
@@ -2995,15 +2996,18 @@ if (points.length) { // If points exist (at least 1 point)
       var color = new THREE.Color(colorScale(points[i].beta));
     }
     else{
-      if (document.getElementById("param-costlim").value*max < max) {
-        var color = new THREE.Color("rgb(217,240,163)");
-      }
-      else {
-        var color = new THREE.Color(colorScale(points[i].cost));
-      }
+        if (points[i].cost < min){
+          var color = new THREE.Color("rgb(240,240,240)");
+        } else{
+          var color = new THREE.Color(colorScale(points[i].cost));
+        }
     }
     if (ColSizeSelector == "color") {
-      let sizePoint = rscale1(points[i].cost);
+      if (points[i].cost < minSize1){
+        var sizePoint = 1;
+      } else{
+        var sizePoint = rscale1(points[i].cost);
+      }
       factorPlusSize = limitdist * sizePoint;
       pointsGeometry.colors.push(color);
       pointsMaterial = new THREE.PointsMaterial({
@@ -3083,32 +3087,24 @@ if (points.length) { // If points exist (at least 1 point)
         break;
      } else {
       var max = (d3.max(points,function(d){ return d.cost; }));
-      var min = (d3.min(points,function(d){ return d.cost; }));
+
+      var costLimiter = document.getElementById("param-costlim").value;
+          
+    points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
+      return a.cost - b.cost;
+    })
+    var temp = parseInt((1-costLimiter)*points.length);
+    var min = points[temp].cost;
+    for (var i=temp+1; i<points.length; i++){
+      if (min > points[i].cost){
+        min = points[i].cost;
+      }
+    }
 
       var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
-      var minSize2 = (d3.min(points,function(d){ return d.beta; }));
         
         d3.selectAll("#legend1 > *").remove();
-  
-      if (document.getElementById("param-costlim").value*max < max){
-  
-          var ordinal = d3.scaleOrdinal()
-          .domain(["0.00000"])
-          .range(["rgb(217,240,163)"]);
-        
-          var svg = d3.select("#legend1");
-        d3.select("#legend1");
-        svg.append("g")
-          .attr("class", "legendOrdinal")
-          .attr("transform", "translate(10,15)");
-        
-        var legendOrdinal = d3.legendColor()
-          .title("KLD(P||Q)")
-          .scale(ordinal);
-        
-        svg.select(".legendOrdinal")
-          .call(legendOrdinal);
-      } else{
+
         var colorbrewer = ["#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
         var calcStep = (max-min)/6;
         var colorScale = d3.scaleLinear()
@@ -3141,7 +3137,6 @@ if (points.length) { // If points exist (at least 1 point)
   
         svg.select(".legendLinear")
           .call(legend);
-      }
     }
   }
 }
@@ -3331,7 +3326,15 @@ view.on("mouseleave", () => {
       tooltip_state[Category] = "Point ID: " + datum.id;
       tooltip_state.color = datum.id;
     } else{
-      tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
+      if (format[0] == "diabetes"){
+        if (datum[Category] == "1"){
+          tooltip_state[Category] = "Positive" + "(Point ID: " + datum.id + ")";
+        } else{
+          tooltip_state[Category] = "Negative" + " (Point ID: " + datum.id + ")";
+        }
+      } else{
+        tooltip_state[Category] = datum[Category] + " (Point ID: " + datum.id + ")";
+      }
       tooltip_state.color = datum[Category];
     }
     tooltip_dimensions = [];
