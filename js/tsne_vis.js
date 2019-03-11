@@ -1029,20 +1029,20 @@ function ShepardHeatMap () {
  
     var title = svg.append("text") // Title = Input Distance
                     .attr("class", "mono")
-                    .attr("x", -(gridSize * 7))
+                    .attr("x", -(gridSize * 8))
                     .attr("y", -26)
                     .style("font-size", "12px")
                     .attr("transform", "rotate(-90)")
                     .attr("class","mono")
-                    .text("Input Distance");
+                    .text("N-Dimensional Distances");
 
 
     var title = svg.append("text") // Title = Output Distance
                     .attr("class", "mono")
-                    .attr("x", gridSize * 3 )
-                    .attr("y", -26)
+                    .attr("x", gridSize * 2 )
+                    .attr("y", -20)
                     .style("font-size", "12px")
-                    .text("Output Distance");
+                    .text("2-Dimensional Distances");
 
     var dim2Labels = svg.selectAll(".dim2Label") // Label
         .data(dim_2)
@@ -1415,14 +1415,14 @@ function emptyPCP(){
 }
 
 function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anything.  
-    emptyPCP();
+   /*emptyPCP();
     KNNEnabled = false;
     for (var i = 0 ; i < points.length ; i ++) {
       points[i].selected = true;
       points[i].pcp = false;
     }
 
-  redraw(points);
+  redraw(points);*/
 }
 
 // Initialize the horizontal (correlations) barchart's variables
