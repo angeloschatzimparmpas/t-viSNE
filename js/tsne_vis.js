@@ -2513,12 +2513,12 @@ if (points.length) { // If points exist (at least 1 point)
               if (j == Object.keys(dataFeatures[selectedPoints[i].id]).length -1){
                 if(format[0] == "diabetes"){
                   if (Object.values(dataFeatures[selectedPoints[i].id])[j] == 1){
-                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j].replace("*","")]:"Positive"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Positive"}); // Push the values into the pcp
                   } else{
-                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j].replace("*","")]:"Negative"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Negative"}); // Push the values into the pcp
                   }
                 } else{
-                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j].replace("*","")]:(Object.values(dataFeatures[selectedPoints[i].id])[j])}); // Push the values into the pcp
+                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:(Object.values(dataFeatures[selectedPoints[i].id])[j])}); // Push the values into the pcp
                 }
               } else{
                 if (indices[m] == j){
@@ -2529,7 +2529,7 @@ if (points.length) { // If points exist (at least 1 point)
           } 
           wrapData2.push(data);
       }
-    var CategoryReplaced = Category.replace("*","");
+    var CategoryReplaced = Category;
 
     wrapData2.sort(function(a, b){
       if(a[CategoryReplaced] < b[CategoryReplaced]) { return -1; }
@@ -2539,7 +2539,7 @@ if (points.length) { // If points exist (at least 1 point)
   
   function sortByFrequency(array) {
     var frequency = {};
-    var CategoryReplaced = Category.replace("*","");
+    var CategoryReplaced = Category;
     array.forEach(function(value) { frequency[value[CategoryReplaced]] = 0; });
 
     var uniques = array.filter(function(value) {
@@ -2564,12 +2564,12 @@ if (points.length) { // If points exist (at least 1 point)
               if (j == Object.keys(dataFeatures[points[i].id]).length -1){
                 if(format[0] == "diabetes"){
                   if (Object.values(dataFeatures[points[i].id])[j] == 1){
-                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j].replace("*","")]:"Positive"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Positive"}); // Push the values into the pcp
                   } else{
-                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j].replace("*","")]:"Negative"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Negative"}); // Push the values into the pcp
                   }
                 } else{
-                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j].replace("*","")]:(Object.values(dataFeatures[points[i].id])[j])}); // Push the values into the pcp
+                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:(Object.values(dataFeatures[points[i].id])[j])}); // Push the values into the pcp
                 }
               } else{
                 if (indices[m] == j){
@@ -2608,9 +2608,10 @@ if (points.length) { // If points exist (at least 1 point)
         .data(AllPointsWrapData2)
         .alpha(0.35)
         .composite("darken")
+        .hideAxis([Category])
         .margin({ top: 20, left: 0, bottom: 10, right: -5 })
         .mode("default")
-        .color(function(d){if(format[0] == "diabetes"){if(d[Category.replace("*","")] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category.replace("*","")]);}})
+        .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category]);}})
         .render()
         .createAxes();
   
@@ -2620,9 +2621,10 @@ if (points.length) { // If points exist (at least 1 point)
         parcoords
         .data(AllPointsWrapData2)
         .composite("darken")
+        .hideAxis([Category])
         .margin({ top: 20, left: 0, bottom: 10, right: -5 })
         .mode("default")
-        .color(function(d){if(format[0] == "diabetes"){if(d[Category.replace("*","")] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category.replace("*","")]);}})
+        .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category]);}})
         .render()
         .highlight(wrapData2)
         .createAxes();
