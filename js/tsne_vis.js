@@ -521,7 +521,7 @@ function init(data, results_all, fields) {
     d3.selectAll("#legend3 > *").remove();
     d3.selectAll("#legend4 > *").remove();
 
-    $("#datasetDetails").html('(Unknown Number of Features and Instances.)');
+    $("#datasetDetails").html('(Unknown Number of Features and Instances)');
     $("#CategoryName").html('No Classification');
     $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
 
@@ -1035,22 +1035,59 @@ function ShepardHeatMap () {
           .attr("transform", "translate(-6," + gridSize / 4 + ")")
           .attr("class","mono");
  
+
+    var tooltip2 = d3.select("body")
+      .append("div")
+      .style("position", "absolute")
+      .style("z-index", "12")	
+      .style("text-align","center")
+      .style("width","300px")
+      .style("height","50px")
+      .style("padding","2px")
+      .style("background","lightsteelblue")
+      .style("border-radius","8px")
+      .style("border","0px")
+      .style("pointer-events","centnoneer")		
+      .style("color","black")
+      .style("visibility", "hidden")
+      .text("Hint: if values are closer to N-Dim. distances, then the visualization is too compressed.");
+
     var title = svg.append("text") // Title = Input Distance
                     .attr("class", "mono")
                     .attr("x", -(gridSize * 8))
                     .attr("y", -26)
                     .style("font-size", "12px")
                     .attr("transform", "rotate(-90)")
-                    .attr("class","mono")
+                    .on("mouseover", function(){return tooltip2.style("visibility", "visible");})
+                    .on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+                    .on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
                     .text("N-Dimensional Distances");
 
+    var tooltip1 = d3.select("body")
+      .append("div")
+      .style("position", "absolute")
+      .style("z-index", "12")	
+      .style("text-align","center")
+      .style("width","300px")
+      .style("height","50px")
+      .style("padding","2px")
+      .style("background","lightsteelblue")
+      .style("border-radius","8px")
+      .style("border","0px")
+      .style("pointer-events","centnoneer")		
+      .style("color","black")
+      .style("visibility", "hidden")
+      .text("Hint: if values are closer to 2-Dim. distances, then the visualization is too spread out.");
 
     var title = svg.append("text") // Title = Output Distance
-                    .attr("class", "mono")
-                    .attr("x", gridSize * 2 )
-                    .attr("y", -20)
-                    .style("font-size", "12px")
-                    .text("2-Dimensional Distances");
+      .attr("class", "mono")
+      .attr("x", gridSize * 2 )
+      .attr("y", -20)
+      .on("mouseover", function(){return tooltip1.style("visibility", "visible");})
+      .on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+      .on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
+      .style("font-size", "12px")
+      .text("2-Dimensional Distances");
 
     var dim2Labels = svg.selectAll(".dim2Label") // Label
         .data(dim_2)
