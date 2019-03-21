@@ -363,10 +363,15 @@ function deleteAnnotations(){
   d3.selectAll("#SvgAnnotator > *").remove(); 
 }
 
+function BringBackAnnotations(){
+  d3.select("#SvgAnnotator").style("z-index", 3);
+}
+
 function setAnnotator(){ // Set a new annotation on top of the main visualization.
 
   vw2 = dimensions;
   vh2 = dimensions;
+
   var textarea = document.getElementById("comment").value;
 
   d3.select("#SvgAnnotator").style("z-index", 3);
@@ -403,6 +408,8 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
   gAnnotationsAll.push(gAnnotations);
   AnnotationsAll.push(annotations);
   draggable.push(true);
+  document.getElementById("comment").value = '';
+    $('#comment').removeAttr('placeholder');
 }
 
   // Hide or show the controls
@@ -480,6 +487,7 @@ function MainVisual(){
 // fields variable is all the features (columns) plus beta and cost strings.  
 function init(data, results_all, fields) { 
 
+    $('#comment').attr('placeholder', "Please, provide your comment.");
     ArrayWithCosts = [];
     Iterations = [];
     VisiblePoints = [];
@@ -791,7 +799,7 @@ function OverallCostLineChart(){
   
   var layout = {
     showlegend: false,
-    width: 285,
+    width: 215,
     height: 80,
     xaxis:{title: 'Iterations',
     titlefont: {
@@ -1000,7 +1008,7 @@ function ShepardHeatMap () {
     // Color scale for minimum and maximum values for the shepard heatmap.
     var maxNum = Math.round(d3.max(data,function(d){ return d.value; }));
     var minNum = Math.round(d3.min(data,function(d){ return d.value; }));
-    var colors = ['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#525252','#252525','#000000'];
+    var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
     let calcStep = (maxNum-minNum)/colors.length;
     var colorScale = d3.scaleLinear()
         .domain(d3.range(0, maxNum+calcStep,calcStep))
@@ -1283,7 +1291,7 @@ function CostHistogram(points){
       name: '1/sigma',
       autobinx: false, 
       marker: {
-        color: "rgb(128,0,0)",
+        color: "rgb(0,128,0)",
         line: {
           color:  "rgb(0, 0, 0)", 
           width: 1
@@ -1309,7 +1317,7 @@ function CostHistogram(points){
       autobinx: false, 
       histnorm: "count", 
       marker: {
-        color: "rgb(0,128,0)", 
+        color: "rgb(128,0,0)", 
          line: {
           color:  "rgb(0, 0, 0)", 
           width: 1
@@ -1435,10 +1443,10 @@ var zoomer = d3v3.behavior.zoom()
 // Margin of the main barchart
 var main_margin = {top: 8, right: 10, bottom: 30, left: 100},
   main_width = 500 - main_margin.left - main_margin.right,
-  main_height = 320 - main_margin.top - main_margin.bottom;
+  main_height = 350 - main_margin.top - main_margin.bottom;
 // Margin of the mini barchart
 var mini_margin = {top: 8, right: 10, bottom: 30, left: 10},
-  mini_height = 320 - mini_margin.top - mini_margin.bottom;
+  mini_height = 350 - mini_margin.top - mini_margin.bottom;
   mini_width = 100 - mini_margin.left - mini_margin.right;
 
 // Create the svg correlation component
@@ -2489,8 +2497,14 @@ if (points.length) { // If points exist (at least 1 point)
             }
           }
         }
-        var vectors = PCA.getEigenVectors(ArrayContainsDataFeaturesClearedwithoutNull); // Run a local PCA!
-        var PCAResults = PCA.computeAdjustedData(ArrayContainsDataFeaturesClearedwithoutNull,vectors[0]); // Get the results for individual dimension.
+
+        var FeaturesSelectedPoints = []; 
+        for (var i=0; i< selectedPoints.length; i++){
+          FeaturesSelectedPoints.push(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id]);
+        }
+
+        var vectors = PCA.getEigenVectors(FeaturesSelectedPoints); // Run a local PCA!
+        var PCAResults = PCA.computeAdjustedData(FeaturesSelectedPoints,vectors[0]); // Get the results for individual dimension.
         var PCASelVec = [];
         PCASelVec = PCAResults.selectedVectors[0];
 
@@ -2609,7 +2623,7 @@ if (points.length) { // If points exist (at least 1 point)
         .alpha(0.35)
         .composite("darken")
         .hideAxis([Category])
-        .margin({ top: 20, left: 0, bottom: 10, right: -5 })
+        .margin({ top: 20, left: 0, bottom: 10, right: -8 })
         .mode("default")
         .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category]);}})
         .render()
@@ -2622,7 +2636,7 @@ if (points.length) { // If points exist (at least 1 point)
         .data(AllPointsWrapData2)
         .composite("darken")
         .hideAxis([Category])
-        .margin({ top: 20, left: 0, bottom: 10, right: -5 })
+        .margin({ top: 20, left: 0, bottom: 10, right: -8 })
         .mode("default")
         .color(function(d){if(format[0] == "diabetes"){if(d[Category] == "Negative"){return colorScaleCat("Positive");}else{return colorScaleCat("Negative");}} else{return colorScaleCat(d[Category]);}})
         .render()
@@ -2641,14 +2655,7 @@ if (points.length) { // If points exist (at least 1 point)
     var max = (d3.max(points,function(d){ return d.beta; }));
     var min = (d3.min(points,function(d){ return d.beta; }));
 
-
-    // colors
-    var colorbrewer = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"];
     var calcStep = (max)/8;
-    var colorScale = d3.scaleLinear()
-      .domain(d3.range(0, max+calcStep, calcStep))
-      .range(colorbrewer);
-
 
     var costLimiter = document.getElementById("param-costlim").value;
 
@@ -2677,9 +2684,10 @@ if (points.length) { // If points exist (at least 1 point)
     .domain(d3.range(minSize1, maxSize1+calcStepSize1, calcStepSize1))
     .range([5*limitdist/2,(parseInt(12-(1-document.getElementById("param-costlim").value)*7))*limitdist/2]);
 
-    var colorScale = d3.scaleLinear()
-      .domain(d3.range(0, max+calcStep, calcStep))
-      .range(colorbrewer);
+    var colorScale = d3.scaleSequential()
+     .domain([0, max+calcStep])
+     .interpolator(d => d3.interpolateViridis(1-d));
+      
     points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
       return a.beta - b.beta;
     })
@@ -2735,7 +2743,7 @@ if (points.length) { // If points exist (at least 1 point)
         var circles = document.getElementsByClassName("swatch");
         for (var i=0; i<circles.length; i++){
           if(circles[i].localName == "circle"){
-            circles[i].style.fill = "rgb(0,128,0)";
+            circles[i].style.fill = "rgb(128,0,0)";
           }
         }
   } else { // If we have cost into color then calculate the color scales
@@ -2754,6 +2762,7 @@ if (points.length) { // If points exist (at least 1 point)
     }
 
     var max = (d3.max(points,function(d){ return d.cost; }));
+    var min = (d3.min(points,function(d){ return d.cost; }));
 
     var maxSize2 = (d3.max(points,function(d){ return d.beta; }));
     var minSize2 = (d3.min(points,function(d){ return d.beta; }));
@@ -2764,16 +2773,16 @@ if (points.length) { // If points exist (at least 1 point)
       
       d3.selectAll("#legend1 > *").remove();
 
-      var colorbrewer = ['#d9f0a3','#addd8e','#78c679','#41ab5d','#238443','#006837','#004529'];
-      var calcStep = ((max-min)/6);
-      var colorScale = d3.scaleLinear()
-        .domain(d3.range(min, max+calcStep, calcStep))
-        .range(colorbrewer);
+      var calcStep = ((max-min)/8);
+
+      var colorScale = d3.scaleSequential()
+     .domain([min, max])
+     .interpolator(d => d3.interpolateMagma(1-d));
 
       var labels_cost = [];
       var abbr_labels_cost = [];
       labels_cost = d3.range(min, max+calcStep, calcStep);
-      for (var i=0; i<7; i++){
+      for (var i=0; i<9; i++){
         labels_cost[i] = labels_cost[i].toFixed(5);
         abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
       }
@@ -2786,8 +2795,8 @@ if (points.length) { // If points exist (at least 1 point)
 
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.5f"))
-        .cells(7)
-        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6]])
+        .cells(9)
+        .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
         .title("KLD(P||Q)")
         .scale(colorScale);
 
@@ -2833,7 +2842,7 @@ if (points.length) { // If points exist (at least 1 point)
         var circles = document.getElementsByClassName("swatch");
         for (var i=0; i<circles.length; i++){
           if(circles[i].localName == "circle"){
-            circles[i].style.fill = "rgb(128,0,0)";
+            circles[i].style.fill = "rgb(0,128,0)";
           }
         }
 
@@ -3024,7 +3033,6 @@ if (points.length) { // If points exist (at least 1 point)
         break;
      } else {
       var max = (d3.max(points,function(d){ return d.cost; }));
-
       var costLimiter = document.getElementById("param-costlim").value;
           
     points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
@@ -3042,12 +3050,12 @@ if (points.length) { // If points exist (at least 1 point)
         
         d3.selectAll("#legend1 > *").remove();
 
-        var colorbrewer = ["#d9f0a3","#addd8e","#78c679","#41ab5d","#238443","#006837","#004529"];
         var calcStep = (max-min)/6;
-        var colorScale = d3.scaleLinear()
-          .domain(d3.range(min, max+calcStep, calcStep))
-          .range(colorbrewer);
-            
+
+                var colorScale = d3.scaleSequential()
+              .domain([min, max])
+              .interpolator(d => d3.interpolateMagma(1-d));
+                      
         points = points.sort(function(a, b) { // Sort them according to importance (darker color!)
           return a.cost - b.cost;
         })

@@ -11,6 +11,11 @@ html, body {
   margin-top: 8px;
 }
 
+.btn{
+  font-size: 15px !important;
+}
+
+
 #param-correlation {
   flex: 1;
   display: flex;
@@ -103,8 +108,7 @@ cursor: default;
 }
 
 .right-side-cor {
-  margin-left:12px;
-  margin-top: -60px;
+  margin-top: -125px;
 }
 
 .right-side-hist {
@@ -112,12 +116,8 @@ cursor: default;
   margin-top: 1px;
 }
 
-.right-side-star {
-  margin-left:12px;
-  margin-top: -50px;
-}
-
-#left-side-param{
+.right-side-PCP {
+  margin-top: -57px;
 }
 
 #left-side-visual{
@@ -131,7 +131,7 @@ cursor: default;
     height: 50vw !important;
     border: 1px solid black;
     position: absolute;
-    margin-left: -7.5px;
+    margin-left: -15px;
     z-index: 2;
 }
 
@@ -171,7 +171,8 @@ cursor: default;
 
 .med-bottom {
   margin-top: 6.7vw;
-  width: 50vw !important;
+  margin-left: -16px;
+  width: 50.1vw !important;
   height: 5.4vw !important;
 }
 
@@ -180,7 +181,6 @@ cursor: default;
   width: 50vw ;
   height: 50vw ;
   opacity: 1.0;
-  margin-left: 7.5px;
   position:absolute; 
   z-index: 2;
 }
@@ -190,7 +190,7 @@ cursor: default;
   height: 50vw;
   opacity: 1.0;
   position:absolute; 
-  margin-left: -7.5px;
+  margin-left: -15px;
   z-index: 2;
 }
 
@@ -208,23 +208,18 @@ circle.swatch{
   }
 
   /* Legend of the Overview t-SNE canvas */
-.PoinRadius {
-  margin-top: 30px;
- }
-
-  /* Legend of the Overview t-SNE canvas */
  #legend1 {
-  height: 11vw;
+  height: 7vw;
   width: 5vw;
-  margin-left:-10px;
+  margin-top: -5px;
   text-align: left;
  }
 /* Legend of the Overview t-SNE canvas */
 #legend4 {
 height: 7vw;
 width: 5vw;
-margin-top:-80px;
-margin-left:-10px;
+margin-left: -20px;
+margin-top: -10px;
 text-align: left;
 }
 
@@ -255,7 +250,7 @@ svg#legend3 {
 
 #PlotCost {
   height: 3vw;
-  width: 11vw;
+  width: 8.1vw;
   margin-left: -5px;
   text-align: left;
   z-index: 1;
@@ -263,19 +258,13 @@ svg#legend3 {
 
 #hider2 {
   height: 3vw;
-  width: 11vw;
+  width: 8.4vw;
   margin-left: -5px;
   text-align: left;
   background-color: white;
   position: absolute !important;
   z-index: 2;
 }
-
-/* ShepardHeatmap Styling for the different rectangles used there */
-rect {
-        stroke: #E6E6E6;
-        stroke-width: 1.5px;
-      }
 
 .axis text {
   font-size: 9pt;
@@ -408,12 +397,8 @@ rect {
 /* Styling of the main SVG behind canvas */
 #SvgAnnotator {
   position: absolute;
-  margin-left:-7.5px; 
+  margin-left:-15px; 
   z-index: 1;
-}
-
-#toggleAnnotator {
-  color: darkgray;
 }
 
 #selectionLabel{
@@ -437,7 +422,7 @@ rect {
 /* Margins for the extra-information panel and the kNNInfo */
 #extra-information {
   margin-top: -5px;
-  margin-left: 5px;
+  margin-left: -12px;
 }
 
 #kNNInfo {
@@ -456,6 +441,8 @@ rect {
 /* Draw a red colored button for reset */
 #FactRes{
   color: red;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
 #isItLoaded {

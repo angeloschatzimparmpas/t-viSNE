@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="./css/bootstrap.min.css"/>
     <link rel="stylesheet" href="./css/d3.parcoords.css">
     <link rel="stylesheet" href="./css/reset.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css" integrity="sha384-Mmxa0mLqhmOeaE8vgOSbKacftZcsNYDjQzuCOm6D02luYSzBG8vpaOykv9lFQ51Y" crossorigin="anonymous">
     
     <!-- Bootstrap -->
     <script src="./modules/bootstrap/bootstrap.min.js"></script>
@@ -42,210 +43,259 @@
   <body>
     <div class="container-fluid">
         <div class="row">
-          <div class="col-md-3">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                  <h2 class="panel-title" style="display:inline-block">t-SNE Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
-              </div>
-              <div class="row">
-                <div class="panel-body">
-                    <div class="col-md-6">
-                        <div id="overviewRect"></div>
+            <div class="col-md-3">
+                <div class="panel panel-default" id="left-side-param">
+                    <div class="panel-heading">
+                      <h2 class="panel-title" style="display:inline-block">t-SNE Parameters</h2><div id="cost" style="display:inline-block; float:right"></div>
                     </div>
-                    <div class="col-md-6">
-                        <div style="display:block" id="CategoryName"></div>
-                        <div class="legend" id = "legend2"></div>
+                  <div class="panel-body">
+                    <div id="control-panel" data-sr="enter left over 8s">
+                      <div class="param">
+                          <label id="data" for="param-dataset">Data sets</label>
+                          <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
+                            <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
+                            <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
+                            <option value="iris.csv">Iris</option>
+                            <option value="winequality-red.csv">Red Wine - Quality</option>
+                            <option value="empty">Upload New File</option>
+                          </select>
+                          <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
+                      </div>
+                          <div class="param">
+                        <label for="param-perplexity">Perplexity</label>
+                        <input id="param-perplexity" type="range" min="5" max="100" value="30", step="1">
+                        <output for="param-perplexity" id="param-perplexity-value">30</output>
+                          </div>
+                          <div class="param">
+                        <label for="param-learningrate">Learning rate</label>
+                        <input id="param-learningrate" type="range" min="1" max="150" value="10", step="1">
+                        <output for="param-learningrate" id="param-learningrate-value">10</output>
+                          </div>
+
+
+                          
+                          <div class="param">
+                              <div class="row">
+                              <div class="col-md-3">
+                              <label for="param-maxiter" style="padding: 25px 0 0 8px">Max iterations</label>
+                              </div>
+                              <div class="col-md-4" style="padding: 25px 0 0 0px">
+                              <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10" >
+                            </div>
+                            <div class="col-md-1">
+                              <output for="param-maxiter" id="param-maxiter-value" style="padding: 25px 0 0 0" >500</output>
+                              </div>
+
+                          <div class="col-md-4">
+                              <div id="hider2"></div>
+                              <div id="PlotCost"></div>
+                            </div>
+
+                          </div>
+                          </div>
+                          <div class="param">
+                        <label for="param-distance">Distance metric</label>
+                        <select id="param-distance" name="param-distance">
+                            <option value="euclideanDist" selected>Euclidean distance</option>
+                            <option value="jaccardDist">Jaccard dissimilarity</option>
+                        </select>
+                        <input id="file-input" type="file" name="name" style="display: none;" />
+                        <button type="button" class="button" onclick='loadAnalysis();' style="padding:0 12px 0 12px">Load execut.</button>
+                          </div>
+                          <div class="param">
+                        <label for="param-transform">Data transform</label>
+                        <select id="param-transform" name="param-transform">
+                            <option value="noTrans" selected>No transform</option>
+                            <option value="logTrans">Log10</option>
+                            <option value="asinhTrans">Asinh</option>
+                            <option value="binTrans">Binarize</option>
+                        </select>
+                        <button type="button" class="button" onclick="SaveAnalysis()" style="padding:0 10px 0 10px">Store execut.</button>
+                          </div>
+                        <div class="row">
+                          <div class="col-md-8">
+                              <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis" style="margin-top: 4px"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></div></p>
+                          </div>
+                          <div class="col-md-4" style="margin-top: 10px">
+                            <label>
+                                <input id="downloadDists" checked type="checkbox">
+                                Distances cached on "Store execution"
+                            </label>
+                          </div>
+                        </div>
                     </div>
+                  </div>
                 </div>
               </div>
-              <div id="control-panel" class="PoinRadius">
-                <div class="param">
-                  <label for="param-lim" >Points radius scaling factor</label>
-                  <input id="param-lim" type="range" min="1" max="3" value="3", step="0.5" onchange="setReInitialize(true);">
-                  <output for="param-lim" id="param-lim-value" >3</output>
-                </div>
-              </div>
-            </div>
-          </div>
           <div class="col-md-6">
             <svg id="SvgAnnotator"></svg>
             <svg id="modtSNEcanvas_svg"></svg>
             <svg id="modtSNEcanvas_svg_Schema"></svg>
             <div id="modtSNEDiv">
             <canvas id = "modtSNEcanvas" ></canvas>
-            </div>
           </div>
-          <div class="col-md-1" style="width: 3.499999995%">
-            <svg id="legend1"></svg>
-            <svg id="legend4"></svg>
           </div>
-          <div class="col-md-2" style="width: 21.499999995%">
+          <div class="col-md-2" style="width: 24.999999995%">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h2 class="panel-title">Select Different Modes</h2>
+                    <h2 class="panel-title">Interaction/Mode Selection</h2>
                 </div>
                 <div class="panel-body">
-                  <div id="resetAllFilters" style="margin-bottom: 40px">
-                      <button class="btn btn-info btn-block active" onclick="setLayerProj();">t-SNE points exploration</button>
-                      <button class="btn btn-info btn-block" onclick="setLayerComp();">Points selection and data features comparison</button>
-                      <button class="btn btn-info btn-block" onclick="setLayerSche();">Schema investigation</button>
+                  <div id="resetAllFilters" style="margin-bottom: 20px">
+                      <button class="btn btn-info active" onclick="setLayerProj();"><i class="fas fa-mouse-pointer fa-lg" style="margin-right: 10px"></i>Points interaction</button>
+                      <button class="btn btn-info" onclick="setLayerComp();"><i class="far fa-object-group fa-lg" style="margin-right: 10px" ></i>Points lasso selection</button>
+                      <button class="btn btn-info" onclick="setLayerSche();"><i class="fas fa-draw-polygon fa-lg" style="margin-right: 10px"></i>Feature correlation</button>
                   </div>
-                      <button class="btn btn-info btn-block" onclick="setReset();">Reset all filters</button>
-                  <label style="margin-top: 15px">
-                      <input id="controls" type="checkbox">
-                      Hide annotations' controllers
-                  </label>
-                  <label style="margin-top: 15px">
-                      <input id="downloadDists" checked type="checkbox">
-                      Distances cache (Save Exec.)
-                  </label>
+                      <button class="btn btn-info" onclick="setReset();" style="margin-left: 200px"><i class="fas fa-trash-alt fa-lg" style="margin-right: 10px"></i>Reset interactions</button>
                 </div>
             </div>
           </div>
         </div>
         <div class="row">
-          <div class="col-md-3">
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h2 class="panel-title">Shepard Heatmap</h2>
-              </div>
-            <div class="panel-body">
-              <div class="row">
-                <div class="col-md-6">
-                  <svg id="sheparheat"></svg>
-                </div>
-                <div class="col-md-2">
-                  <svg id="legend3"></svg>
-                  <div id="hider2"></div>
-                  <div id="PlotCost"></div>
-                </div>
-              </div>
-            </div>
-            </div>
-          </div>
-          <div class="col-md-3 col-md-offset-6">
-            <div class="panel panel-default right-side-cor">
-                <div class="panel-heading">
-                    <h2 class="panel-title" style="display:inline-block">Correl. Schema Investigation</h2><div class="param" style="display:inline-block; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min.  Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
-                    <input id="param-corlim" type="range" min="0" max="1" value="0.0", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
+            <div class="col-md-3"  style="margin-top:-4px">
+                <div class="panel panel-default" style="padding-bottom: 35px;">
+                  <div class="panel-heading">
+                      <h2 class="panel-title" style="display:inline-block">t-SNE Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
+                  </div>
+                  <div class="row">
+                    <div class="panel-body">
+                        <div class="col-md-6">
+                            <div id="overviewRect"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div style="display:block" id="CategoryName"></div>
+                            <div class="legend" id = "legend2"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="panel-body">  
-                  <svg id="correlation"></svg>
-                </div>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-md-3">
-            <div class="panel panel-default" id="left-side-param">
-                <div class="panel-heading">
-                  <h2 class="panel-title" style="display:inline-block">t-SNE Parameters</h2><div id="cost" style="display:inline-block; float:right"></div>
-                </div>
-              <div class="panel-body">
-                <div id="control-panel" data-sr="enter left over 8s">
-                  <div class="param">
-                      <label id="data" for="param-dataset">Data sets</label>
-                      <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
-                        <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
-                        <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
-                        <option value="iris.csv">Iris</option>
-                        <option value="winequality-red.csv">Red Wine - Quality</option>
-                        <option value="empty">Upload New File</option>
-                      </select>
-                      <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory Reset</button>
                   </div>
-                      <div class="param">
-                    <label for="param-perplexity">Perplexity</label>
-                    <input id="param-perplexity" type="range" min="5" max="100" value="30", step="1">
-                    <output for="param-perplexity" id="param-perplexity-value">30</output>
-                      </div>
-                      <div class="param">
-                    <label for="param-learningrate">Learning rate</label>
-                    <input id="param-learningrate" type="range" min="1" max="150" value="10", step="1">
-                    <output for="param-learningrate" id="param-learningrate-value">10</output>
-                      </div>
-                      <div class="param">
-                    <label for="param-maxiter">Max iterations</label>
-                    <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10">
-                    <output for="param-maxiter" id="param-maxiter-value">500</output>
-                      </div>
-                      <div class="param">
-                    <label for="param-distance">Distance metric</label>
-                    <select id="param-distance" name="param-distance">
-                        <option value="euclideanDist" selected>Euclidean distance</option>
-                        <option value="jaccardDist">Jaccard dissimilarity</option>
-                    </select>
-                    <input id="file-input" type="file" name="name" style="display: none;" />
-                    <button type="button" class="button" onclick='loadAnalysis();'>Load Execut.</button>
-                      </div>
-                      <div class="param">
-                    <label for="param-transform">Data transform</label>
-                    <select id="param-transform" name="param-transform">
-                        <option value="noTrans" selected>No transform</option>
-                        <option value="logTrans">Log10</option>
-                        <option value="asinhTrans">Asinh</option>
-                        <option value="binTrans">Binarize</option>
-                    </select>
-                    <button type="button" class="button" onclick="SaveAnalysis()">Save Execut.</button>
-                      </div>
-                      <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis">Execute new t-SNE analysis</button></div></p>
                 </div>
               </div>
-            </div>
-          </div>
+              <div class="col-md-3 col-md-offset-6">
+                <div class="panel panel-default"  style="margin-top: -195px">
+                    <div class="panel-heading">
+                        <h2 class="panel-title">Visual Mapping</h2>
+                    </div>
+                    <div class="row">
+                      <div class="panel-body">
+                        <div class="col-md-12">
+                          <div class="row">
+                            <div class="col-md-8">
+                            <div class="param" style="padding: 5px 0 5px 0">
+                              <label for="male" ></label>Density (1/sigma)</label>
+                              <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);" style="display:inline-block;margin-left: 60px">
+                                <option selected="selected" value="color" >Color-encoding</option>
+                                <option value="size">Size-encoding</option>
+                              </select> 
+                            </div>
+                            <div class="param" style="padding: 10px 0 10px 0" >
+                              <output for="param-neighborHood" id="param-neighborHood-value " ></output>
+                              <label for="male">Final remaining cost (KLD)</label>
+                              <label id="selectionLabel" style="margin-top:4px; margin-left: 10px">Size-encoding</label>
+                            </div>
+                           <div class="param">
+                              <div class="row" style="margin-top: 30px">
+                                  <div class="col-md-6">
+                              <label for="param-corr">Correlation threshold</label>
+                              </div>
+                              <div class="col-md-5">
+                              <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel(true);" style="margin-left: -20px;">
+                            </div>
+                            <div class="col-md-1">
+                              <output for="param-corr" id="param-corr-value" style="margin-left: -20px;">150</output>
+                            </div>
+                            </div>
+                            </div>
+                              <div class="param">
+                                <div class="row" style="margin-top: 30px">
+                                  <div class="col-md-6">
+                                  <label for="param-lim" >Points radius scaling</label>
+                                </div>
+                                <div class="col-md-5">
+                                  <input id="param-lim" type="range" min="1" max="3" value="3", step="0.5" onchange="setReInitialize(true);" style="margin-left: -20px;">
+                                </div>
+                                <div class="col-md-1">
+                                  <output for="param-lim" id="param-lim-value" style="margin-left: -20px;">3</output>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+                          <div class="col-md-2">
+                            <svg id="legend1"></svg>
+                          </div>
+                          <div class="col-md-2">
+                            <svg id="legend4"></svg>
+                          </div>
+                          </div>
+                          <div class="annotationAllClass" style="margin-top: 30px">
+                            <label style="padding-bottom: 0px">
+                                <input id="controls" type="checkbox" style="margin-top: 18px">
+                                Hide annotations' controllers</input>
+                              <button class="btn btn-default" onclick="BringBackAnnotations();" style="display:inline-block; float:right; margin-left:178px"><i class="fas fa-eye fa-lg" style="margin-right: 10px"></i>Reveal annotations</button>
+                            </label>
+                            <div id="param-correlation">
+                              Annotation: <textarea type="text" id="comment" name="textforAnnotator" placeholder="Please, provide your comment."></textarea>
+                            </div>
+                            <div id="commBtn">
+                              <div class="param" style="margin-top:10px">
+                                <div id="toggleAnnotator" style= "margin-left: -120px"><button class="btn btn-default" onclick="setAnnotator();" style="display:inline-block; float:left; margin-left: 120px" ><i class="fas fa-comment fa-lg" style="margin-right: 10px"></i>Add annotation</button></div>
+                                <div id="continue"></div><button class="btn btn-default active" onclick="setContinue();" style="display:inline-block; float:middle; margin-left: 6px"><i class="fas fa-chart-line fa-lg" style="margin-right: 10px"></i>Continue the analysis</button></div>
+                                <button class="btn btn-default" onclick="deleteAnnotations();" style="display:inline-block; float:right; margin-top: -45px" ><i class="fas fa-comment-slash fa-lg" style="margin-right: 10px"></i>Delete annotations</button>
+                              </div>
+                            </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+        <div class="row">   
+            <div class="col-md-3"  style="margin-top:-4px">
+                <div class="panel panel-default" style="padding-bottom : 60px">
+                  <div class="panel-heading">
+                    <h2 class="panel-title">Shepard Heatmap</h2>
+                  </div>
+                <div class="panel-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <svg id="sheparheat"></svg>
+                    </div>
+                    <div class="col-md-2">
+                      <svg id="legend3"></svg>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+
       <div class="col-md-3 col-md-offset-6">
-        <div class="panel panel-default right-side-star">
-          <div class="panel-heading">
-              <h2 class="panel-title">Parallel Coordinates Plot (with Local PCA Calculation)</h2>
+          <div class="panel panel-default right-side-cor">
+              <div class="panel-heading">
+                  <h2 class="panel-title" style="display:inline-block">Feature Correlation</h2><div class="param" style="display:inline-block; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min.  Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
+                  <input id="param-corlim" type="range" min="0" max="1" value="0.0", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
+                  </div>
+              </div>
+              <div class="panel-body">  
+                <svg id="correlation"></svg>
+              </div>
           </div>
-          <div class="panel-body">
-            <div id="PCP" class="parcoords"></div>
         </div>
-       </div>
-      </div>
+        </div>
       <div class="row">
         <div class="col-md-3">
-            <div class="panel panel-default" id="left-side-visual">
+
+        <div class="col-md-3" id="extra-information" style="width: 24.8vw">
+            <div class="panel panel-default right-side-hist">
                 <div class="panel-heading">
-                    <h2 class="panel-title">Visual Mapping Parameters</h2>
-                </div>
-                <div class="row">
-                  <div class="panel-body">
-                    <div class="col-md-12">
-                      <div id="ThumbNailsList">
-                        <div class="param" >
-                        <label for="male">Density (1/sigma)</label>
-                        <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);" style="display:inline-block">
-                          <option selected="selected" value="color">Color-encoding</option>
-                          <option value="size">Size-encoding</option>
-                        </select>
-                          <button class="button" onclick="deleteAnnotations();" style="display:inline-block; float:right">Delete Annotations</button>
-                        </div>
-                        <output for="param-neighborHood" id="param-neighborHood-value"></output>
-                        <label for="male">Final Cost (Kullback-Leibler Divergence)</label>
-                        <label id="selectionLabel" style="margin-top:4px">Size-encoding</label>
-                        <div id="param-correlation">
-                          <div class="param">
-                            <label for="param-corr">Correlation threshold</label>
-                            <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel(true);">
-                            <output for="param-corr" id="param-corr-value">150</output>
-                          </div>
-                          Annotation: <textarea type="text" id="comment" name="textforAnnotator" style="margin-top:4px" placeholder="Please, provide your comment."></textarea>
-                        </div>
-                        <div id="commBtn">
-                          <div class="param" style="margin-top:4px">
-                            <div id="toggleAnnotator"><button class="btn btn-default btn-block" onclick="setAnnotator();">Addition of a new comment</button></div>
-                          </div>
-                          <div class="param" style="margin-top:4px">
-                            <div id="continue"><button class="btn btn-default btn-block active" onclick="setContinue();">Continuation of the analysis</button></div>
-                          </div>
-                        </div>
+                    <h2 class="panel-title" style="display:inline-block;">1/sigma and KLD Distributions</h2><div class="param" style="display:inline-block; float:right"><label for="param-costlim" style="display:inline-block; float: right">Cost Acceptance Range: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
+                      <input id="param-costlim" type="range" min="0.1" max="1" value="1", step="0.1" style="display:inline-block; float:right" onchange="setReInitialize(false);">
                       </div>
-                    </div>
                   </div>
+                <div class="panel-body">  
+                  <div id="costHist"></div>
                 </div>
-              </div>
+            </div>
+          </div>
+          
         </div>
         <div class = col-md-6>
           <div class="panel panel-default med-bottom">
@@ -258,17 +308,16 @@
             </div>
           </div>
         </div>
-        <div class="col-md-3" id="extra-information" style="width: 24.6vw">
-            <div class="panel panel-default right-side-hist">
-                <div class="panel-heading">
-                    <h2 class="panel-title" style="display:inline-block;">1/sigma and KLD Distributions</h2><div class="param" style="display:inline-block; float:right"><label for="param-costlim" style="display:inline-block; float: right">Cost Acceptance Range: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
-                      <input id="param-costlim" type="range" min="0.1" max="1" value="1", step="0.1" style="display:inline-block; float:right" onchange="setReInitialize(false);">
-                      </div>
-                  </div>
-                <div class="panel-body">  
-                  <div id="costHist"></div>
-                </div>
+
+        <div class="col-md-3">
+            <div class="panel panel-default right-side-PCP">
+              <div class="panel-heading">
+                  <h2 class="panel-title">Parallel Coordinates Plot (with Local PCA Calculation)</h2>
+              </div>
+              <div class="panel-body">
+                <div id="PCP" class="parcoords"></div>
             </div>
+           </div>
           </div>
       </div>
     </div>
@@ -297,7 +346,7 @@
       for (var i = 0; i < btns.length; i++) {
         btns[i].addEventListener("click", function() {
         let current = document.getElementById("commBtn").getElementsByClassName("active");
-        current[0].className = current[0].className.replace("btn btn-default btn-block active", "btn btn-default btn-block");
+        current[0].className = current[0].className.replace("btn btn-default active", "btn btn-default");
         this.className += " active";
         });
       }
@@ -311,7 +360,7 @@
       for (var i = 0; i < btns2.length; i++) {
         btns2[i].addEventListener("click", function() {
         let current = document.getElementsByClassName("active");
-        current[0].className = current[0].className.replace("btn btn-info btn-block active", "btn btn-info btn-block");
+        current[0].className = current[0].className.replace("btn btn-info active", "btn btn-info");
         this.className += " active";
         });
       }
