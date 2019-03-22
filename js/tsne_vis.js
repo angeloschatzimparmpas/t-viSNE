@@ -521,7 +521,7 @@ function init(data, results_all, fields) {
     d3.selectAll("#legend3 > *").remove();
     d3.selectAll("#legend4 > *").remove();
 
-    $("#datasetDetails").html('(Unknown Number of Features and Instances)');
+    $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
     $("#CategoryName").html('No Classification');
     $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
 
@@ -3281,7 +3281,7 @@ view.on("mouseleave", () => {
     $point_tip.innerText = tooltip_state[Category];
     $point_tip.style.background = colorScaleCat(tooltip_state.color);
     var tooltipComb = [];
-    tooltipComb = "Data set's features: " + "\n";
+    tooltipComb = "Data set's dimensions: " + "\n";
     if (tooltip_dimensions){
       for (var i=0; i<tooltip_dimensions[0].length; i++){
         if (tooltip_dimensions[0][i][0] == Category){

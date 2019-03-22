@@ -142,9 +142,9 @@
                 </div>
                 <div class="panel-body">
                   <div id="resetAllFilters" style="margin-bottom: 20px">
-                      <button class="btn btn-info active" onclick="setLayerProj();"><i class="fas fa-mouse-pointer fa-lg" style="margin-right: 10px"></i>Points interaction</button>
-                      <button class="btn btn-info" onclick="setLayerComp();"><i class="far fa-object-group fa-lg" style="margin-right: 10px" ></i>Points lasso selection</button>
-                      <button class="btn btn-info" onclick="setLayerSche();"><i class="fas fa-draw-polygon fa-lg" style="margin-right: 10px"></i>Feature correlation</button>
+                      <button class="btn btn-info active" onclick="setLayerProj();" ><i class="fas fa-mouse-pointer fa-lg" style="margin-right: 2px"></i>Points interaction</button>
+                      <button class="btn btn-info" onclick="setLayerComp();" ><i class="far fa-object-group fa-lg" style="margin-right: 2px" ></i>Points lasso selection</button>
+                      <button class="btn btn-info" onclick="setLayerSche();" ><i class="fas fa-draw-polygon fa-lg" style="margin-right: 2px"></i>Dimension correlation</button>
                   </div>
                       <button class="btn btn-info" onclick="setReset();" style="margin-left: 200px"><i class="fas fa-trash-alt fa-lg" style="margin-right: 10px"></i>Reset interactions</button>
                 </div>
@@ -270,7 +270,7 @@
       <div class="col-md-3 col-md-offset-6">
           <div class="panel panel-default right-side-cor">
               <div class="panel-heading">
-                  <h2 class="panel-title" style="display:inline-block">Feature Correlation</h2><div class="param" style="display:inline-block; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min.  Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
+                  <h2 class="panel-title" style="display:inline-block">Dimension Correlation</h2><div class="param" style="display:inline-block; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min.  Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
                   <input id="param-corlim" type="range" min="0" max="1" value="0.0", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
                   </div>
               </div>
@@ -312,7 +312,7 @@
         <div class="col-md-3">
             <div class="panel panel-default right-side-PCP">
               <div class="panel-heading">
-                  <h2 class="panel-title">Parallel Coordinates Plot (with Local PCA Calculation)</h2>
+                  <h2 class="panel-title">Adaptive Parallel Coordinates Plot</h2>
               </div>
               <div class="panel-body">
                 <div id="PCP" class="parcoords"></div>
@@ -325,7 +325,7 @@
     <script>
 
       $("#cost").html('(Unknown Iteration and Cost Values)');
-      $("#datasetDetails").html('(Unknown Number of Features and Instances)');
+      $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
       $("#CategoryName").html('No Classification');
       $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
