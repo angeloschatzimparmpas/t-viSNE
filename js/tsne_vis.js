@@ -1186,7 +1186,7 @@ function OverviewtSNE(points){ // The overview t-SNE function
       }
     }
   }
-  $("#datasetDetails").html("(Number of Features: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
+  $("#datasetDetails").html("(Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
   if (Category == undefined){
     $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
   } else {
