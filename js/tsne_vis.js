@@ -2501,7 +2501,7 @@ if (points.length) { // If points exist (at least 1 point)
             coun = coun + 1;
           } 
         }
-
+        
 
         var FeatureWise = [];
         for (var j=0; j<Object.values(dataFeatures[0]).length; j++){ // Get the features of the data set.
@@ -2740,7 +2740,7 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.append("g")
         .attr("class", "legendLinear")
-        .attr("transform", "translate(10,15)");
+        .attr("transform", "translate(10,20)");
 
       var legend = d3.legendColor()
         .labelFormat(d3.format(",.0f"))
@@ -2854,7 +2854,7 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.append("g")
         .attr("class", "legendSize")
-        .attr("transform", "translate(10,10)");
+        .attr("transform", "translate(15,20)");
 
       var SizeRange2 = [];
       SizeRange2.push(0);
