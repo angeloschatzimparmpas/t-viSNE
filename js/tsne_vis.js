@@ -1325,7 +1325,7 @@ function CostHistogram(points){
   }
     var trace1 = {
       x: frequency2,
-      name: '1/sigma',
+      name: 'Density',
       autobinx: false, 
       marker: {
         color: "rgb(0,128,0)",
@@ -1350,7 +1350,7 @@ function CostHistogram(points){
     }
     var trace2 = {
       x: frequency,
-      name: 'KLD(P||Q)',
+      name: 'Remaining Cost',
       autobinx: false, 
       histnorm: "count", 
       marker: {
@@ -1383,7 +1383,7 @@ function CostHistogram(points){
       t: 10,
       pad: 4
     },
-    xaxis:{range: [0,1.01],title: 'Normalized Bins from Min to Max Values.',
+    xaxis:{range: [0,1.01],title: 'Normalized bins from min to max values.',
               titlefont: {
                 size: 14,
                 color: 'black'
@@ -1744,7 +1744,7 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
           if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
           } else{
             SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
-              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+              correlationResults.push([Object.keys(dataFeatures[0])[temp], Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
               //correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
           }
         }
@@ -1802,7 +1802,6 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
     }
   }
 }
-
     drawBarChart(); // Draw the horizontal barchart with the correlations.
     
     }
@@ -2448,7 +2447,7 @@ if (points.length) { // If points exist (at least 1 point)
         var trace1 = {
           x: kValuesLegend, 
           y: StoreInitialFindNearestTable, 
-          name: 'Entire Projection', 
+          name: 'Projection average', 
           type: 'bar',
           marker: {
             color: 'rgb(0,0,0)'
@@ -2457,7 +2456,7 @@ if (points.length) { // If points exist (at least 1 point)
         var trace2 = {
           x: kValuesLegend, 
           y: findNearestTable, 
-          name: 'Lasso Selected Cluster', 
+          name: 'Selected points', 
           type: 'bar',
           marker: {
             color: 'rgb(0, 187, 187)'
@@ -2477,13 +2476,13 @@ if (points.length) { // If points exist (at least 1 point)
             pad: 4
           },
           xaxis: {range: [0, LimitXaxis],
-            title: 'K Values for K-NN',
+            title: 'Number of neighbors',
             titlefont: {
               size: 12,
               color: 'black'
             }},
           yaxis: {
-            title: 'Cl. Purity',
+            title: 'n, %',
             titlefont: {
               size: 12,
               color: 'black'
@@ -2746,7 +2745,7 @@ if (points.length) { // If points exist (at least 1 point)
         .labelFormat(d3.format(",.0f"))
         .cells(9)
         .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-        .title("1/sigma")
+        .title("Density")
         .scale(colorScale);
         
       svg.select(".legendLinear")
@@ -2759,19 +2758,18 @@ if (points.length) { // If points exist (at least 1 point)
         .attr("transform", "translate(10,20)");
 
       var SizeRange1 = [];
-      SizeRange1.push((minSize1).toFixed(3));
-      SizeRange1.push(((maxSize1-minSize1)/2).toFixed(3));
-      SizeRange1.push((maxSize1).toFixed(3));
+      SizeRange1.push((minSize1).toFixed(4));
+      SizeRange1.push(((maxSize1-minSize1)/2).toFixed(4));
+      SizeRange1.push((maxSize1).toFixed(4));
 
       var legendSize1 = d3.legendSize()
         .scale(legendScale1)
-        .labelFormat(d3.format(",.5f"))
         .cells(3)
         .shape('circle')
         .labels([SizeRange1[0],SizeRange1[1],SizeRange1[2]])
         .shapePadding(10)
         .labelOffset(5)
-        .title("KLD(P||Q)")
+        .title("Remaining Cost")
         .orient('vertical');
         
       svg.select(".legendSize")
@@ -2834,7 +2832,7 @@ if (points.length) { // If points exist (at least 1 point)
         .labelFormat(d3.format(",.5f"))
         .cells(9)
         .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6],abbr_labels_cost[7],abbr_labels_cost[8]])
-        .title("KLD(P||Q)")
+        .title("Remaining Cost")
         .scale(colorScale);
 
       svg.select(".legendLinear")
@@ -2854,7 +2852,7 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.append("g")
         .attr("class", "legendSize")
-        .attr("transform", "translate(15,20)");
+        .attr("transform", "translate(45,20)");
 
       var SizeRange2 = [];
       SizeRange2.push(0);
@@ -2870,7 +2868,7 @@ if (points.length) { // If points exist (at least 1 point)
         .labels([SizeRange2[0],SizeRange2[1],SizeRange2[2]])
         .shapePadding(10)
         .labelOffset(5)
-        .title("1/sigma")
+        .title("Density")
         .orient('vertical');
         
       svg.select(".legendSize")
@@ -2977,6 +2975,7 @@ if (points.length) { // If points exist (at least 1 point)
       var color = new THREE.Color("rgb(145, 145, 145)");
     } else if (ColSizeSelector == "color") {
       var color = new THREE.Color(colorScale(points[i].beta));
+      //var color = new THREE.Color("rgb(125, 125, 125)");
     }
     else{
         if (points[i].cost < min){
@@ -3062,7 +3061,7 @@ if (points.length) { // If points exist (at least 1 point)
           .labelFormat(d3.format(",.0f"))
           .cells(9)
           .labels([abbr_labels_beta[0],abbr_labels_beta[1],abbr_labels_beta[2],abbr_labels_beta[3],abbr_labels_beta[4],abbr_labels_beta[5],abbr_labels_beta[6],abbr_labels_beta[7],abbr_labels_beta[8]])
-          .title("1/sigma")
+          .title("Density")
           .scale(colorScale);
     
         svg.select(".legendLinear")
@@ -3114,7 +3113,7 @@ if (points.length) { // If points exist (at least 1 point)
           .labelFormat(d3.format(",.5f"))
           .cells(7)
           .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6]])
-          .title("KLD(P||Q)")
+          .title("Remaining Cost")
           .scale(colorScale);
   
         svg.select(".legendLinear")

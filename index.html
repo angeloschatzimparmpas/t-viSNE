@@ -181,7 +181,7 @@
                           <div class="row">
                             <div class="col-md-8">
                             <div class="param" style="padding: 5px 0 5px 0">
-                              <label for="male" ></label>Density (1/sigma)</label>
+                              <label for="male"></label>Density</label>
                               <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);" style="display:inline-block;margin-left: 60px">
                                 <option selected="selected" value="color" >Color-encoding</option>
                                 <option value="size">Size-encoding</option>
@@ -189,8 +189,8 @@
                             </div>
                             <div class="param" style="padding: 10px 0 10px 0" >
                               <output for="param-neighborHood" id="param-neighborHood-value " ></output>
-                              <label for="male">Final remaining cost (KLD)</label>
-                              <label id="selectionLabel" style="margin-top:4px; margin-left: 10px">Size-encoding</label>
+                              <label for="male">Remaining cost</label>
+                              <label id="selectionLabel" style="margin-top:4px; margin-left: 15px">Size-encoding</label>
                             </div>
                            <div class="param">
                               <div class="row" style="margin-top: 30px">
@@ -211,7 +211,7 @@
                                   <label for="param-lim" >Points radius scaling</label>
                                 </div>
                                 <div class="col-md-5">
-                                  <input id="param-lim" type="range" min="1" max="3" value="3", step="0.5" onchange="setReInitialize(true);" style="margin-left: -20px;">
+                                  <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize(false);" style="margin-left: -20px;">
                                 </div>
                                 <div class="col-md-1">
                                   <output for="param-lim" id="param-lim-value" style="margin-left: -20px;">3</output>
@@ -220,10 +220,10 @@
                               </div>
                           </div>
                           <div class="col-md-2">
-                            <svg id="legend1"></svg>
+                            <svg id="legend1" style =  "margin-left: -25px"></svg>
                           </div>
                           <div class="col-md-2">
-                            <svg id="legend4"></svg>
+                            <svg id="legend4" style =  "margin-left: -45px"></svg>
                           </div>
                           </div>
                           <div class="annotationAllClass" style="margin-top: 30px">
@@ -270,7 +270,7 @@
       <div class="col-md-3 col-md-offset-6">
           <div class="panel panel-default right-side-cor">
               <div class="panel-heading">
-                  <h2 class="panel-title" style="display:inline-block">Dimension Correlation</h2><div class="param" style="display:inline-block; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min.  Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
+                  <h2 class="panel-title" style="display:inline-block">Dimension Correlation</h2><div class="param" style="display:inline-block; margin-top:-5px; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min. Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
                   <input id="param-corlim" type="range" min="0" max="1" value="0.0", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
                   </div>
               </div>
@@ -286,9 +286,14 @@
         <div class="col-md-3" id="extra-information" style="width: 24.8vw">
             <div class="panel panel-default right-side-hist">
                 <div class="panel-heading">
-                    <h2 class="panel-title" style="display:inline-block;">1/sigma and KLD Distributions</h2><div class="param" style="display:inline-block; float:right"><label for="param-costlim" style="display:inline-block; float: right">Cost Acceptance Range: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
+                      <h2 class="panel-title" style="display:inline-block;">Density and Remaining Cost Distributions</h2>
+                    <div class="col-md-7"></div>
+                    <div class="col-md-5">
+                      <div class="param" style="display:inline-block; float:right; margin-top:-21.5px; margin-right: -18px">
+                      <label for="param-costlim" style="display:inline-block; float: right">Min. Visible Cost Rate: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
                       <input id="param-costlim" type="range" min="0.1" max="1" value="1", step="0.1" style="display:inline-block; float:right" onchange="setReInitialize(false);">
-                      </div>
+                    </div>
+                  </div>
                   </div>
                 <div class="panel-body">  
                   <div id="costHist"></div>
