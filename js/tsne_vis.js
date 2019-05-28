@@ -1744,8 +1744,8 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
           if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
           } else{
             SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
-              correlationResults.push([Object.keys(dataFeatures[0])[temp], Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
-              //correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
+              //correlationResults.push([Object.keys(dataFeatures[0])[temp], Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
           }
         }
       }
@@ -2482,7 +2482,7 @@ if (points.length) { // If points exist (at least 1 point)
               color: 'black'
             }},
           yaxis: {
-            title: 'n, %',
+            title: 'Pres., %',
             titlefont: {
               size: 12,
               color: 'black'
