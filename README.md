@@ -7,6 +7,10 @@ Instructions:
 The visualization has been tested by using Google Chrome and works well for 2560x1440 (2K) resolution and 27'' monitors. 
 If you want to try the tool in different browsers and resolutions try to zoom out or zoom in until you reach the aforementioned resolution. 
 
+Usage:
+-
+Execute a localhost server with python, nodejs, etc... For example: python -m SimpleHTTPServer 8000 and then use the following url to http://localhost:8000 (in this exampe the port is set to 8000) from your browser.
+
 Online link for the journal paper publication:
 -
 
