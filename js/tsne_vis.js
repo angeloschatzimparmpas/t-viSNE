@@ -2539,6 +2539,8 @@ if (points.length) { // If points exist (at least 1 point)
           FeaturesSelectedPoints.push(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id]);
         }
 
+        console.log(FeaturesSelectedPoints);
+
         var vectors = PCA.getEigenVectors(FeaturesSelectedPoints); // Run a local PCA!
         var PCAResults = PCA.computeAdjustedData(FeaturesSelectedPoints,vectors[0]); // Get the results for individual dimension.
         var PCASelVec = [];
