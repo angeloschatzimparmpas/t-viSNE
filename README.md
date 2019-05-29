@@ -14,7 +14,7 @@ Cite as:
 -
 Additional Comments:
 -
-Feel free to download the project or even fork it and apply any changes. Thank you. 
+Please, feel free to download the project or even fork it and apply any changes. Thank you!
 
 References:
 -
