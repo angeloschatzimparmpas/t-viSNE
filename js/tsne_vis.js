@@ -2539,18 +2539,23 @@ if (points.length) { // If points exist (at least 1 point)
           FeaturesSelectedPoints.push(ArrayContainsDataFeaturesClearedwithoutNull[selectedPoints[i].id]);
         }
 
-        console.log(FeaturesSelectedPoints);
-
         var vectors = PCA.getEigenVectors(FeaturesSelectedPoints); // Run a local PCA!
-        var PCAResults = PCA.computeAdjustedData(FeaturesSelectedPoints,vectors[0]); // Get the results for individual dimension.
-        var PCASelVec = [];
-        PCASelVec = PCAResults.selectedVectors[0];
+        var PCAResults = PCA.computeAdjustedData(FeaturesSelectedPoints,vectors[0]); // Get the results with the first most variation.
 
-        var len = PCASelVec.length;
+        var PCASelVec = []; var PCASelVecAbs = [];
+        PCASelVec = PCAResults.selectedVectors[0];
+        PCASelVec.forEach(element => {
+          element = Math.abs(element);
+          PCASelVecAbs.push(element);
+        });
+
+        var len = PCASelVecAbs.length;
         var indices = new Array(len);
+
         for (var i = 0; i < len; ++i) indices[i] = i;
-        indices = indices.sort(function (a, b) { return PCASelVec[a] < PCASelVec[b] ? -1 : PCASelVec[a] > PCASelVec[b] ? 1 : 0; }); // Get the most important features first! Clockwise ordering 
-        if (len > 8){
+        indices = indices.sort(function (a, b) { return PCASelVecAbs[a] > PCASelVecAbs[b] ? -1 : PCASelVecAbs[a] < PCASelVecAbs[b] ? 1 : 0; }); // Get the most important features first! 
+
+        if (len > 8){ // Get only the 8 best dimensions.
           indices = indices.slice(0,8);
         }
 
@@ -2560,21 +2565,21 @@ if (points.length) { // If points exist (at least 1 point)
       var wrapData2 = [];
       for (var i=0; i<selectedPoints.length; i++){
         var data = [];
-        for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
-            for (m=0; m < len; m++){
-              if (j == Object.keys(dataFeatures[selectedPoints[i].id]).length -1){
+        for (var m=0; m <= len; m++){
+          for (var j=0; j< Object.keys(dataFeatures[selectedPoints[i].id]).length; j++){
+              if (m == len){
                 if(format[0] == "diabetes"){
-                  if (Object.values(dataFeatures[selectedPoints[i].id])[j] == 1){
-                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Positive"}); // Push the values into the pcp
+                  if (Object.values(dataFeatures[selectedPoints[i].id])[m] == 1){
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[m]]:"Positive"}); // Push the values into the pcp
                   } else{
-                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:"Negative"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[m]]:"Negative"}); // Push the values into the pcp
                   }
                 } else{
                   Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[j]]:(Object.values(dataFeatures[selectedPoints[i].id])[j])}); // Push the values into the pcp
                 }
               } else{
                 if (indices[m] == j){
-                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[m]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[m]).toFixed(1)}); // Push the values into the pcp
+                  Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[indices[m]]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[indices[m]]).toFixed(1)}); // Push the values into the pcp
                 }
               }
             }
@@ -2582,7 +2587,6 @@ if (points.length) { // If points exist (at least 1 point)
           wrapData2.push(data);
       }
     var CategoryReplaced = Category;
-
     wrapData2.sort(function(a, b){
       if(a[CategoryReplaced] < b[CategoryReplaced]) { return -1; }
       if(a[CategoryReplaced] > b[CategoryReplaced]) { return 1; }
@@ -2611,21 +2615,21 @@ if (points.length) { // If points exist (at least 1 point)
       var AllPointsWrapData2 = [];
       for (var i=0; i<points.length; i++){
         var data = [];
-        for (var j=0; j< Object.keys(dataFeatures[points[i].id]).length; j++){
-            for (m=0; m < len; m++){
-              if (j == Object.keys(dataFeatures[points[i].id]).length -1){
+        for (var m=0; m <= len; m++){
+         for (var j=0; j< Object.keys(dataFeatures[points[i].id]).length; j++){
+              if (m == len){
                 if(format[0] == "diabetes"){
-                  if (Object.values(dataFeatures[points[i].id])[j] == 1){
-                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Positive"}); // Push the values into the pcp
+                  if (Object.values(dataFeatures[points[i].id])[m] == 1){
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[m]]:"Positive"}); // Push the values into the pcp
                   } else{
-                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:"Negative"}); // Push the values into the pcp
+                    Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[m]]:"Negative"}); // Push the values into the pcp
                   }
                 } else{
                   Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[j]]:(Object.values(dataFeatures[points[i].id])[j])}); // Push the values into the pcp
                 }
               } else{
                 if (indices[m] == j){
-                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[m]]:parseFloat(Object.values(dataFeatures[points[i].id])[m]).toFixed(1)}); // Push the values into the pcp
+                  Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[indices[m]]]:parseFloat(Object.values(dataFeatures[points[i].id])[indices[m]]).toFixed(1)}); // Push the values into the pcp
                 }
               }
             }
