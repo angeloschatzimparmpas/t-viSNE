@@ -29,7 +29,8 @@ var ArrayWithCosts = []; var Iterations = [];
 var VisiblePoints = [];
 
 // This variable is for the kNN Bar Chart in order to store the first execution.
-var inside = 0;  
+var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
+var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
 
 var format; 
 
@@ -1553,6 +1554,13 @@ function click(){ // This is the click of the Schema Investigation scenario
 
 }
 
+function sortByKey(array, key) {
+  return array.sort(function(a, b) {
+      var x = a[key]; var y = b[key];
+      return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+  });
+}
+
 function CalculateCorrel(flagForSchema){ // Calculate the correlation is a function which has all the computations for the schema ordering (investigation).
  
   if (flagForSchema == false){
@@ -1611,14 +1619,16 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
         }
       }
     }
-    
+    var compareThreshold = ((correlLimit/100)*arraysCleared.length)
+    compareThreshold = Math.ceil(compareThreshold);
+
+    arraysCleared = sortByKey(arraysCleared, 5);
     ArrayLimit = [];
     for (var i=0; i<arraysCleared.length; i++) {
-      if (arraysCleared[i][5] < correlLimit) { // Now we add a limit to the distance that we search according to the thresholder which the user changes through a slider.
+      if (i <= compareThreshold) { // Now we add a limit to the distance that we search according to the thresholder which the user changes through a slider.
         ArrayLimit.push(arraysCleared[i]);
       }
     }
-
     var temparray = [];
     var count = new Array(paths.nodes().length).fill(0);
 
@@ -1793,15 +1803,20 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
 
   for (var j = 0; j < correlationResultsFinal.length; j++) {
     for (var i = 0; i < SignStore.length; i++) {
-      if (SignStore[i][1]*(-1) == correlationResults[j][1]) {
-        correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
-      }
-      if (SignStore[i][1] == correlationResults[j][1]) {
-        correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
+      if (SignStore[i][0] == correlationResults[j][2]){
+        if (SignStore[i][1] < 0)
+        {
+          correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+        }
+        else 
+        {
+          correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
+        }
       }
     }
   }
 }
+//console.log(correlationResultsFinal);
     drawBarChart(); // Draw the horizontal barchart with the correlations.
     
     }
@@ -2328,8 +2343,7 @@ inside = inside + 1;
 if (points.length) { // If points exist (at least 1 point)
 
     selectedPoints = [];
-    var findNearestTable = [];
-    var howManyPoints = 0;
+    howManyPoints = 0;
     for (let m=0; m<points.length; m++){
       //if (points[m].id == 257){
       if (points[m].selected == true){
@@ -2345,16 +2359,11 @@ if (points.length) { // If points exist (at least 1 point)
 
       var findNearest;
 
-      var viewport = getViewport(); // Get the main viewport width height
-      var vw = viewport[0] * 0.5;
-      var vh = viewport[1] * 0.042;
-
-      var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
       //var maxKNN = 1;
       selectedPoints.sort(function(a, b) { // Sort the points according to ID.
         return parseFloat(a.id) - parseFloat(b.id);
       });
-    
+      findNearestTable = [];
       for (k=maxKNN; k>0; k--){ // Start from the maximum k value and go to the minimum (k=2).
 
         var findNearest = [];
@@ -2430,67 +2439,22 @@ if (points.length) { // If points exist (at least 1 point)
       }
          
       findNearestTable.reverse();
-
+      
       d3.select("#hider").style("z-index", 1);
       d3.select("#knnBarChart").style("z-index", 2);
 
       var data = [];
       var layout = [];
-      var kValuesLegend = [];
+      kValuesLegend = [];
       for (var i=1; i<=maxKNN; i++){
         kValuesLegend.push(i);
       }
       if (inside == 1){
         StoreInitialFindNearestTable = findNearestTable;
-      }
-
-        var trace1 = {
-          x: kValuesLegend, 
-          y: StoreInitialFindNearestTable, 
-          name: 'Projection average', 
-          type: 'bar',
-          marker: {
-            color: 'rgb(0,0,0)'
-          }
-        };
-        var trace2 = {
-          x: kValuesLegend, 
-          y: findNearestTable, 
-          name: 'Selected points', 
-          type: 'bar',
-          marker: {
-            color: 'rgb(0, 187, 187)'
-          }
-        };
-        var LimitXaxis = Number(maxKNN) + 1;
-        data = [trace1, trace2];
-        layout = {
-          barmode: 'group',autosize: false,
-          width: dimensions*0.97,
-          height: vh * 1.38,
-          margin: {
-            l: 50,
-            r: 30,
-            b: 30,
-            t: 5,
-            pad: 4
-          },
-          xaxis: {range: [0, LimitXaxis],
-            title: 'Number of neighbors',
-            titlefont: {
-              size: 12,
-              color: 'black'
-            }},
-          yaxis: {
-            title: 'Pres., %',
-            titlefont: {
-              size: 12,
-              color: 'black'
-            }}};
-        $("#knnBarChartDetails").html("(Number of Selected Points: "+howManyPoints+"/"+dataFeatures.length+")");
-        Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
-
+      }  
               
+      LineBar();
+
         // Here we have the code for the pcp
         d3.select("#PCP").selectAll('g').remove(); // Remove the pcp if there was one before
 
@@ -3300,7 +3264,7 @@ view.on("mouseleave", () => {
       tooltipComb = "-";
     }
     $group_tip.innerText = tooltipComb;
-  }
+  }    
 
   function showTooltip(mouse_position, datum) {
     let tooltip_width = 240;
@@ -3341,6 +3305,117 @@ view.on("mouseleave", () => {
   
 }
 
+function LineBar() {
+  // Get the checkbox
+  var NBViewOptions = document.getElementById("param-NB-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+  NBViewOptions = parseInt(NBViewOptions);
+  console.log(NBViewOptions);
+  // Get the output text
+
+  var viewport = getViewport(); // Get the main viewport width height
+  var vh = viewport[1] * 0.042;
+
+  if (NBViewOptions == 1){
+    var type = 'bar';
+  } else if (NBViewOptions == 2){
+    var type = 'line';
+  } else {
+    var type = 'difference';
+  }
+  var difference = [];
+  for (var i=0; i<StoreInitialFindNearestTable.length; i++){
+    difference.push(findNearestTable[i] - StoreInitialFindNearestTable[i]);
+  }
+
+  if (type == 'difference'){
+    var trace = {
+      x: kValuesLegend, 
+      y: difference, 
+      name: 'Average difference', 
+      showlegend:  true,
+      type: 'line',
+      marker: {
+        color: 'rgb(128,128,0)'
+      }
+    };
+    var LimitXaxis = Number(maxKNN) + 1;
+    data = [trace];
+    layout = {
+      barmode: 'group',autosize: false,
+      width: dimensions*0.97,
+      height: vh * 1.38,
+      margin: {
+        l: 50,
+        r: 30,
+        b: 30,
+        t: 5,
+        pad: 4
+      },
+      xaxis: {range: [0, LimitXaxis],
+        title: 'Number of neighbors',
+        titlefont: {
+          size: 12,
+          color: 'black'
+        }},
+      yaxis: {
+        title: '+/- Pres.',
+        titlefont: {
+          size: 12,
+          color: 'black'
+        }}};
+
+  Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
+  } else{
+    var trace1 = {
+      x: kValuesLegend, 
+      y: StoreInitialFindNearestTable, 
+      name: 'Projection average', 
+      type: type,
+      marker: {
+        color: 'rgb(0,0,0)'
+      }
+    };
+    var trace2 = {
+      x: kValuesLegend, 
+      y: findNearestTable, 
+      name: 'Selected points', 
+      type: type,
+      marker: {
+        color: 'rgb(0, 187, 187)'
+      }
+    };
+    var LimitXaxis = Number(maxKNN) + 1;
+    data = [trace1, trace2];
+    layout = {
+      barmode: 'group',autosize: false,
+      width: dimensions*0.97,
+      height: vh * 1.38,
+      margin: {
+        l: 50,
+        r: 30,
+        b: 30,
+        t: 5,
+        pad: 4
+      },
+      xaxis: {range: [0, LimitXaxis],
+        title: 'Number of neighbors',
+        titlefont: {
+          size: 12,
+          color: 'black'
+        }},
+      yaxis: {
+        title: 'Pres., %',
+        titlefont: {
+          size: 12,
+          color: 'black'
+        }}};
+
+  Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
+  }
+  $("#knnBarChartDetails").html("(Number of Selected Points: "+howManyPoints+"/"+dataFeatures.length+")");
+  // If the checkbox is checked, display the output text
+}
+ 
   function getViewport() { // Return the width and height of the main visualization
 
     var viewPortWidth;

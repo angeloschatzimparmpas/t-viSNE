@@ -36,7 +36,10 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css" integrity="sha384-Mmxa0mLqhmOeaE8vgOSbKacftZcsNYDjQzuCOm6D02luYSzBG8vpaOykv9lFQ51Y" crossorigin="anonymous">
     
     <!-- Bootstrap -->
+
+    <script src="./modules/popper/popper.min.js"></script>
     <script src="./modules/bootstrap/bootstrap.min.js"></script>
+
   
   </head>
 
@@ -46,12 +49,12 @@
             <div class="col-md-3">
                 <div class="panel panel-default" id="left-side-param">
                     <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block">t-SNE Parameters</h2><div id="cost" style="display:inline-block; float:right"></div>
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: control t-SNE algorithm and its parameters.">t-SNE Parameters</h2><div id="cost" style="display:inline-block; float:right"></div>
                     </div>
                   <div class="panel-body">
                     <div id="control-panel" data-sr="enter left over 8s">
                       <div class="param">
-                          <label id="data" for="param-dataset">Data sets</label>
+                          <label id="data" for="param-dataset" data-toggle="tooltip" data-placement="right" title="Tip: use one of the data sets already provided or upload a new file.">Data sets</label>
                           <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
                             <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
                             <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
@@ -59,15 +62,15 @@
                             <option value="winequality-red.csv">Red Wine - Quality</option>
                             <option value="empty">Upload New File</option>
                           </select>
-                          <button type="button" class="button" id="FactRes" onclick="FactoryReset()">Factory reset</button>
+                          <button type="button" class="button" id="FactRes" onclick="FactoryReset()" data-toggle="tooltip" data-placement="right" title="Tip: Restart the entire web page/application.">Factory reset</button>
                       </div>
                           <div class="param">
-                        <label for="param-perplexity">Perplexity</label>
-                        <input id="param-perplexity" type="range" min="5" max="100" value="30", step="1">
+                        <label for="param-perplexity" data-toggle="tooltip" data-placement="right" title="Tip: perplexity is a measure for information that is defined as 2 to the power of the Shannon entropy. The perplexity of a fair die with k sides is equal to k. In t-SNE, the perplexity may be viewed as a knob that sets the number of effective nearest neighbors. (Source: https://lvdmaaten.github.io/tsne/)">Perplexity</label>
+                        <input id="param-perplexity" type="range" min="5" max="100" value="30", step="1" >
                         <output for="param-perplexity" id="param-perplexity-value">30</output>
                           </div>
                           <div class="param">
-                        <label for="param-learningrate">Learning rate</label>
+                        <label for="param-learningrate" data-toggle="tooltip" data-placement="right" title="Tip: if the learning rate is too high, the data may look like a ‘ball’ with any point approximately equidistant from its nearest neighbours. If the learning rate is too low, most points may look compressed in a dense cloud with few outliers. If the cost function gets stuck in a bad local minimum increasing the learning rate may help. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html)">Learning rate</label>
                         <input id="param-learningrate" type="range" min="1" max="150" value="10", step="1">
                         <output for="param-learningrate" id="param-learningrate-value">10</output>
                           </div>
@@ -77,7 +80,7 @@
                           <div class="param">
                               <div class="row">
                               <div class="col-md-3">
-                              <label for="param-maxiter" style="padding: 25px 0 0 8px">Max iterations</label>
+                              <label for="param-maxiter" style="padding: 25px 0 0 8px" data-toggle="tooltip" data-placement="right" title="Tip: maximum number of iterations for the optimization. Should usually be around 250. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html)">Max iterations</label>
                               </div>
                               <div class="col-md-4" style="padding: 25px 0 0 0px">
                               <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10" >
@@ -94,31 +97,31 @@
                           </div>
                           </div>
                           <div class="param">
-                        <label for="param-distance">Distance metric</label>
+                        <label for="param-distance" data-toggle="tooltip" data-placement="right" title="Tip: distance different measurements. Usually Euclidean distance is used.">Distance metric</label>
                         <select id="param-distance" name="param-distance">
                             <option value="euclideanDist" selected>Euclidean distance</option>
                             <option value="jaccardDist">Jaccard dissimilarity</option>
                         </select>
                         <input id="file-input" type="file" name="name" style="display: none;" />
-                        <button type="button" class="button" onclick='loadAnalysis();' style="padding:0 12px 0 12px">Load execut.</button>
+                        <button type="button" class="button" onclick='loadAnalysis();' style="padding:0 12px 0 12px" data-toggle="tooltip" data-placement="right" title="Tip: load previously executed file in .txt format.">Load execut.</button>
                           </div>
                           <div class="param">
-                        <label for="param-transform">Data transform</label>
+                        <label for="param-transform" data-toggle="tooltip" data-placement="right" title="Tip: distance transformation measurements. Usually either no transformation or Log10/Asinh (logarithmic/hyperbolic) distance are used.">Data transform</label>
                         <select id="param-transform" name="param-transform">
                             <option value="noTrans" selected>No transform</option>
                             <option value="logTrans">Log10</option>
                             <option value="asinhTrans">Asinh</option>
                             <option value="binTrans">Binarize</option>
                         </select>
-                        <button type="button" class="button" onclick="SaveAnalysis()" style="padding:0 10px 0 10px">Store execut.</button>
+                        <button type="button" class="button" onclick="SaveAnalysis()" style="padding:0 10px 0 10px" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed file in .txt format.">Store execut.</button>
                           </div>
                         <div class="row">
                           <div class="col-md-8">
                               <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis" style="margin-top: 4px"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></div></p>
                           </div>
                           <div class="col-md-4" style="margin-top: 10px">
-                            <label>
-                                <input id="downloadDists" checked type="checkbox">
+                            <label data-toggle="tooltip" data-placement="right" title="Tip: if you store distances the file size will be larger but on a loading of this execution it will be processed much quicker than without this option enabled.">
+                                <input id="downloadDists" checked type="checkbox" >
                                 Distances cached on "Store execution"
                             </label>
                           </div>
@@ -155,7 +158,7 @@
             <div class="col-md-3"  style="margin-top:-4px">
                 <div class="panel panel-default" style="padding-bottom: 35px;">
                   <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block">t-SNE Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: t-SNE overview with or without labels depending on each data set. To determine the feature of a data set that corresponds to classes set a * mark after this feature.">t-SNE Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
                   </div>
                   <div class="row">
                     <div class="panel-body">
@@ -195,20 +198,20 @@
                            <div class="param">
                               <div class="row" style="margin-top: 30px">
                                   <div class="col-md-6">
-                              <label for="param-corr">Correlation threshold</label>
-                              </div>
+                                <label for="param-corr" data-toggle="tooltip" data-placement="right" title="Tip: percentage of all points taken into account by Dimension Correlation.">Correlation threshold (%)</label>
+                                  </div>
                               <div class="col-md-5">
-                              <input id="param-corr" type="range" min="0" max="750" value="150", step="25" onchange="CalculateCorrel(true);" style="margin-left: -20px;">
+                              <input id="param-corr" type="range" min="0" max="100" value="25", step="1" onchange="CalculateCorrel(true);" style="margin-left: -20px;">
                             </div>
                             <div class="col-md-1">
-                              <output for="param-corr" id="param-corr-value" style="margin-left: -20px;">150</output>
+                              <output for="param-corr" id="param-corr-value" style="margin-left: -20px;">25</output>
                             </div>
                             </div>
                             </div>
                               <div class="param">
                                 <div class="row" style="margin-top: 30px">
                                   <div class="col-md-6">
-                                  <label for="param-lim" >Points radius scaling</label>
+                                  <label for="param-lim" data-toggle="tooltip" data-placement="right" title="Tip: x*times the actual radius (increase/decrease points radius).">Points radius scaling</label>
                                 </div>
                                 <div class="col-md-5">
                                   <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize(false);" style="margin-left: -20px;">
@@ -252,7 +255,7 @@
             <div class="col-md-3"  style="margin-top:-4px">
                 <div class="panel panel-default" style="padding-bottom : 60px">
                   <div class="panel-heading">
-                    <h2 class="panel-title">Shepard Heatmap</h2>
+                    <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: a view related to the overall quality of the projection.">Shepard Heatmap</h2>
                   </div>
                 <div class="panel-body">
                   <div class="row">
@@ -286,11 +289,11 @@
         <div class="col-md-3" id="extra-information" style="width: 24.8vw">
             <div class="panel panel-default right-side-hist">
                 <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block;">Density and Remaining Cost Distributions</h2>
+                      <h2 class="panel-title" style="display:inline-block;" data-toggle="tooltip" data-placement="right" title="Tip: it might be useful to take a look at this histogram, to observe the density and remaining cost distributions, when remaining cost values are low and have an idea about the distributions.">Density and Remaining Cost Distributions</h2>
                     <div class="col-md-7"></div>
                     <div class="col-md-5">
                       <div class="param" style="display:inline-block; float:right; margin-top:-21.5px; margin-right: -18px">
-                      <label for="param-costlim" style="display:inline-block; float: right">Min. Visible Cost Rate: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
+                      <label for="param-costlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: set the rate of the limiter for the minimum acceptable visible cost at the main visualization view.">Min. Visible Cost Rate: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
                       <input id="param-costlim" type="range" min="0.1" max="1" value="1", step="0.1" style="display:inline-block; float:right" onchange="setReInitialize(false);">
                     </div>
                   </div>
@@ -305,7 +308,16 @@
         <div class = col-md-6>
           <div class="panel panel-default med-bottom">
             <div class="panel-heading">
-              <h2 class="panel-title" style="display:inline-block">Neighborhood Preservation</h2><div id="knnBarChartDetails"style="display:inline-block; float:right"></div>
+              <h2 class="panel-title" style="display:inline-block">Neighborhood Preservation </h2>
+              [Visualization:
+              <select id="param-NB-view" name="param-NB-view" onchange="LineBar()">
+                  <option value="1" selected>Bar Chart</option>
+                  <option value="2">Line Plot</option>
+                  <option value="3">Difference Line Plot</option>
+                </select>
+              ]
+              <div id="knnBarChartDetails"style="display:inline-block; float:right">
+              </div>
             </div>
             <div class="panel-body">
               <div id="hider"></div>
@@ -328,6 +340,10 @@
     </div>
 
     <script>
+      // Tooltip
+      $(document).ready(function(){
+        $(this).tooltip();
+      });
 
       $("#cost").html('(Unknown Iteration and Cost Values)');
       $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
@@ -369,7 +385,7 @@
         this.className += " active";
         });
       }
-      
+
     </script>
 
     <script>
