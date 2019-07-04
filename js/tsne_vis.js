@@ -1620,7 +1620,7 @@ function CalculateCorrel(flagForSchema){ // Calculate the correlation is a funct
       }
     }
     var compareThreshold = ((correlLimit/100)*arraysCleared.length)
-    compareThreshold = Math.ceil(compareThreshold);
+    compareThreshold = parseInt(compareThreshold);
 
     arraysCleared = sortByKey(arraysCleared, 5);
     ArrayLimit = [];
@@ -3309,7 +3309,6 @@ function LineBar() {
   // Get the checkbox
   var NBViewOptions = document.getElementById("param-NB-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
   NBViewOptions = parseInt(NBViewOptions);
-  console.log(NBViewOptions);
   // Get the output text
 
   var viewport = getViewport(); // Get the main viewport width height
@@ -3331,7 +3330,7 @@ function LineBar() {
     var trace = {
       x: kValuesLegend, 
       y: difference, 
-      name: 'Average difference', 
+      name: 'Delta(preservation)', 
       showlegend:  true,
       type: 'line',
       marker: {
