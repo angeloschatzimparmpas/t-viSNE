@@ -3343,7 +3343,7 @@ function LineBar() {
     layout = {
       barmode: 'group',autosize: false,
       width: dimensions*0.97,
-      height: vh * 1.38,
+      height: vh * 1.3,
       margin: {
         l: 50,
         r: 30,
@@ -3389,7 +3389,7 @@ function LineBar() {
     layout = {
       barmode: 'group',autosize: false,
       width: dimensions*0.97,
-      height: vh * 1.38,
+      height: vh * 1.3,
       margin: {
         l: 50,
         r: 30,

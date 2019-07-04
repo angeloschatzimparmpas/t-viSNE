@@ -141,15 +141,15 @@
           <div class="col-md-2" style="width: 24.999999995%">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h2 class="panel-title">Interaction Modes</h2>
+                    <h2 class="panel-title"  data-toggle="tooltip" data-placement="right" title="Tip: various functionalities depending on the user. These modes enable different interactions in the main visualization view.">Interaction Modes</h2>
                 </div>
                 <div class="panel-body">
                   <div id="resetAllFilters" style="margin-bottom: 20px">
-                      <button class="btn btn-info active" onclick="setLayerProj();" style="margin-left: -1px !important" ><i class="fas fa-mouse-pointer fa-lg" ></i>t-SNE Points Exploration</button>
-                      <button class="btn btn-info" onclick="setLayerComp();" style="margin-left: -1.4px"><i class="far fa-object-group fa-lg"  ></i>Group Selection</button>
-                      <button class="btn btn-info" onclick="setLayerSche();" style="margin-left: -2px !important"><i class="fas fa-draw-polygon fa-lg" ></i>Dimension Correlation</button>
+                      <button class="btn btn-info active" onclick="setLayerProj();" style="margin-left: -1px !important" ><i class="fas fa-mouse-pointer fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: in this mode the user can zoom in and out in the main visualization view and when hovering on a particular point he/she receives the exact data set's instance dimensions."></i>t-SNE Points Exploration</button>
+                      <button class="btn btn-info" onclick="setLayerComp();" style="margin-left: -1.4px"><i class="far fa-object-group fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: lasso selection in the main visualization view." ></i>Group Selection</button>
+                      <button class="btn btn-info" onclick="setLayerSche();" style="margin-left: -2px !important"><i class="fas fa-draw-polygon fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: draw a shape (polylines) and check the related dimensions correlations for your drawing/shape. With the left click you set one point and the right click you confirm the drawing for further analysis."></i>Dimension Correlation</button>
                   </div>
-                      <button class="btn btn-info" onclick="setReset();" style="margin-left: 225px"><i class="fas fa-trash-alt fa-lg" style="margin-right: 10px"></i>Reset Filters</button>
+                      <button class="btn btn-info" onclick="setReset();" style="margin-left: 225px"><i class="fas fa-trash-alt fa-lg" style="margin-right: 10px" data-toggle="tooltip" data-placement="right" title="Tip: reset all filters applied in the visualizations without losing the execution."></i>Reset Filters</button>
                 </div>
             </div>
           </div>
@@ -176,7 +176,7 @@
               <div class="col-md-3 col-md-offset-6">
                 <div class="panel panel-default"  style="margin-top: -195px">
                     <div class="panel-heading">
-                        <h2 class="panel-title">Visual Mapping</h2>
+                        <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: in this panel the user can adapt the visual mappings of the main visualization view.">Visual Mapping</h2>
                     </div>
                     <div class="row">
                       <div class="panel-body">
@@ -184,16 +184,16 @@
                           <div class="row">
                             <div class="col-md-8">
                             <div class="param" style="padding: 5px 0 5px 0">
-                              <label for="male"></label>Density</label>
+                              <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: density in the high-dimensional space taken from the t-SNE itself.">Density</label>
                               <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);" style="display:inline-block;margin-left: 60px">
-                                <option selected="selected" value="color" >Color-encoding</option>
+                                <option selected="selected" value="color">Color-encoding</option>
                                 <option value="size">Size-encoding</option>
                               </select> 
                             </div>
                             <div class="param" style="padding: 10px 0 10px 0" >
                               <output for="param-neighborHood" id="param-neighborHood-value " ></output>
-                              <label for="male">Remaining cost</label>
-                              <label id="selectionLabel" style="margin-top:4px; margin-left: 15px">Size-encoding</label>
+                              <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: remaining cost of each point throughout the entire projection.">Remaining cost</label>
+                              <label id="selectionLabel" style="margin-top:4px; margin-left: 15px" data-toggle="tooltip" data-placement="right" title="Tip: change between size/radius and color encodings.">Size-encoding</label>
                             </div>
                            <div class="param">
                               <div class="row" style="margin-top: 30px">
@@ -273,7 +273,7 @@
       <div class="col-md-3 col-md-offset-6">
           <div class="panel panel-default right-side-cor">
               <div class="panel-heading">
-                  <h2 class="panel-title" style="display:inline-block">Dimension Correlation</h2><div class="param" style="display:inline-block; margin-top:-5px; float:right"><label for="param-corlim" style="display:inline-block; float: right">Min. Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
+                  <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: user-driven shape investigation of the most correlated dimensions.">Dimension Correlation</h2><div class="param" style="display:inline-block; margin-top:-5px; float:right"><label for="param-corlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: the minimum acceptable visible correlation. Default is 0, so the tool accepts all the correlations.">Min. Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
                   <input id="param-corlim" type="range" min="0" max="1" value="0.0", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
                   </div>
               </div>
@@ -308,7 +308,7 @@
         <div class = col-md-6>
           <div class="panel panel-default med-bottom">
             <div class="panel-heading">
-              <h2 class="panel-title" style="display:inline-block">Neighborhood Preservation </h2>
+              <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Neighborhood Preservation </h2>
               [Visualization:
               <select id="param-NB-view" name="param-NB-view" onchange="LineBar()">
                   <option value="1" selected>Bar Chart</option>
@@ -329,7 +329,7 @@
         <div class="col-md-3">
             <div class="panel panel-default right-side-PCP">
               <div class="panel-heading">
-                  <h2 class="panel-title">Adaptive Parallel Coordinates Plot</h2>
+                  <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: for every selection the tool runs a local Principal Component Analysis (PCA) algorithm and dynamically adapts and shows the top 8 dimensions in an order from left to right. This sorting from left to right presents the most related (with high variance) features of the data set to the least important (low variance).">Adaptive Parallel Coordinates Plot</h2>
               </div>
               <div class="panel-body">
                 <div id="PCP" class="parcoords"></div>
