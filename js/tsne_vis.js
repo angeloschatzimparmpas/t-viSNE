@@ -28,13 +28,13 @@ var ArrayWithCosts = []; var Iterations = [];
 
 var VisiblePoints = []; 
 
-var sliderTrigger = false; var sliderInsideTrigger = false; var parameters; var SelProjIDS; var SelProjIDSProv; var SelectedProjections = []; var activeProjectionNumber = []; var activeProjectionNumberProv = [];
+var sliderTrigger = false; var sliderInsideTrigger = false; var parameters; var SelProjIDS; var SelProjIDSProv; var SelectedProjections = []; var activeProjectionNumber = []; var activeProjectionNumberProv = []; var globalFlagCheck = true;
 
 // This variable is for the kNN Bar Chart in order to store the first execution.
 var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
 var maxKNN = 0
 
-var mode = 1; var colors = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; var projections = []; var metricsSorting = []; var dataReceivedFromServer = []; var metrics = [];
+var mode = 1; var colors = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; var projections = []; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
 
 var Category; var target_names = []
 
@@ -96,7 +96,7 @@ function fetchVal(callback) {
 
 function OptimizePoints() {
   if (lassoFlag) {
-    varFocusedIDs = []
+    FocusedIDs = []
     for (let i = 0; i < points.length; i++) {
       if (points[i].selected) {
         FocusedIDs[i] = i
@@ -104,9 +104,9 @@ function OptimizePoints() {
     }
 
      // ajax the JSON to the server
-     $.post("http://127.0.0.1:5000/receiver", {'data': JSON.stringify(results_local), 'focus': JSON.stringify(FocusedIDs)}, function(){
-      $.get("http://127.0.0.1:5000/sender", function( data ) {
-        dataReceivedFromServer = data
+     $.post("http://127.0.0.1:5000/receiverOptimizer", JSON.stringify(FocusedIDs), function(){
+      $.get("http://127.0.0.1:5000/senderOptimizer", function( data ) {
+        dataReceivedFromServerOptimized = data
         ReSort(false)
     });
   
@@ -130,9 +130,31 @@ function ReSort(flagInitialize) {
 
   Plotly.purge(graphDiv);
 
+  var metricsSortingCopy
+  var metricsCopy
+
   projections = dataReceivedFromServer['projections']
   parameters = dataReceivedFromServer['parameters']
   metricsSorting = dataReceivedFromServer['metrics']
+
+  if (FocusedIDs.length != 0) {
+    if (globalFlagCheck) {
+      metricsSortingCopy = metricsSorting
+      metricsCopy = metrics
+    }
+    globalFlagCheck = false
+    document.getElementById("textToChange").innerHTML = "[Sorting Metric for Optimized Selection:";
+    metricsSorting = dataReceivedFromServerOptimized['metrics']
+    metrics = dataReceivedFromServerOptimized['metricsEntire']
+    if (FocusedIDs.length == points.length) {
+      document.getElementById("textToChange").innerHTML = "[Sorting Metric:";
+    }
+  } else {
+    if (!globalFlagCheck) {
+      metricsSorting = metricsSortingCopy
+      metrics = metricsCopy
+    }
+  }
 
   var traces = []
   var target_names = []
@@ -172,6 +194,7 @@ function ReSort(flagInitialize) {
   labelsTarget = uniqueTarget
 }
 
+
 var optionMetric = document.getElementById("param-SortM-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
 var order = [];
 SelectedProjections = []
@@ -188,13 +211,7 @@ if (optionMetric == 1) {
   order = metricsSorting[optionMetric-1]
 }
 
-console.log(order)
-
-console.log(activeProjectionNumber)
-
 var index = order.indexOf(activeProjectionNumber);
-
-console.log(index)
 
 var arrayLineColor = []
 
@@ -220,8 +237,6 @@ for (let k = 0; k < 8; k++) {
     SelectedProjections.push(order[k])
   }
 }
-
-console.log(arrayLineColor)
 
 var checkCounter = 0
 var checkCounterMetr = 0
@@ -555,7 +570,7 @@ if(k >= 8) {
       margin: {
         l: 10,
         r: 10,
-        b: 8,
+        b: 2,
         t: 2,
         pad: 0
       },

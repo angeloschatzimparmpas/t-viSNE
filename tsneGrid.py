@@ -145,6 +145,7 @@ def calculateGrid():
     global dataProc
     dataProc, length, labels = preprocess(data)
 
+    global D_highSpace
     D_highSpace = distance.squareform(distance.pdist(dataProc))
 
     DEFAULT_NO_DIMS = 2
@@ -180,6 +181,8 @@ def calculateGrid():
     SelectedListofParams = []
     global SelectedProjectionsReturn
     SelectedProjectionsReturn = []
+    
+    global clusterIndex
     clusterIndex = procrustesFun(projectionsAll)
 
     metricNeigh = []
@@ -187,6 +190,8 @@ def calculateGrid():
     metricCont = []
     metricStress = []
     metricShepCorr = []
+
+    global convertLabels
     convertLabels = []
     for index, label in enumerate(labels):
         if (label == 0):
@@ -206,13 +211,21 @@ def calculateGrid():
         else:
             pass
 
+    global D_lowSpaceList
+    D_lowSpaceList = []
+
+    global KeepKs
+    KeepKs = []
+
     for index in clusterIndex:
         SelectedProjectionsReturn.append(projectionsAll[index].tolist())
         SelectedListofParams.append(listofParamsAll[index])
 
         D_lowSpace = distance.squareform(distance.pdist(projectionsAll[index]))
+        D_lowSpaceList.append(D_lowSpace)
 
         k = listofParamsAll[index][0] # k = perplexity
+        KeepKs.append(k)
 
         #resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, k)
         resultNeigh = trustworthiness(D_highSpace, D_lowSpace, k)
@@ -253,7 +266,7 @@ def calculateGrid():
         valueStress = (metricStress[index] - min_value_stress) / (max_value_stress - min_value_stress) 
         valueShep = (metricShepCorr[index] - min_value_shep) / (max_value_shep - min_value_shep) 
         metricsMatrixEntire.append([valueNeigh,valueTrust,valueCont,valueStress,valueShep])
-    
+
     sortNeigh = sorted(range(len(metricNeigh)), key=lambda k: metricNeigh[k], reverse=True)
     sortTrust = sorted(range(len(metricTrust)), key=lambda k: metricTrust[k], reverse=True)
     sortCont = sorted(range(len(metricCont)), key=lambda k: metricCont[k], reverse=True)
@@ -283,5 +296,87 @@ def background_process():
         pass
     return jsonify({ 'projections': SelectedProjectionsReturn, 'parameters': SelectedListofParams, 'metrics': metricsMatrix, 'metricsEntire': metricsMatrixEntire })
 
+@app.route('/receiverOptimizer', methods = ['POST'])
+def OptimizeSelection():
+    dataReceived= request.get_data().decode('utf8').replace("'", '"')
+    dataReceived = json.loads(dataReceived)
+    dataSelected = []
+    for data in dataReceived:
+        if data != None:
+            dataSelected.append(data)
+
+    metricNeigh = []
+    metricTrust = []
+    metricCont = []
+    metricStress = []
+    metricShepCorr = []
+
+    for index, loop in enumerate(clusterIndex):
+        #resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, k)
+        resultNeigh = trustworthiness(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
+        resultTrust = trustworthiness(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
+        resultContinuity = continuity(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
+        resultStress = normalized_stress(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :])
+        resultShep = normalized_stress(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :])
+        #resultShep = shepard_diagram_correlation(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :]) 
+
+        metricNeigh.append(resultNeigh)
+        metricTrust.append(resultTrust)
+        metricCont.append(resultContinuity)
+        metricStress.append(resultStress)
+        metricShepCorr.append(resultShep)
+
+    max_value_neigh = max(metricNeigh)
+    min_value_neigh = min(metricNeigh)
+
+    max_value_trust = max(metricTrust)
+    min_value_trust = min(metricTrust)
+
+    max_value_cont = max(metricCont)
+    min_value_cont = min(metricCont)
+
+    max_value_stress = max(metricStress)
+    min_value_stress = min(metricStress)
+
+    max_value_shep = max(metricShepCorr)
+    min_value_shep = min(metricShepCorr)
+
+    global metricsMatrixEntireSel
+    metricsMatrixEntireSel = []
+
+    for index, data in enumerate(metricTrust):
+        #valueNeigh = (metricNeigh[index] - min_value_neigh) / (max_value_neigh - min_value_neigh) 
+        valueNeigh = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
+        valueTrust = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
+        valueCont = (metricCont[index] - min_value_cont) / (max_value_cont - min_value_cont) 
+        valueStress = (metricStress[index] - min_value_stress) / (max_value_stress - min_value_stress) 
+        valueShep = (metricShepCorr[index] - min_value_shep) / (max_value_shep - min_value_shep) 
+        metricsMatrixEntireSel.append([valueNeigh,valueTrust,valueCont,valueStress,valueShep])
+
+    sortNeigh = sorted(range(len(metricNeigh)), key=lambda k: metricNeigh[k], reverse=True)
+    sortTrust = sorted(range(len(metricTrust)), key=lambda k: metricTrust[k], reverse=True)
+    sortCont = sorted(range(len(metricCont)), key=lambda k: metricCont[k], reverse=True)
+    sortStress = sorted(range(len(metricStress)), key=lambda k: metricStress[k], reverse=True)
+    sortShepCorr = sorted(range(len(metricShepCorr)), key=lambda k: metricShepCorr[k], reverse=True)
+
+    global metricsMatrixSel
+    metricsMatrixSel = []
+
+    metricsMatrixSel.append(sortNeigh)
+    metricsMatrixSel.append(sortTrust)
+    metricsMatrixSel.append(sortCont)
+    metricsMatrixSel.append(sortStress)
+    metricsMatrixSel.append(sortShepCorr)
+
+    return 'OK'
+
+@app.route('/senderOptimizer')
+def SendOptimizedProjections():
+    global metricsMatrixSel
+    global metricsMatrixEntireSel
+
+    return jsonify({'metrics': metricsMatrixSel, 'metricsEntire': metricsMatrixEntireSel })
+
 if __name__ == '__main__':
     app.run("0.0.0.0", "5000")
+
