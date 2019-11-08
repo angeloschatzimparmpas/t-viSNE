@@ -15,22 +15,28 @@ var ArrayContainsDataFeaturesCleared = []; var ArrayContainsDataFeaturesClearedw
 var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []; var InitialFormDists = []; var InitialFormDists2D = []; var IterationsList = []; var ArrayWithCostsList = [];
 
 // These are the dimensions for the Overview view and the Main view
-var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth;
+var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth; var dimensionsY = document.getElementById('modtSNEcanvas').offsetHeight; var lassoFlag = false;
 
 // Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
 // ColorsCategorical = the categorical colors (maximum value = 10).
-var Category; var ColorsCategorical; var valCategExists = 0;
+var Category; var ColorsCategorical; var valCategExists = 0; 
 
 // This is for the removal of the distances cache. 
-var returnVal = false;
+var returnVal = false; 
 
 var ArrayWithCosts = []; var Iterations = [];
 
-var VisiblePoints = [];
+var VisiblePoints = []; 
+
+var sliderTrigger = false; var parameters; var SelProjIDS; var SelectedProjections = [];
 
 // This variable is for the kNN Bar Chart in order to store the first execution.
 var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
-var maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
+var maxKNN = 0
+
+var mode = 1; var colors = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; var projections = []; var metricsSorting = []; var dataReceivedFromServer = []; var metrics = [];
+
+var Category; var target_names = []
 
 var format; 
 
@@ -47,11 +53,13 @@ var ParametersSet = []; var overallCost; var input;
 var ringNotes = []; var gAnnotationsAll = []; var AnnotationsAll = []; var draggable = [];
 
 // These variables are set here in order to instatiate the very first Three.js scene.
-var MainCanvas; var Child; var renderer; var fov = 21; var near = 10; var far = 7000; var camera; var scene;
+var MainCanvas; var Child; var renderer; var fov = 18; var near = 10; var far = 7000; var camera; var scene;
 
 // Initialize the Schema Investigation variables.
 var Arrayx = []; var Arrayy = []; var XYDistId = []; var Arrayxy = []; var DistanceDrawing1D = []; var allTransformPoints = []; var p; var pFinal = []; var paths; var path; var ArrayLimit = [];
 var minimum; var correlationResults = []; var correlationResultsFinal = []; var ArrayContainsDataFeaturesLimit = [];
+
+var results_all_global = []
 
 // This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
@@ -84,6 +92,482 @@ function fetchVal(callback) {
     callback(lines);
   };
   fr.readAsText(file);
+}
+
+function OptimizePoints() {
+  if (lassoFlag) {
+    varFocusedIDs = []
+    for (let i = 0; i < points.length; i++) {
+      if (points[i].selected) {
+        FocusedIDs[i] = i
+      }
+    }
+
+     // ajax the JSON to the server
+     $.post("http://127.0.0.1:5000/receiver", {'data': JSON.stringify(results_local), 'focus': JSON.stringify(FocusedIDs)}, function(){
+      $.get("http://127.0.0.1:5000/sender", function( data ) {
+        dataReceivedFromServer = data
+        ReSort(false)
+    });
+  
+    });
+  } else {
+    alert('Group Selection Mode should be enabled to perform this action.')
+  }
+}
+
+function ReSort(flagInitialize) {
+  mode = 2
+  sliderTrigger = true
+  var traces = []
+
+  var width= dimensions*0.97;
+  var viewport = getViewport(); // Get the width and height of the main visualization
+  var vh = viewport[1] * 0.035;
+  var height= vh * 2.2;
+
+  var graphDiv = 'ProjectionsVisual'
+  Plotly.purge(graphDiv);
+
+  projections = dataReceivedFromServer['projections']
+  console.log(projections)
+  parameters = dataReceivedFromServer['parameters']
+  console.log(parameters)
+  metricsSorting = dataReceivedFromServer['metrics']
+
+  var traces = []
+  var target_names = []
+
+  results_all_global.filter(function(obj) { 
+
+    var temp = []; 
+    temp.push(Object.keys(obj)); 
+    for (var object in temp[0]){
+      if(temp[0][object].indexOf("*") != -1){
+        Category = temp[0][object];
+        return Category;
+      }
+    }
+
+  });
+
+  for (let i = 0; i < results_all_global.length; i++){
+    target_names.push(results_all_global[i][Category])
+  }
+
+  const unique = (value, index, self) => {
+    return self.indexOf(value) === index
+  }
+
+  const uniqueTarget = target_names.filter(unique)
+  var labelsTarget = []
+  if (format[0] == "diabetes"){
+  for (let m = 0; m < uniqueTarget.length; m++) {
+    if (uniqueTarget[m] === 1) {
+      labelsTarget[m] = "Positive"
+    } else {
+      labelsTarget[m] = "Negative"
+    }
+  }
+} else {
+  labelsTarget = uniqueTarget
+}
+
+var optionMetric = document.getElementById("param-SortM-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+var order = [];
+SelectedProjections = []
+
+if (optionMetric == 1) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 2) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 3) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 4) {
+  order = metricsSorting[optionMetric-1]
+} else {
+  order = metricsSorting[optionMetric-1]
+}
+
+console.log(SelProjIDS[0])
+
+console.log(order)
+
+for (let k = 0; k < 8; k++) {
+  if (SelProjIDS[0] > 7) {
+    if (k == 7) {
+      SelectedProjections.push(order[SelProjIDS[0]])
+    } else {
+      SelectedProjections.push(order[k])
+    }
+  } else {
+    SelectedProjections.push(order[k])
+  }
+}
+
+console.log(SelectedProjections)
+
+
+
+var checkCounter = 0
+var checkCounterMetr = 0
+
+var xValues = ['NH', 'T', 'C', 'S', 'SDC'];
+
+var colorscaleValue = [
+  [0, '#d9d9d9'],
+  [1, '#000000']
+];
+
+for (let k = 0; k < 8*2; k++) {
+if(k >= 8) {
+  if (k == 8) {
+    traces.push({
+      y: [],
+      x: xValues,
+      z: [metrics[SelectedProjections[checkCounterMetr]]],
+      type: 'heatmap',
+      hoverinfo:"z",
+      colorscale: colorscaleValue,
+      colorbar: {
+          title: 'Met. Val.',
+          tickvals:[0,0.2,0.4,0.6,0.8,1],
+          titleside:'right',
+        },
+      xaxis: 'x'+parseInt(k+1),
+      yaxis: 'y'+parseInt(k+1),
+    })
+  } else {
+    traces.push({
+      y: [],
+      x: xValues,
+      z: [metrics[SelectedProjections[checkCounterMetr]]],
+      hoverinfo:"z",
+      type: 'heatmap',
+      colorscale: colorscaleValue,
+      showscale: false,
+      xaxis: 'x'+parseInt(k+1),
+      yaxis: 'y'+parseInt(k+1),
+    })
+  }
+  checkCounterMetr++;
+} else {
+  var result = projections[SelectedProjections[checkCounter]].reduce(function(r, a) {
+    a.forEach(function(s, i) {
+        var key = i === 0 ? 'Xax' : 'Yax';
+
+        r[key] || (r[key] = []); // if key not found on result object, add the key with empty array as the value
+
+        r[key].push(s);
+    })
+    return r;
+  }, {})
+  var Text = [];
+  var countPrev = 0;
+  var count = 0;
+  for (let i = 0; i < uniqueTarget.length; i++) {
+    count = 0
+    for (let j = 0; j < target_names.length; j++) {
+
+      Text.push('Perplexity: '+parameters[SelectedProjections[checkCounter]][0]+'; Learning rate: '+parameters[SelectedProjections[checkCounter]][1]+'; Max iterations: '+parameters[SelectedProjections[checkCounter]][2])
+
+      if (uniqueTarget[i] == target_names[j]) {
+        count = count + 1
+      }
+       
+    }
+    
+        traces.push({
+          x: result.Xax.slice(countPrev,count+countPrev),
+          y: result.Yax.slice(countPrev,count+countPrev),
+          mode: 'markers',
+          showlegend: false,
+          text: Text,
+          hoverinfo:"text",
+          hoverlabel: {
+            bgcolor: 'white',
+            font: {color: 'black'}
+          },
+          name: labelsTarget[i],
+          showlegend: false,
+          marker: {
+            color: colors[i]
+          },
+          xaxis: 'x'+parseInt(k+1),
+          yaxis: 'y'+parseInt(k+1),
+        })
+
+    countPrev = count + countPrev
+  }
+
+  checkCounter++;
+}
+
+}
+  
+      var layout = {
+      xaxis: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis2: {
+        linecolor: 'black',
+        linewidth: 1,
+        mirror: true,
+        showgrid: false,
+        zeroline: false,
+        showticklabels: false
+      },
+      yaxis2: {
+          linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis3: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis3: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis4: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis4: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis5: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis5: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis6: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis6: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis7: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis7: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis8: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      yaxis8: {
+        linecolor: 'black',
+          linewidth: 1,
+          mirror: true,
+          showgrid: false,
+          zeroline: false,
+          showticklabels: false
+      },
+      xaxis9: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis9: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis10: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis10: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis11: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis11: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis12: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis12: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis13: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis13: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis14: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis14: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis15: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis15: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      xaxis16: {
+        ticks: '',
+        side: 'top'
+      },
+      yaxis16: {
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        autotick: true,
+        ticks: '',
+        showticklabels: false
+      },
+      margin: {
+        l: 10,
+        r: 10,
+        b: 8,
+        t: 1,
+        pad: 0
+      },
+      autosize: true,
+      width: width,
+      height: height,
+      hovermode:'closest',
+      legend: {"orientation": "h"},
+      grid: {rows: 2, columns: 8, pattern: 'independent'},
+    }
+    document.getElementById('overviewRect').style.border = '1px solid red'
+    document.getElementById('modtSNEcanvas').style.border = '1px solid red'
+      var config = {displayModeBar: false}
+
+      Plotly.newPlot(graphDiv, traces, layout, config)
+
+  if (flagInitialize) {
+    closeModalFun()
+    getData()
+  }
+  
+}
+
+function ExecuteMode() {
+  mode = document.getElementById("param-EX-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+  mode = parseInt(mode);
 }
 
 // Parse the analysis folder if requested or the csv file if we run a new execution. 
@@ -193,14 +677,1628 @@ function parseData(url) {
             }
           });
           function doStuff(results_all){
+            results_all_global = results_all
             // results_all variable is all the columns multiplied by all the rows.
             // results.data variable is all the columns except strings, undefined values, or "Version" plus beta and cost values."
             // results.meta.fields variable is all the features (columns) plus beta and cost strings.  
-            init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
-          }
+            if (mode == 2) {
+              init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
+            } else {
+              // ajax the JSON to the server
+              $.post("http://127.0.0.1:5000/receiver", JSON.stringify(results_all), function(){
+                $.get("http://127.0.0.1:5000/sender", function( data ) {
+                  dataReceivedFromServer = data
+                  ReSortOver()
+
+            });
+            
+          });
         }
+            
+          }
+      }
     });
 
+}
+
+function ReSortOver() {
+
+  var graphDiv = 'gridVisual'
+  Plotly.purge(graphDiv);
+
+  projections = dataReceivedFromServer['projections']
+  parameters = dataReceivedFromServer['parameters']
+  metricsSorting = dataReceivedFromServer['metrics']
+  metrics = dataReceivedFromServer['metricsEntire']
+
+  var traces = []
+  var target_names = []
+
+  results_all_global.filter(function(obj) { 
+
+    var temp = []; 
+    temp.push(Object.keys(obj)); 
+    for (var object in temp[0]){
+      if(temp[0][object].indexOf("*") != -1){
+        Category = temp[0][object];
+        return Category;
+      }
+    }
+
+  });
+
+  for (let i = 0; i < results_all_global.length; i++){
+    target_names.push(results_all_global[i][Category])
+  }
+
+  const unique = (value, index, self) => {
+    return self.indexOf(value) === index
+  }
+
+  const uniqueTarget = target_names.filter(unique)
+  var labelsTarget = []
+  if (format[0] == "diabetes"){
+  for (let m = 0; m < uniqueTarget.length; m++) {
+    if (uniqueTarget[m] === 1) {
+      labelsTarget[m] = "Positive"
+    } else {
+      labelsTarget[m] = "Negative"
+    }
+  }
+} else {
+  labelsTarget = uniqueTarget
+}
+
+var optionMetric = document.getElementById("param-SortMOver-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+var order = [];
+
+if (optionMetric == 1) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 2) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 3) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 4) {
+  order = metricsSorting[optionMetric-1]
+} else {
+  order = metricsSorting[optionMetric-1]
+}
+  var checkCounter = 0
+  var checkCounterMetr = 0
+
+  var xValues = ['NH', 'T', 'C', 'S', 'SDC'];
+
+  var colorscaleValue = [
+    [0, '#d9d9d9'],
+    [1, '#000000']
+  ];
+
+  for (let k = 0; k < projections.length*2; k++) {
+  if((k >= 6 && k <= 11) || (k >=18 && k<=23) || (k >= 30 && k<= 35) || (k >= 42 && k<=47) || (k>=54 && k<=59) || (k >= 66 && k<=71)) {
+    if (k == 6) {
+      traces.push({
+        y: [],
+        x: xValues,
+        z: [metrics[order[checkCounterMetr]]],
+        type: 'heatmap',
+        hoverinfo:"z",
+        colorscale: colorscaleValue,
+        colorbar: {
+            title: 'Metrics\' Values (Normalized)',
+            tickvals:[0,0.2,0.4,0.6,0.8,1],
+            titleside:'right',
+          },
+        xaxis: 'x'+parseInt(k+1),
+        yaxis: 'y'+parseInt(k+1),
+      })
+    } else {
+      traces.push({
+        y: [],
+        x: xValues,
+        z: [metrics[order[checkCounterMetr]]],
+        hoverinfo:"z",
+        type: 'heatmap',
+        colorscale: colorscaleValue,
+        showscale: false,
+        xaxis: 'x'+parseInt(k+1),
+        yaxis: 'y'+parseInt(k+1),
+      })
+    }
+    checkCounterMetr++;
+  } else {
+    var result = projections[order[checkCounter]].reduce(function(r, a) {
+      a.forEach(function(s, i) {
+          var key = i === 0 ? 'Xax' : 'Yax';
+
+          r[key] || (r[key] = []); // if key not found on result object, add the key with empty array as the value
+
+          r[key].push(s);
+      })
+      return r;
+    }, {})
+    var Text = [];
+    var countPrev = 0;
+    var count = 0;
+    for (let i = 0; i < uniqueTarget.length; i++) {
+      count = 0
+      for (let j = 0; j < target_names.length; j++) {
+
+        Text.push('Perplexity: '+parameters[order[checkCounter]][0]+'; Learning rate: '+parameters[order[checkCounter]][1]+'; Max iterations: '+parameters[order[checkCounter]][2])
+
+        if (uniqueTarget[i] == target_names[j]) {
+          count = count + 1
+        }
+      }
+        if (k == 0) {
+          traces.push({
+            x: result.Xax.slice(countPrev,count+countPrev),
+            y: result.Yax.slice(countPrev,count+countPrev),
+            mode: 'markers',
+            name: labelsTarget[i],
+            text: Text,
+            hoverinfo:"text",
+            hoverlabel: {
+              bgcolor: 'white',
+              font: {color: 'black'}
+            },
+            marker: {
+              color: colors[i]
+            },
+            xaxis: 'x'+parseInt(k+1),
+            yaxis: 'y'+parseInt(k+1),
+          })
+        } else {
+          traces.push({
+            x: result.Xax.slice(countPrev,count+countPrev),
+            y: result.Yax.slice(countPrev,count+countPrev),
+            mode: 'markers',
+            showlegend: false,
+            text: Text,
+            hoverinfo:"text",
+            hoverlabel: {
+              bgcolor: 'white',
+              font: {color: 'black'}
+            },
+            name: labelsTarget[i],
+            showlegend: false,
+            marker: {
+              color: colors[i]
+            },
+            xaxis: 'x'+parseInt(k+1),
+            yaxis: 'y'+parseInt(k+1),
+          })
+        }
+      countPrev = count + countPrev
+    }
+
+    checkCounter++;
+  }
+
+}
+
+  var width = 900 // interactive visualization
+  var height = 1150 // interactive visualization
+  document.getElementById("confirmModal").disabled = true;
+
+  const layout = {
+  xaxis: {
+    linecolor: 'black',
+    linewidth: 2,
+    mirror: true,
+    showgrid: false,
+    zeroline: false,
+    showticklabels: false,
+  },
+  yaxis: {
+      linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis2: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis2: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis3: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis3: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis4: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis4: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis5: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis5: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis6: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis6: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis7: {
+    side: 'top'
+  },
+  yaxis7: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis8: {
+    side: 'top'
+  },
+  yaxis8: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis9: {
+    side: 'top'
+  },
+  yaxis9: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis10: {
+    side: 'top'
+  },
+  yaxis10: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis11: {
+    side: 'top'
+  },
+  yaxis11: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis12: {
+    side: 'top'
+  },
+  yaxis12: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis13: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis13: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis14: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis14: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis15: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis15: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis16: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis16: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis17: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis17: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis18: {
+
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis18: {
+
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis19: {
+    side: 'top'
+  },
+  yaxis19: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis20: {
+    side: 'top'
+  },
+  yaxis20: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis21: {
+    side: 'top'
+  },
+  yaxis21: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis22: {
+    side: 'top'
+  },
+  yaxis22: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis23: {
+    side: 'top'
+  },
+  yaxis23: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis24: {
+    side: 'top'
+  },
+  yaxis24: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis25: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis25: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis26: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis26: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis27: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis27: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis28: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis28: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis29: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis29: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis30: {
+
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis30: {
+
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis31: {
+    side: 'top'
+  },
+  yaxis31: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis32: {
+    side: 'top'
+  },
+  yaxis32: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis33: {
+    side: 'top'
+  },
+  yaxis33: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis34: {
+    side: 'top'
+  },
+  yaxis34: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis35: {
+    side: 'top'
+  },
+  yaxis35: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis36: {
+    side: 'top'
+  },
+  yaxis36: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis37: {
+    linecolor: 'black',
+    linewidth: 2,
+    mirror: true,
+    showgrid: false,
+    zeroline: false,
+    showticklabels: false
+  },
+  yaxis37: {
+      linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis38: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis38: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis39: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis39: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis40: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis40: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis41: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis41: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis42: {
+
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis42: {
+
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis43: {
+    side: 'top'
+  },
+  yaxis43: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis44: {
+    side: 'top'
+  },
+  yaxis44: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis45: {
+    side: 'top'
+  },
+  yaxis45: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis46: {
+    side: 'top'
+  },
+  yaxis46: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis47: {
+    side: 'top'
+  },
+  yaxis47: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis48: {
+    side: 'top'
+  },
+  yaxis48: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis49: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis49: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis50: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis50: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis51: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis51: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis52: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis52: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis53: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis53: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis54: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis54: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis55: {
+    side: 'top'
+  },
+  yaxis55: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis56: {
+    side: 'top'
+  },
+  yaxis56: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis57: {
+    side: 'top'
+  },
+  yaxis57: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis58: {
+    side: 'top'
+  },
+  yaxis58: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis59: {
+    side: 'top'
+  },
+  yaxis59: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis60: {
+    side: 'top'
+  },
+  yaxis60: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis61: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis61: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis62: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis62: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis63: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis63: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis64: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis64: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis65: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis65: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis66: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  yaxis66: {
+    linecolor: 'black',
+      linewidth: 2,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis67: {
+    side: 'top'
+  },
+  yaxis67: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis68: {
+    side: 'top'
+  },
+  yaxis68: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis69: {
+    side: 'top'
+  },
+  yaxis69: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis70: {
+    side: 'top'
+  },
+  yaxis70: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis71: {
+    side: 'top'
+  },
+  yaxis71: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis72: {
+    side: 'top'
+  },
+  yaxis72: {
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  margin: {
+    l: 10,
+    r: 5,
+    b: 0,
+    t: 10,
+    pad: 0
+  },
+  autosize: true,
+  width: width,
+  height: height,
+  hovermode:'closest',
+  legend: {"orientation": "h",
+          y: 0},
+  grid: {rows: 12, columns: 6, pattern: 'independent'},
+  }
+
+  var config = {displayModeBar: false}
+
+  document.getElementById("loader").style.display = "none";
+
+  Plotly.newPlot(graphDiv, traces, layout, config)
+
+  var myPlot = document.getElementById('gridVisual')
+
+  myPlot.on('plotly_click', function(data){
+
+  var update = {
+  'xaxis.linecolor': 'black',   // updates the xaxis range
+  'yaxis.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis2.linecolor': 'black',   // updates the xaxis range
+  'yaxis2.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis3.linecolor': 'black',   // updates the xaxis range
+  'yaxis3.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis4.linecolor': 'black',   // updates the xaxis range
+  'yaxis4.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis5.linecolor': 'black',   // updates the xaxis range
+  'yaxis5.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis6.linecolor': 'black',   // updates the xaxis range
+  'yaxis6.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis13.linecolor': 'black',   // updates the xaxis range
+  'yaxis13.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis14.linecolor': 'black',   // updates the xaxis range
+  'yaxis14.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis15.linecolor': 'black',   // updates the xaxis range
+  'yaxis15.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis16.linecolor': 'black',   // updates the xaxis range
+  'yaxis16.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis17.linecolor': 'black',   // updates the xaxis range
+  'yaxis17.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis18.linecolor': 'black',   // updates the xaxis range
+  'yaxis18.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis25.linecolor': 'black',   // updates the xaxis range
+  'yaxis25.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis26.linecolor': 'black',   // updates the xaxis range
+  'yaxis26.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis27.linecolor': 'black',   // updates the xaxis range
+  'yaxis27.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis28.linecolor': 'black',   // updates the xaxis range
+  'yaxis28.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis29.linecolor': 'black',   // updates the xaxis range
+  'yaxis29.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis30.linecolor': 'black',   // updates the xaxis range
+  'yaxis30.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis37.linecolor': 'black',   // updates the xaxis range
+  'yaxis37.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis38.linecolor': 'black',   // updates the xaxis range
+  'yaxis38.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis39.linecolor': 'black',   // updates the xaxis range
+  'yaxis39.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis40.linecolor': 'black',   // updates the xaxis range
+  'yaxis40.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis41.linecolor': 'black',   // updates the xaxis range
+  'yaxis41.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis42.linecolor': 'black',   // updates the xaxis range
+  'yaxis42.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis49.linecolor': 'black',   // updates the xaxis range
+  'yaxis49.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis50.linecolor': 'black',   // updates the xaxis range
+  'yaxis50.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis51.linecolor': 'black',   // updates the xaxis range
+  'yaxis51.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis52.linecolor': 'black',   // updates the xaxis range
+  'yaxis52.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis53.linecolor': 'black',   // updates the xaxis range
+  'yaxis53.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis54.linecolor': 'black',   // updates the xaxis range
+  'yaxis54.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis61.linecolor': 'black',   // updates the xaxis range
+  'yaxis61.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis62.linecolor': 'black',   // updates the xaxis range
+  'yaxis62.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis63.linecolor': 'black',   // updates the xaxis range
+  'yaxis63.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis64.linecolor': 'black',   // updates the xaxis range
+  'yaxis64.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis65.linecolor': 'black',   // updates the xaxis range
+  'yaxis65.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis66.linecolor': 'black',   // updates the xaxis range
+  'yaxis66.linecolor': 'black',    // updates the end of the yaxis range
+  };
+  Plotly.relayout(graphDiv, update)
+
+    SelProjIDS = []
+    if (data.points[0].xaxis._id == 'x') {
+
+        var update = {
+          'xaxis.linecolor': 'red',   // updates the xaxis range
+          'yaxis.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(0)
+    } else if (data.points[0].xaxis._id == 'x2') {
+
+        var update = {
+          'xaxis2.linecolor': 'red',   // updates the xaxis range
+          'yaxis2.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      
+      SelProjIDS.push(1)
+    } else if (data.points[0].xaxis._id == 'x3') {
+
+        var update = {
+          'xaxis3.linecolor': 'red',   // updates the xaxis range
+          'yaxis3.linecolor': 'red'    // updates the end of the yaxis range
+        };
+    
+      SelProjIDS.push(2)
+    } else if (data.points[0].xaxis._id == 'x4') {
+
+        var update = {
+          'xaxis4.linecolor': 'red',   // updates the xaxis range
+          'yaxis4.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      
+      SelProjIDS.push(3)
+    } else if (data.points[0].xaxis._id == 'x5') {
+
+        var update = {
+          'xaxis5.linecolor': 'red',   // updates the xaxis range
+          'yaxis5.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      SelProjIDS.push(4)
+    } else if (data.points[0].xaxis._id == 'x6') {
+
+    
+        var update = {
+          'xaxis6.linecolor': 'red',   // updates the xaxis range
+          'yaxis6.linecolor': 'red'    // updates the end of the yaxis range
+        };
+    
+      SelProjIDS.push(5)
+    } else if (data.points[0].xaxis._id == 'x13') {
+
+      
+        var update = {
+          'xaxis13.linecolor': 'red',   // updates the xaxis range
+          'yaxis13.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(6)
+    } else if (data.points[0].xaxis._id == 'x14') {
+
+
+        var update = {
+          'xaxis14.linecolor': 'red',   // updates the xaxis range
+          'yaxis14.linecolor': 'red'    // updates the end of the yaxis range
+        };
+        firstProj = false
+    
+      SelProjIDS.push(7)
+    } else if (data.points[0].xaxis._id == 'x15') {
+
+        var update = {
+          'xaxis15.linecolor': 'red',   // updates the xaxis range
+          'yaxis15.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(8)
+    } else if (data.points[0].xaxis._id == 'x16') {
+
+        var update = {
+          'xaxis16.linecolor': 'red',   // updates the xaxis range
+          'yaxis16.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(9)
+    } else if (data.points[0].xaxis._id == 'x17') {
+
+        var update = {
+          'xaxis17.linecolor': 'red',   // updates the xaxis range
+          'yaxis17.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(10)
+    } else if (data.points[0].xaxis._id == 'x18') {
+
+        var update = {
+          'xaxis18.linecolor': 'red',   // updates the xaxis range
+          'yaxis18.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      SelProjIDS.push(11)
+    } else if (data.points[0].xaxis._id == 'x25') {
+
+        var update = {
+          'xaxis25.linecolor': 'red',   // updates the xaxis range
+          'yaxis25.linecolor': 'red'    // updates the end of the yaxis range
+        };
+    
+      SelProjIDS.push(12)
+    } else if (data.points[0].xaxis._id == 'x26') {
+
+        var update = {
+          'xaxis26.linecolor': 'red',   // updates the xaxis range
+          'yaxis26.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      SelProjIDS.push(13)
+    } else if (data.points[0].xaxis._id == 'x27') {
+
+        var update = {
+          'xaxis27.linecolor': 'red',   // updates the xaxis range
+          'yaxis27.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      SelProjIDS.push(14)
+    } else if (data.points[0].xaxis._id == 'x28') {
+
+        var update = {
+          'xaxis28.linecolor': 'red',   // updates the xaxis range
+          'yaxis28.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(15)
+    } else if (data.points[0].xaxis._id == 'x29') {
+
+        var update = {
+          'xaxis29.linecolor': 'red',   // updates the xaxis range
+          'yaxis29.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(16)
+    } else if (data.points[0].xaxis._id == 'x30') {
+
+        var update = {
+          'xaxis30.linecolor': 'red',   // updates the xaxis range
+          'yaxis30.linecolor': 'red'    // updates the end of the yaxis range
+        };
+        firstProj = false
+      
+      SelProjIDS.push(17)
+    } else if (data.points[0].xaxis._id == 'x37') {
+
+        var update = {
+          'xaxis37.linecolor': 'red',   // updates the xaxis range
+          'yaxis37.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(18)
+    } else if (data.points[0].xaxis._id == 'x38') {
+
+        var update = {
+          'xaxis38.linecolor': 'red',   // updates the xaxis range
+          'yaxis38.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(19)
+    } else if (data.points[0].xaxis._id == 'x39') {
+
+        var update = {
+          'xaxis39.linecolor': 'red',   // updates the xaxis range
+          'yaxis39.linecolor': 'red'    // updates the end of the yaxis range
+        };
+    
+      SelProjIDS.push(20)
+    } else if (data.points[0].xaxis._id == 'x40') {
+
+        var update = {
+          'xaxis40.linecolor': 'red',   // updates the xaxis range
+          'yaxis40.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(21)
+    } else if (data.points[0].xaxis._id == 'x41') {
+
+        var update = {
+          'xaxis41.linecolor': 'red',   // updates the xaxis range
+          'yaxis41.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(22)
+    } else if (data.points[0].xaxis._id == 'x42') {
+
+        var update = {
+          'xaxis42.linecolor': 'red',   // updates the xaxis range
+          'yaxis42.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(23)
+    } else if (data.points[0].xaxis._id == 'x49') {
+
+        var update = {
+          'xaxis49.linecolor': 'red',   // updates the xaxis range
+          'yaxis49.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(24)
+    } else if (data.points[0].xaxis._id == 'x50') {
+
+        var update = {
+          'xaxis50.linecolor': 'red',   // updates the xaxis range
+          'yaxis50.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(25)
+    } else if (data.points[0].xaxis._id == 'x51') {
+
+        var update = {
+          'xaxis51.linecolor': 'red',   // updates the xaxis range
+          'yaxis51.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(26)
+    } else if (data.points[0].xaxis._id == 'x52') {
+
+        var update = {
+          'xaxis52.linecolor': 'red',   // updates the xaxis range
+          'yaxis52.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(27)
+    } else if (data.points[0].xaxis._id == 'x53') {
+
+        var update = {
+          'xaxis53.linecolor': 'red',   // updates the xaxis range
+          'yaxis53.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(28)
+    } else if (data.points[0].xaxis._id == 'x54') {
+
+        var update = {
+          'xaxis54.linecolor': 'red',   // updates the xaxis range
+          'yaxis54.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(29)
+    } else if (data.points[0].xaxis._id == 'x61') {
+
+        var update = {
+          'xaxis61.linecolor': 'red',   // updates the xaxis range
+          'yaxis61.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(30)
+    } else if (data.points[0].xaxis._id == 'x62') {
+
+        var update = {
+          'xaxis62.linecolor': 'red',   // updates the xaxis range
+          'yaxis62.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(31)
+    } else if (data.points[0].xaxis._id == 'x63') {
+
+        var update = {
+          'xaxis63.linecolor': 'red',   // updates the xaxis range
+          'yaxis63.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(32)
+    } else if (data.points[0].xaxis._id == 'x64') {
+
+        var update = {
+          'xaxis64.linecolor': 'red',   // updates the xaxis range
+          'yaxis64.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(33)
+    } else if (data.points[0].xaxis._id == 'x65') {
+
+        var update = {
+          'xaxis65.linecolor': 'red',   // updates the xaxis range
+          'yaxis65.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      SelProjIDS.push(34)
+    } else {
+
+        var update = {
+          'xaxis66.linecolor': 'red',   // updates the xaxis range
+          'yaxis66.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(35)
+    }
+
+    document.getElementById("confirmModal").disabled = false;
+
+  Plotly.relayout(graphDiv, update)
+});
 }
 
 function setContinue(){ // This function allows the continuation of the analysis because it decreases the layer value of the annotator.
@@ -246,6 +2344,35 @@ function setReset(){ // Reset only the filters which were applied into the data 
 
 }
 
+function setReInitializeDistanceCorrelation(flag){
+  if(flag){
+    // Change between color-encoding and size-encoding mapped to 1/sigma and KLD.
+    var correlationMeasur = document.getElementById("param-correlationMeasur").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+    correlationMeasur = parseInt(correlationMeasur);
+
+    if (correlationMeasur == 1){
+      document.getElementById('param-corrLabel2').style = 'display: none';
+      document.getElementById('param-corr2').style = 'display: none';
+      document.getElementById('param-corr-value2').style = 'display: none';
+      document.getElementById('param-corrLabel').style = 'display: normal';
+      document.getElementById('param-corr').style = 'display: normal';
+      document.getElementById('param-corr').style = 'margin-left: -20px';
+      document.getElementById('param-corr-value').style = 'display: normal';
+      document.getElementById('param-corr-value').style = 'margin-left: -20px';
+    } else{
+      document.getElementById('param-corrLabel').style = 'display: none';
+      document.getElementById('param-corr').style = 'display: none';
+      document.getElementById('param-corr-value').style = 'display: none';
+      document.getElementById('param-corrLabel2').style = 'display: normal';
+      document.getElementById('param-corr2').style = 'display: normal';
+      document.getElementById('param-corr2').style = 'margin-left: -20px';
+      document.getElementById('param-corr-value2').style = 'display: normal';
+      document.getElementById('param-corr-value2').style = 'margin-left: -20px';
+    }
+  }
+}
+
+
 function setReInitialize(flag){
   if(flag){
     // Change between color-encoding and size-encoding mapped to 1/sigma and KLD.
@@ -254,8 +2381,7 @@ function setReInitialize(flag){
     } else{
       document.getElementById('selectionLabel').innerHTML = 'Size-encoding';
     }
-  }
-
+  } 
 
   // Clear d3 SVGs
   d3.selectAll("#correlation > *").remove(); 
@@ -300,6 +2426,7 @@ function setLayerProj(){ // The main Layer becomes the projection
   d3.select("#modtSNEcanvas_svg").style("z-index", 1);
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
   d3.select("#SvgAnnotator").style("z-index", 1);
+  lassoFlag = false
 
 }
 
@@ -310,7 +2437,7 @@ function setLayerComp(){ // The main Layer becomes the comparison (pcp)
   d3.select("#modtSNEcanvas_svg_Schema").style("z-index", 1);
   d3.select("#modtSNEcanvas").style("z-index", 1);
   d3.select("#SvgAnnotator").style("z-index", 1);
-
+  lassoFlag = true
   if (points.length){
     lassoEnable();
   }
@@ -338,14 +2465,14 @@ function setLayerSche(){ // The main Layer becomes the correlation (barchart)
     flagForSchema = true;
     CalculateCorrel();
   }
-
+  lassoFlag = false
 }
 
 function lassoEnable(){ // The main Layer becomes the correlation (barchart)
 
   var interactionSvg = d3.select("#modtSNEcanvas_svg")
   .attr("width", dimensions)
-  .attr("height", dimensions)
+  .attr("height", dimensionsY)
   .style('position', 'absolute')
   .style('top', 0)
   .style('left', 0);
@@ -371,7 +2498,7 @@ function BringBackAnnotations(){
 function setAnnotator(){ // Set a new annotation on top of the main visualization.
 
   vw2 = dimensions;
-  vh2 = dimensions;
+  vh2 = dimensionsY;
 
   var textarea = document.getElementById("comment").value;
 
@@ -458,7 +2585,7 @@ function MainVisual(){
 
   // Add main canvas
   renderer = new THREE.WebGLRenderer({ canvas: MainCanvas });
-  renderer.setSize(dimensions, dimensions);
+  renderer.setSize(dimensions, dimensionsY);
   Child.append(renderer.domElement);
 
   // Add a new empty (white) scene.
@@ -468,7 +2595,7 @@ function MainVisual(){
   // Set up camera.
   camera = new THREE.PerspectiveCamera(
     fov,
-    dimensions / dimensions,
+    dimensions / dimensionsY,
     near,
     far 
   );
@@ -545,13 +2672,26 @@ function init(data, results_all, fields) {
     // Step counter set to 0
     step_counter = 0;
     // Get the new parameters from the t-SNE parameters panel.
-    max_counter = document.getElementById("param-maxiter-value").value;
+    if (sliderTrigger) {
+      max_counter = parameters[SelProjIDS[0]][2]
+      $('#param-maxiter-value').text(max_counter);
+    } else {
+      max_counter = document.getElementById("param-maxiter-value").value;
+    }
     opt = {};
     var fields;
     fields.push("beta");
     fields.push("cost");
-    opt.epsilon = document.getElementById("param-learningrate-value").value; // Epsilon is learning rate (10 = default)
-    opt.perplexity = document.getElementById("param-perplexity-value").value; // Roughly how many neighbors each point influences (30 = default)
+    if (sliderTrigger) {
+      opt.perplexity = parameters[SelProjIDS[0]][0]
+      opt.epsilon = parameters[SelProjIDS[0]][1]
+      $('#param-perplexity-value').text(opt.perplexity);
+      $('#param-learningrate-value').text(opt.epsilon);
+    } else {
+      opt.epsilon = document.getElementById("param-learningrate-value").value; // Epsilon is learning rate (10 = default)
+      opt.perplexity = document.getElementById("param-perplexity-value").value; // Roughly how many neighbors each point influences (30 = default)
+    }
+
 
     // Put the input variables into more properly named variables and store them.
     final_dataset = data;
@@ -841,7 +2981,7 @@ function updateEmbedding(AnalysisResults) {
 
     var y = d3.scaleLinear() // Scale the y points into the canvas width/height
             .domain(maxExt)
-            .range([10, +dimensions-10]);
+            .range([10, +dimensionsY-10]);
       for(var i = 0; i < final_dataset.length; i++) {
         x_position[i] = x(Y[i][0]); // x points position
         y_position[i] = y(Y[i][1]); // y points position
@@ -865,7 +3005,7 @@ function updateEmbedding(AnalysisResults) {
       ArrayWithCostsList = AnalysisResults.slice(2*dataFeatures.length+length+10, 2*dataFeatures.length+length+11);
       Iterations = IterationsList[0];
       ArrayWithCosts = ArrayWithCostsList[0];
-      $("#cost").html("(Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost + ")");
+      $("#cost").html("(Number. of Iter.: " + ParametersSet[3] + ", Ov. Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
@@ -881,7 +3021,7 @@ function updateEmbedding(AnalysisResults) {
       ArrayWithCostsList = AnalysisResults.slice(2*length+8, 2*length+9);
       Iterations = IterationsList[0];
       ArrayWithCosts = ArrayWithCostsList[0];
-      $("#cost").html("(Number of Iteration: " + ParametersSet[3] + ", Overall Cost: " + overallCost + ")");
+      $("#cost").html("(Number of Iter.: " + ParametersSet[3] + ", Ov. Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
@@ -901,7 +3041,7 @@ function updateEmbedding(AnalysisResults) {
   }
     return obj; // Return the different forms of the same data that we eventually store on those points.
   }
-
+  
   // Run all the main functions (Shepard Heatmap, Overview t-SNE, and Beta/Cost t-SNE) Beta = 1/sigma, Cost = KLD(Q||P).
   OverviewtSNE(points);
   ShepardHeatMap();
@@ -913,230 +3053,400 @@ function ShepardHeatMap () {
   
   // Remove any previous shepard heatmaps.
   d3.selectAll("#sheparheat > *").remove();
+  d3.selectAll("#legend3 > *").remove();
 
-  // Set the margin of the shepard heatmap
-  var margin = { top: 35, right: 15, bottom: 15, left: 35 },
-  dim2 = Math.min(parseInt(d3.select("#sheparheat").style("width")), parseInt(d3.select("#sheparheat").style("height")))
-  width = dim2- margin.left - margin.right,
-  height = dim2 - margin.top - margin.bottom,
-  buckets = 10, // Set the number of buckets.
-  gridSize = width / buckets,
-  dim_1 = ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"], // Set the dimensions for the output and input distances.
-  dim_2 = ["0.0", "0.4", "0.6", "1.0"] //I.e., the axes.
+  // Get the checkbox
+  var SHViewOptions = document.getElementById("param-SH-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+  SHViewOptions = parseInt(SHViewOptions);
+  // Get the output text
 
-  // Create the svg for the shepard heatmap
-  var svg = d3.select("#sheparheat")
+  if (SHViewOptions == 1) {
+
+    // Set the margin of the shepard heatmap
+    var margin = { top: 35, right: 15, bottom: 15, left: 35 },
+    dim2 = Math.min(parseInt(d3.select("#sheparheat").style("width")), parseInt(d3.select("#sheparheat").style("height")))
+    width = dim2- margin.left - margin.right,
+    height = dim2 - margin.top - margin.bottom,
+    buckets = 10, // Set the number of buckets.
+    gridSize = width / buckets,
+    dim_1 = ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"], // Set the dimensions for the output and input distances.
+    dim_2 = ["0.0", "0.4", "0.6", "1.0"] //I.e., the axes.
+
+    // Create the svg for the shepard heatmap
+    var svg = d3.select("#sheparheat")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    if (flagAnalysis){
+    } else{
+      dists2d = [];
+      dist_list2d = []; // Distances lists empty
+      dist_list = [];
+      // Calculate the 2D distances.
+      dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
+      InitialFormDists2D.push(dists2d);
+      for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
+        dists2d[j] = dists2d[j].slice(0,j);
+        dists[j] = dists[j].slice(0,j);
+      }
+    
+      for (var i=0; i<dists2d.length; i++){
+        for (var j=0; j<dists2d.length; j++){
+          let singleObj = {};
+          singleObj = dists2d[i][j];
+          dist_list2d.push(singleObj);
+          let singleObj2 = {};
+          singleObj2 = dists[i][j];
+          dist_list.push(singleObj2);
+        }
+      }
+      dist_list2d = dist_list2d.sort(); // Sort the lists that contain the distances.
+      dist_list = dist_list.sort();
+      dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; }); // Filter all undefined values
+      dist_list = dist_list.filter(function(val){ return val!==undefined; });
+    }
+      
+
+    d3.tsv("./modules/heat.tsv").then(function(data) { // Run the heat.tsv file and get the data from there. This file contains and ordering of the dimensions 1 and dimensions 2.
+    // For example: dim1 = 1 and the dim 2 = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10... and then dim2 = 2 and the dim2=... (same)
+      data.forEach(function(d) { // Get the data from the heat.tsv.
+          d.dim1 = +d.dim1;
+          d.dim2 = +d.dim2;
+          d.value = 0;
+      });
+
+      var counter = 0;
+      var counnum = [];
+      var temp_loop = 0;
+      for (var l=0; l<100; l++) {counnum[l] = 0};
+      var dist_list_all = [];
+      dist_list_all =[dist_list, dist_list2d]; // Combine the two lists.
+
+      for (var l=0; l<100; l++){ // Here we calculate the shepard diagram and then we add the colors! -> shepard heatmap
+        for (k=0; k<dist_list_all[0].length;k++){
+          if (l==0){
+            if (dist_list_all[0][k] <= data[l].dim1/10 && dist_list_all[1][k] <= data[l].dim2/10){
+              counnum[l] = counnum[l] + 1;
+            }
+          }else if (l <= 10){
+            if (dist_list_all[0][k] < data[l].dim1/10 && dist_list_all[1][k] < data[l].dim2/10 && dist_list_all[1][k] > data[l-1].dim2/10){
+              counnum[l] = counnum[l] + 1;
+            }
+          }else if (l % 10 == 1){
+            temp_loop = data[l].dim1-1;
+            if (dist_list_all[0][k] < data[l].dim1/10 && dist_list_all[1][k] < data[l].dim2/10 && dist_list_all[0][k] > temp_loop/10){
+              counnum[l] = counnum[l] + 1;
+            }
+          }else{
+            if (dist_list_all[0][k] <= data[l].dim1/10 && dist_list_all[1][k] <= data[l].dim2/10 && dist_list_all[1][k] >= data[l-1].dim2/10 && dist_list_all[0][k] > temp_loop/10){
+              counnum[l] = counnum[l] + 1;
+            }
+          }
+        }
+        counter = counter + counnum[l];
+      }
+
+      for (var m=0; m<data.length; m++)
+      {
+        data[m].value = counnum[m]; // Count the number of data values.
+      }
+
+      // Color scale for minimum and maximum values for the shepard heatmap.
+      var maxNum = Math.round(d3.max(data,function(d){ return d.value; }));
+      var minNum = Math.round(d3.min(data,function(d){ return d.value; }));
+      var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
+      let calcStep = (maxNum-minNum)/colors.length;
+      var colorScale = d3.scaleLinear()
+          .domain(d3.range(0, maxNum+calcStep,calcStep))
+          .range(colors);
+
+      var tip = d3.tip() // This is for the tooltip that is being visible when you hover over a square on the shepard heatmap.
+                  .attr('class', 'd3-tip')
+                  .style("visibility","visible")
+                  .offset([-10, 36.5])
+                  .html(function(d) {
+                    return "Value:  <span style='color:red'>" + Math.round(d.value);
+                  });
+
+      tip(svg.append("g"));
+
+      var dim1Labels = svg.selectAll(".dim1Label") // Label
+          .data(dim_1)
+          .enter().append("text")
+            .text(function (d) { return d; })
+            .attr("x", 0)
+            .attr("y", function (d, i) { return i * gridSize * 2; })
+            .style("text-anchor", "end")
+            .style("font-size", "10px")
+            .attr("transform", "translate(-6," + gridSize / 4 + ")")
+            .attr("class","mono");
+  
+
+      var tooltip2 = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "12")	
+        .style("text-align","center")
+        .style("width","300px")
+        .style("height","50px")
+        .style("padding","2px")
+        .style("background","lightsteelblue")
+        .style("border-radius","8px")
+        .style("border","0px")
+        .style("pointer-events","centnoneer")		
+        .style("color","black")
+        .style("visibility", "hidden")
+        .text("Hint: if values are closer to N-Dim. distances, then the visualization is too compressed.");
+
+      var title = svg.append("text") // Title = Input Distance
+                      .attr("class", "mono")
+                      .attr("x", -(gridSize * 8))
+                      .attr("y", -26)
+                      .style("font-size", "12px")
+                      .attr("transform", "rotate(-90)")
+                      .on("mouseover", function(){return tooltip2.style("visibility", "visible");})
+                      .on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+                      .on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
+                      .text("N-Dimensional Distances");
+
+      var tooltip1 = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "12")	
+        .style("text-align","center")
+        .style("width","300px")
+        .style("height","50px")
+        .style("padding","2px")
+        .style("background","lightsteelblue")
+        .style("border-radius","8px")
+        .style("border","0px")
+        .style("pointer-events","centnoneer")		
+        .style("color","black")
+        .style("visibility", "hidden")
+        .text("Hint: if values are closer to 2-Dim. distances, then the visualization is too spread out.");
+
+      var title = svg.append("text") // Title = Output Distance
+        .attr("class", "mono")
+        .attr("x", gridSize * 2 )
+        .attr("y", -20)
+        .on("mouseover", function(){return tooltip1.style("visibility", "visible");})
+        .on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+        .on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
+        .style("font-size", "12px")
+        .text("2-Dimensional Distances");
+
+      var dim2Labels = svg.selectAll(".dim2Label") // Label
+          .data(dim_2)
+          .enter().append("text")
+            .text(function(d) { return d; })
+            .attr("x", function(d, i) { return i * gridSize * 3.2; })
+            .attr("y", 0)
+            .style("text-anchor", "middle")
+            .style("font-size", "10px")
+            .attr("transform", "translate(" + gridSize / 4 + ", -6)")
+            .attr("class","mono");
+
+      var heatMap = svg.selectAll(".dim2") // Combine the two dimensions and plot the shepard heatmap
+          .data(data)
+          .enter().append("rect")
+          .attr("x", function(d) { return (d.dim2 - 1) * gridSize; })
+          .attr("y", function(d) { return (d.dim1 - 1) * gridSize; })
+          .attr("rx", 0.4)
+          .attr("ry", 0.4)
+          .attr("class", "dim2 bordered")
+          .attr("width", gridSize-2)
+          .attr("height", gridSize-2)
+          .style("fill", colors[0])
+          .attr("class", "square")
+          .on('mouseover', tip.show)
+          .on('mouseout', tip.hide);
+
+      heatMap.transition()
+          .style("fill", function(d) { return colorScale(d.value); });
+
+      heatMap.append("title").text(function(d) { return d.value; });
+
+      var heatleg = d3.select("#legend3"); // Legend3 = the legend of the shepard heatmap
+
+      heatleg.append("g")
+        .attr("class", "legendLinear")
+        .attr("transform", "translate(0,14)");
+
+      var legend = d3.legendColor() // Legend color and title!
+        .labelFormat(d3.format(",.0f"))
+        .cells(9)
+        .title("Number of Points")
+        .scale(colorScale);
+
+      heatleg.select(".legendLinear")
+        .call(legend);
+    });
+  } else {
+
+    // Set the margin of the shepard heatmap
+    var margin = { top: 35, right: 15, bottom: 15, left: 35 },
+    dim2 = Math.min(parseInt(d3.select("#sheparheat").style("width")), parseInt(d3.select("#sheparheat").style("height")))
+    width = dim2- margin.left - margin.right,
+    height = dim2 - margin.top - margin.bottom,
+    buckets = 10, // Set the number of buckets.
+    gridSize = width / buckets,
+    dim_1 = ["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"], // Set the dimensions for the output and input distances.
+    dim_2 = ["0.0", "0.4", "0.6", "1.0"] //I.e., the axes.
+
+    // Create the svg for the shepard heatmap
+    var svg = d3.select("#sheparheat")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    if (flagAnalysis){
+    } else{
+      dists2d = [];
+      dist_list2d = []; // Distances lists empty
+      dist_list = [];
+      // Calculate the 2D distances.
+      dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
+      InitialFormDists2D.push(dists2d);
+    }
+
+      var dist_list_all = [];
+
+      for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
+        dists2d[j] = dists2d[j].slice(0,j);
+        dists[j] = dists[j].slice(0,j);
+      }
+
+      for (var i=0; i<dists2d.length; i++){
+        for (var j=0; j<dists2d.length; j++){
+
+            dist_list_all.push({'ND':dists[i][j], 'TwoD':dists2d[i][j]});
+          }
+        }
+      
+      // append the svg object to the body of the page
+      var svg = d3.select("#sheparheat")
+      .append("svg")
       .attr("width", width + margin.left + margin.right)
       .attr("height", height + margin.top + margin.bottom)
       .append("g")
-      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
 
-  if (flagAnalysis){
-  } else{
-    dists2d = [];
-    dist_list2d = []; // Distances lists empty
-    dist_list = [];
-    // Calculate the 2D distances.
-    dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
-    InitialFormDists2D.push(dists2d);
-    for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
-      dists2d[j] = dists2d[j].slice(0,j);
-      dists[j] = dists[j].slice(0,j);
-    }
-  
-    for (var i=0; i<dists2d.length; i++){
-      for (var j=0; j<dists2d.length; j++){
-        let singleObj = {};
-        singleObj = dists2d[i][j];
-        dist_list2d.push(singleObj);
-        let singleObj2 = {};
-        singleObj2 = dists[i][j];
-        dist_list.push(singleObj2);
-      }
-    }
-    dist_list2d = dist_list2d.sort(); // Sort the lists that contain the distances.
-    dist_list = dist_list.sort();
-    dist_list2d = dist_list2d.filter(function(val){ return val!==undefined; }); // Filter all undefined values
-    dist_list = dist_list.filter(function(val){ return val!==undefined; });
-  }
-    
+      var tip = d3.tip() // This is for the tooltip that is being visible when you hover over a square on the shepard heatmap.
+      .attr('class', 'd3-tip')
+      .style("visibility","visible")
+      .offset([-10, 36.5])
+      .html(function(d) {
+        return "Value:  <span style='color:red'>" + Math.round(d.value);
+      });
 
+      tip(svg.append("g"));
 
-  d3.tsv("./modules/heat.tsv").then(function(data) { // Run the heat.tsv file and get the data from there. This file contains and ordering of the dimensions 1 and dimensions 2.
-  // For example: dim1 = 1 and the dim 2 = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10... and then dim2 = 2 and the dim2=... (same)
-    data.forEach(function(d) { // Get the data from the heat.tsv.
-        d.dim1 = +d.dim1;
-        d.dim2 = +d.dim2;
-        d.value = 0;
-    });
+      var tooltip2 = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "12")	
+        .style("text-align","center")
+        .style("width","300px")
+        .style("height","50px")
+        .style("padding","2px")
+        .style("background","lightsteelblue")
+        .style("border-radius","8px")
+        .style("border","0px")
+        .style("pointer-events","centnoneer")		
+        .style("color","black")
+        .style("visibility", "hidden")
+        .text("Hint: if values are closer to N-Dim. distances, then the visualization is too compressed.");
 
-    var counter = 0;
-    var counnum = [];
-    var temp_loop = 0;
-    for (var l=0; l<100; l++) {counnum[l] = 0};
-    var dist_list_all = [];
-    dist_list_all =[dist_list, dist_list2d]; // Combine the two lists.
+      var tooltip1 = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "12")	
+        .style("text-align","center")
+        .style("width","300px")
+        .style("height","50px")
+        .style("padding","2px")
+        .style("background","lightsteelblue")
+        .style("border-radius","8px")
+        .style("border","0px")
+        .style("pointer-events","centnoneer")		
+        .style("color","black")
+        .style("visibility", "hidden")
+        .text("Hint: if values are closer to 2-Dim. distances, then the visualization is too spread out.");
 
-    for (var l=0; l<100; l++){ // Here we calculate the shepard diagram and then we add the colors! -> shepard heatmap
-      for (k=0; k<dist_list_all[0].length;k++){
-        if (l==0){
-          if (dist_list_all[0][k] <= data[l].dim1/10 && dist_list_all[1][k] <= data[l].dim2/10){
-            counnum[l] = counnum[l] + 1;
-          }
-        }else if (l <= 10){
-          if (dist_list_all[0][k] < data[l].dim1/10 && dist_list_all[1][k] < data[l].dim2/10 && dist_list_all[1][k] > data[l-1].dim2/10){
-            counnum[l] = counnum[l] + 1;
-          }
-        }else if (l % 10 == 1){
-          temp_loop = data[l].dim1-1;
-          if (dist_list_all[0][k] < data[l].dim1/10 && dist_list_all[1][k] < data[l].dim2/10 && dist_list_all[0][k] > temp_loop/10){
-            counnum[l] = counnum[l] + 1;
-          }
-        }else{
-          if (dist_list_all[0][k] <= data[l].dim1/10 && dist_list_all[1][k] <= data[l].dim2/10 && dist_list_all[1][k] >= data[l-1].dim2/10 && dist_list_all[0][k] > temp_loop/10){
-            counnum[l] = counnum[l] + 1;
-          }
-        }
-      }
-      counter = counter + counnum[l];
-    }
+      svg.append("rect")
+      .attr("x",0)
+      .attr("y",0)
+      .attr("height", height)
+      .attr("width", height)
+      .style("fill", "#f7fbff")
 
-    for (var m=0; m<data.length; m++)
-    {
-      data[m].value = counnum[m]; // Count the number of data values.
-    }
+      // Add X axis
+      var x = d3.scaleLinear()
+      .domain([0, 1])
+      .range([0, width])
+      svg.append("g")
+      .call(d3.axisTop(x).tickSize(-height*1.3).ticks(10))
+      .select(".domain").remove()
 
-    // Color scale for minimum and maximum values for the shepard heatmap.
-    var maxNum = Math.round(d3.max(data,function(d){ return d.value; }));
-    var minNum = Math.round(d3.min(data,function(d){ return d.value; }));
-    var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
-    let calcStep = (maxNum-minNum)/colors.length;
-    var colorScale = d3.scaleLinear()
-        .domain(d3.range(0, maxNum+calcStep,calcStep))
-        .range(colors);
+      // Add Y axis
+      var y = d3.scaleLinear()
+      .domain([0, 1])
+      .range([0, height])
+      .nice()
+      svg.append("g")
+      .call(d3.axisLeft(y).tickSize(-width*1.3).ticks())
+      .select(".domain").remove()
 
-    var tip = d3.tip() // This is for the tooltip that is being visible when you hover over a square on the shepard heatmap.
-                .attr('class', 'd3-tip')
-                .style("visibility","visible")
-                .offset([-10, 36.5])
-                .html(function(d) {
-                  return "Value:  <span style='color:red'>" + Math.round(d.value);
-                });
+      // Customization
+      svg.selectAll(".tick line").attr("stroke", "white").attr("stroke-width","2.5px")
 
-    tip(svg.append("g"));
-
-    var dim1Labels = svg.selectAll(".dim1Label") // Label
-        .data(dim_1)
-        .enter().append("text")
-          .text(function (d) { return d; })
-          .attr("x", 0)
-          .attr("y", function (d, i) { return i * gridSize * 2; })
-          .style("text-anchor", "end")
-          .style("font-size", "10px")
-          .attr("transform", "translate(-6," + gridSize / 4 + ")")
-          .attr("class","mono");
- 
-
-    var tooltip2 = d3.select("body")
-      .append("div")
-      .style("position", "absolute")
-      .style("z-index", "12")	
-      .style("text-align","center")
-      .style("width","300px")
-      .style("height","50px")
-      .style("padding","2px")
-      .style("background","lightsteelblue")
-      .style("border-radius","8px")
-      .style("border","0px")
-      .style("pointer-events","centnoneer")		
-      .style("color","black")
-      .style("visibility", "hidden")
-      .text("Hint: if values are closer to N-Dim. distances, then the visualization is too compressed.");
-
-    var title = svg.append("text") // Title = Input Distance
-                    .attr("class", "mono")
-                    .attr("x", -(gridSize * 8))
-                    .attr("y", -26)
-                    .style("font-size", "12px")
-                    .attr("transform", "rotate(-90)")
-                    .on("mouseover", function(){return tooltip2.style("visibility", "visible");})
-                    .on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-                    .on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
-                    .text("N-Dimensional Distances");
-
-    var tooltip1 = d3.select("body")
-      .append("div")
-      .style("position", "absolute")
-      .style("z-index", "12")	
-      .style("text-align","center")
-      .style("width","300px")
-      .style("height","50px")
-      .style("padding","2px")
-      .style("background","lightsteelblue")
-      .style("border-radius","8px")
-      .style("border","0px")
-      .style("pointer-events","centnoneer")		
-      .style("color","black")
-      .style("visibility", "hidden")
-      .text("Hint: if values are closer to 2-Dim. distances, then the visualization is too spread out.");
-
-    var title = svg.append("text") // Title = Output Distance
+      var title = svg.append("text") // Title = Input Distance
       .attr("class", "mono")
-      .attr("x", gridSize * 2 )
-      .attr("y", -20)
-      .on("mouseover", function(){return tooltip1.style("visibility", "visible");})
-      .on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-      .on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
+      .attr("x", -(gridSize * 8))
+      .attr("y", -26)
       .style("font-size", "12px")
-      .text("2-Dimensional Distances");
+      .attr("transform", "rotate(-90)")
+      .on("mouseover", function(){return tooltip2.style("visibility", "visible");})
+      .on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+      .on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
+      .text("N-Dimensional Distances");
 
-    var dim2Labels = svg.selectAll(".dim2Label") // Label
-        .data(dim_2)
-        .enter().append("text")
-          .text(function(d) { return d; })
-          .attr("x", function(d, i) { return i * gridSize * 3.2; })
-          .attr("y", 0)
-          .style("text-anchor", "middle")
-          .style("font-size", "10px")
-          .attr("transform", "translate(" + gridSize / 4 + ", -6)")
-          .attr("class","mono");
 
-    var heatMap = svg.selectAll(".dim2") // Combine the two dimensions and plot the shepard heatmap
-        .data(data)
-        .enter().append("rect")
-        .attr("x", function(d) { return (d.dim2 - 1) * gridSize; })
-        .attr("y", function(d) { return (d.dim1 - 1) * gridSize; })
-        .attr("rx", 0.4)
-        .attr("ry", 0.4)
-        .attr("class", "dim2 bordered")
-        .attr("width", gridSize-2)
-        .attr("height", gridSize-2)
-        .style("fill", colors[0])
-        .attr("class", "square")
-        .on('mouseover', tip.show)
-        .on('mouseout', tip.hide);
+      // Add X axis label:
+      svg.append("text")
+        .attr("text-anchor", "end")
+        .attr("x", width/2 + margin.left)
+        .attr("y", height + margin.top + 20)
+        .text("2-Dimensional Distances");
 
-    heatMap.transition()
-        .style("fill", function(d) { return colorScale(d.value); });
+        var title = svg.append("text") // Title = Output Distance
+        .attr("class", "mono")
+        .attr("x", gridSize * 2 )
+        .attr("y", -20)
+        .style("font-size", "12px")
+        .on("mouseover", function(){return tooltip1.style("visibility", "visible");})
+        .on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+        .on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
+        .text("2-Dimensional Distances");
 
-    heatMap.append("title").text(function(d) { return d.value; });
-
-    var heatleg = d3.select("#legend3"); // Legend3 = the legend of the shepard heatmap
-
-    heatleg.append("g")
-      .attr("class", "legendLinear")
-      .attr("transform", "translate(0,14)");
-
-    var legend = d3.legendColor() // Legend color and title!
-      .labelFormat(d3.format(",.0f"))
-      .cells(9)
-      .title("Number of Points")
-      .scale(colorScale);
-
-    heatleg.select(".legendLinear")
-      .call(legend);
-  });
+          //var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
+     // Add dots
+     svg.append('g')
+     .selectAll("dot")
+     .data(dist_list_all)
+     .enter()
+     .append("circle")
+       .attr("cx", function (d) { if (d.TwoD === 'undefined') {} else {return x(d.TwoD);} } )
+       .attr("cy", function (d) { if (d.ND === 'undefined') {} else {return y(d.ND); } } )
+       .attr("r", 1.5)
+       .style("fill", "#323232");
+  }
 }
+// Here is the end of ShepardHeatmap
 
 // perform single t-SNE iteration
 function step() {
@@ -1145,7 +3455,7 @@ function step() {
           cost = tsne.step();
           cost_each = cost[1];
           for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
-          $("#cost").html("(Number of Iteration: " + tsne.iter + ", Overall Cost: " + cost[0].toFixed(3) + ")");
+          $("#cost").html("(Number of Iter.: " + tsne.iter + ", Ov. Cost: " + cost[0].toFixed(3) + ")");
           ArrayWithCosts.push(cost[0].toFixed(3));
           Iterations.push(step_counter);
         }
@@ -1299,7 +3609,7 @@ var theRect = theGroup.append('rect')
     .attr("id", function(d){return d.id;})
     .attr("r", 2)
     .attr("cx", function(d){return ((d.x/dimensions)*dim);})
-    .attr("cy", function(d){return ((d.y/dimensions)*dim);});
+    .attr("cy", function(d){return ((d.y/dimensionsY)*dim);});
     }
     updateRect();
 }
@@ -1548,7 +3858,9 @@ function click(){ // This is the click of the Schema Investigation scenario
       d3.event.preventDefault();
 
       flagForSchema = true; // Schema is activated.
-      CalculateCorrel(flagForSchema); // Calculate the correlations
+      var option = document.getElementById("param-correlationMeasur").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+      option = parseInt(option);
+      CalculateCorrel(flagForSchema, option); // Calculate the correlations
     }
   });
 
@@ -1561,264 +3873,518 @@ function sortByKey(array, key) {
   });
 }
 
-function CalculateCorrel(flagForSchema){ // Calculate the correlation is a function which has all the computations for the schema ordering (investigation).
+function CalculateCorrel(flagForSchema, option){ // Calculate the correlation is a function which has all the computations for the schema ordering (investigation).
  
   if (flagForSchema == false){
     alert("Please, draw a schema first!"); // If no Schema is drawn then ask the user!
   } else{
-    var correlLimit = document.getElementById("param-corr-value").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
-    correlLimit = parseInt(correlLimit);
-
-    allTransformPoints = [];
-    for (var loop = 0; loop < points.length ; loop++){
-        allTransformPoints[loop] = [points[loop].x, points[loop].y, points[loop].id, points[loop].beta, points[loop].cost, points[loop].selected];
-    }
-
-    var line = svgClick.append("line");
-
-    paths = svgClick.selectAll("path").filter(".SchemaCheck");
-    XYDistId = [];
-    if (paths.nodes().length == 0){ // We need more than 1 points
-      alert("Please, provide one more point in order to create a line (i.e., path)!")
-    } else{
-      for (var m = 0; m < paths.nodes().length; m++) {
-        for (var j = 0; j < allTransformPoints.length; j++){
-          p = closestPoint(paths.nodes()[m], allTransformPoints[j]); // Closest of each point to the paths that we have.
-          XYDistId.push(p); // Take the XY coordinates, Distance, and ID
-        }
-      }
-
-      for (var j = 0; j < allTransformPoints.length; j++){
-        for (var m = 0; m < paths.nodes().length; m++) { // Find the minimum path distance for each point 
-          if (m == 0){
-            minimum = XYDistId[j].distance;
-          }
-          else if (minimum > XYDistId[(m * allTransformPoints.length) + j].distance) {
-            minimum = XYDistId[(m * allTransformPoints.length) + j].distance;
-          }
-        }
-
-        for (var l = 0; l < paths.nodes().length ; l++) {
-          if (XYDistId[(l * allTransformPoints.length) + j].distance == minimum){
-            allTransformPoints[j].bucketID = l; // Bucket ID in which each point belongs to...
-          }
-        }
-      }
-
-    var arrays = [], size = allTransformPoints.length;
-    while (XYDistId.length > 0) { // For each path I have all the necessary information (all the IDs of the points etc..)
-        arrays.push(XYDistId.splice(0, size));
-    }
+    if (option == 1) {
+      var correlLimit = document.getElementById("param-corr-value").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+      correlLimit = parseInt(correlLimit);
   
-    var arraysCleared = [];
-
-    for (var j = 0; j < allTransformPoints.length; j++){ // Now we have the XY coordinates values of the points, the IDs of the points, the xy coordinates on the line, the number of the path that they belong two times.
-      for (var m=0; m < arrays.length; m++) {
-        if (allTransformPoints[j].bucketID == m){
-          arraysCleared.push(arrays[m][j].concat(allTransformPoints[j].bucketID, Arrayxy[m], arrays[m][j].distance, arrays[m][j].id));
-        }
-      }
-    }
-    var compareThreshold = ((correlLimit/100)*arraysCleared.length)
-    compareThreshold = parseInt(compareThreshold);
-
-    arraysCleared = sortByKey(arraysCleared, 5);
-    ArrayLimit = [];
-    for (var i=0; i<arraysCleared.length; i++) {
-      if (i <= compareThreshold) { // Now we add a limit to the distance that we search according to the thresholder which the user changes through a slider.
-        ArrayLimit.push(arraysCleared[i]);
-      }
-    }
-    var temparray = [];
-    var count = new Array(paths.nodes().length).fill(0);
-
-    for (var m=0; m < paths.nodes().length; m++) { // Sort the arrays from the smaller distance to the highest distance
-      for (var i=0; i<ArrayLimit.length; i++) {
-        if (ArrayLimit[i][2] == m){ // Match the bucket IDs
-            count[m] = count[m] + 1;
-          temparray.push(ArrayLimit[i]);
-        }
-      }
-    }
-    var arraysSplitted = [];
-
-    for (var m=0; m < paths.nodes().length; m++) {
-      arraysSplitted.push(temparray.splice(0, count[m])); // Separate the combined array according to the number of points in each path.
-    }
-
-    for (var m=0; m < paths.nodes().length; m++) { // Compare the distances and find the minimum values. Connect the paths afterwards.
-      arraysSplitted[m] = arraysSplitted[m].sort(function(a, b){
-              var dist = (a[0]-a[3]) * (a[0]-a[3]) + (a[1]-a[4]) * (a[1]-a[4]);
-              var distAgain = (b[0]-b[3]) * (b[0]-b[3]) + (b[1]-b[4]) * (b[1]-b[4]);
-              // Compare the 2 dates
-              if(dist < distAgain) return -1;
-              if(distAgain > dist) return 1;
-              return 0;
-      });
-    }
-
-    // This is how we gain the order.
-    var arraysConnected = [];
-
-    if (paths.nodes().length == 1) {
-        arraysConnected = arraysSplitted[0];
-    } else {
-      for (var m=0; m < paths.nodes().length - 1; m++) {
-        arraysConnected = arraysSplitted[m].concat(arraysSplitted[m+1]);
-      }
-    }
-
-    var Order = [];
-
-    for (var temp = 0; temp < arraysConnected.length; temp++) {
-      Order.push(arraysConnected[temp][6]); // We have the order now for the entire path.
-    }
-
-    for (var i = 0; i < points.length; i++){
-      points[i].selected = false;
-      points[i].schemaInv = false;
-      for (var j = 0; j < ArrayLimit.length; j++){
-        if (ArrayLimit[j][ArrayLimit[0].length-1] == points[i].id){
-          points[i].selected = true;
-          points[i].schemaInv = true;
-        }
-      }
-    }
-    redraw(points); // Redraw the points and leave only the selected points with a color (else gray color)
-
-    ArrayContainsDataFeaturesCleared = []; // Recalculate that because we want dimensions + 1 (the id) elements in columns.
-    for (let k = 0; k < dataFeatures.length; k++){
-
-      object = [];
-      for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
-        if(!isString(Object.values(dataFeatures[k])[j]) && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
-          object.push(Object.values(dataFeatures[k])[j]);
-        } else{
-          object.push(null);
-        }
-      }
-      ArrayContainsDataFeaturesCleared.push(object.concat(k)); // The ArrayContainsDataFeaturesCleared contains only numbers without the categorization parameter even if it is a number.
-
-    }
-
-    ArrayContainsDataFeaturesCleared = mapOrder(ArrayContainsDataFeaturesCleared, Order, ArrayContainsDataFeaturesCleared[0].length-1); // Order the features according to the order.
-    ArrayContainsDataFeaturesLimit = [];
-    for (var i = 0; i < ArrayContainsDataFeaturesCleared.length; i++){
-      for (var j = 0; j < arraysConnected.length; j++){
-        if (ArrayContainsDataFeaturesCleared[i][ArrayContainsDataFeaturesCleared[0].length-1] == arraysConnected[j][6]){
-          ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeaturesCleared[i]); // These are the selected points in an order from the higher id (the previous local id) to the lower. 
-        } 
-      }
-    }
-
-    if (ArrayContainsDataFeaturesLimit.length == 0){ // If no points were selected then send a message to the user! And set everything again to the initial state.
-      d3.selectAll("#correlation > *").remove(); 
-      d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
-      d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove();
-      flagForSchema = false; 
-      Arrayx = [];
-      Arrayy = [];
-      XYDistId = [];
-      Arrayxy = [];
-      DistanceDrawing1D = [];
       allTransformPoints = [];
-      pFinal = [];
-      ArrayLimit = [];
-      correlationResults = [];
-      ArrayContainsDataFeaturesLimit = [];
-      prevRightClick = false;
-
-      for (var i=0; i < InitialStatePoints.length; i++){
-        InitialStatePoints[i].selected = true;
-        InitialStatePoints[i].pcp = false;
-      }
-      redraw(InitialStatePoints);
-
-      alert("No points selected! Please, try to increase the correlation threshold.");
-    } else {
-      for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
-        ArrayContainsDataFeaturesLimit[loop].push(loop);
+      for (var loop = 0; loop < points.length ; loop++){
+          allTransformPoints[loop] = [points[loop].x, points[loop].y, points[loop].id, points[loop].beta, points[loop].cost, points[loop].selected];
       }
   
-      var SignStore = [];
-      correlationResults = [];
-      const arrayColumn = (arr, n) => arr.map(x => x[n]);
+      var line = svgClick.append("line");
+  
+      paths = svgClick.selectAll("path").filter(".SchemaCheck");
+      XYDistId = [];
+      if (paths.nodes().length == 0){ // We need more than 1 points
+        alert("Please, provide one more point in order to create a line (i.e., path)!")
+      } else{
+        for (var m = 0; m < paths.nodes().length; m++) {
+          for (var j = 0; j < allTransformPoints.length; j++){
+            p = closestPoint(paths.nodes()[m], allTransformPoints[j]); // Closest of each point to the paths that we have.
+            XYDistId.push(p); // Take the XY coordinates, Distance, and ID
+          }
+        }
 
-      for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
-        if (ArrayContainsDataFeaturesLimit[0][temp] == null){ // Match the data features with every dimension, which is a number!
-        } else {
-          var tempData = new Array(
-            arrayColumn(ArrayContainsDataFeaturesLimit, temp),
-            arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
-          );
-          if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
-          } else{
-            SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
-              //correlationResults.push([Object.keys(dataFeatures[0])[temp], Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
-              correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
+        for (var j = 0; j < allTransformPoints.length; j++){
+          for (var m = 0; m < paths.nodes().length; m++) { // Find the minimum path distance for each point 
+            if (m == 0){
+              minimum = XYDistId[j].distance;
+            }
+            else if (minimum > XYDistId[(m * allTransformPoints.length) + j].distance) {
+              minimum = XYDistId[(m * allTransformPoints.length) + j].distance;
+            }
+          }
+  
+          for (var l = 0; l < paths.nodes().length ; l++) {
+            if (XYDistId[(l * allTransformPoints.length) + j].distance == minimum){
+              allTransformPoints[j].bucketID = l; // Bucket ID in which each point belongs to...
+            }
+          }
+        }
+  
+      var arrays = [], size = allTransformPoints.length;
+      while (XYDistId.length > 0) { // For each path I have all the necessary information (all the IDs of the points etc..)
+          arrays.push(XYDistId.splice(0, size));
+      }
+    
+      var arraysCleared = [];
+  
+      for (var j = 0; j < allTransformPoints.length; j++){ // Now we have the XY coordinates values of the points, the IDs of the points, the xy coordinates on the line, the number of the path that they belong two times.
+        for (var m=0; m < arrays.length; m++) {
+          if (allTransformPoints[j].bucketID == m){
+            arraysCleared.push(arrays[m][j].concat(allTransformPoints[j].bucketID, Arrayxy[m], arrays[m][j].distance, arrays[m][j].id));
           }
         }
       }
-    function getMinMaxOf2DIndex (arr, idx) {
-      return {
-        min: Math.min.apply(null, arr.map(function (e) { return e[idx]})),
-        max: Math.max.apply(null, arr.map(function (e) { return e[idx]}))
-      }
-    } 
-
-    var maxminArea = [];
-    for (var i=0; i<ArrayContainsDataFeaturesLimit[0].length; i++){
-      maxminArea.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesLimit, i));
-    }
-
-    if (PreComputFlagCorrelation){
-      maxminTotal = [];
-      for (var i=0; i<ArrayContainsDataFeaturesCleared[0].length; i++){
-        maxminTotal.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesCleared, i));
-      }
-      PreComputFlagCorrelation = false;
-    }
-    correlationResultsFinal = [];
-    for (var i=0; i<correlationResults.length; i++){
-      if (parseFloat(document.getElementById("param-corlim-value").value) < Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])){
-        correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
-      }
-    }
-
-    correlationResultsFinal = correlationResultsFinal.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
-    function(a,b) {
-      if (a[1] == b[1])
-        return a[0] < b[0] ? -1 : 1;
-        return a[1] < b[1] ? 1 : -1;
-      }
-    );
-
-    correlationResults = correlationResults.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
-    function(a,b) {
-      if (a[1] == b[1])
-        return a[0] < b[0] ? -1 : 1;
-        return a[1] < b[1] ? 1 : -1;
-      }
-    );
-
-  for (var j = 0; j < correlationResultsFinal.length; j++) {
-    for (var i = 0; i < SignStore.length; i++) {
-      if (SignStore[i][0] == correlationResults[j][2]){
-        if (SignStore[i][1] < 0)
-        {
-          correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+      var compareThreshold = ((correlLimit/100)*arraysCleared.length)
+      compareThreshold = parseInt(compareThreshold);
+  
+      arraysCleared = sortByKey(arraysCleared, 5);
+      ArrayLimit = [];
+      for (var i=0; i<arraysCleared.length; i++) {
+        if (i <= compareThreshold) { // Now we add a limit to the distance that we search according to the thresholder which the user changes through a slider.
+          ArrayLimit.push(arraysCleared[i]);
         }
-        else 
-        {
-          correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
+      }
+      var temparray = [];
+      var count = new Array(paths.nodes().length).fill(0);
+  
+      for (var m=0; m < paths.nodes().length; m++) { // Sort the arrays from the smaller distance to the highest distance
+        for (var i=0; i<ArrayLimit.length; i++) {
+          if (ArrayLimit[i][2] == m){ // Match the bucket IDs
+              count[m] = count[m] + 1;
+            temparray.push(ArrayLimit[i]);
+          }
+        }
+      }
+      var arraysSplitted = [];
+  
+      for (var m=0; m < paths.nodes().length; m++) {
+        arraysSplitted.push(temparray.splice(0, count[m])); // Separate the combined array according to the number of points in each path.
+      }
+  
+      for (var m=0; m < paths.nodes().length; m++) { // Compare the distances and find the minimum values. Connect the paths afterwards.
+        arraysSplitted[m] = arraysSplitted[m].sort(function(a, b){
+                var dist = (a[0]-a[3]) * (a[0]-a[3]) + (a[1]-a[4]) * (a[1]-a[4]);
+                var distAgain = (b[0]-b[3]) * (b[0]-b[3]) + (b[1]-b[4]) * (b[1]-b[4]);
+                // Compare the 2 dates
+                if(dist < distAgain) return -1;
+                if(distAgain > dist) return 1;
+                return 0;
+        });
+      }
+  
+      // This is how we gain the order.
+      var arraysConnected = [];
+  
+      if (paths.nodes().length == 1) {
+          arraysConnected = arraysSplitted[0];
+      } else {
+        for (var m=0; m < paths.nodes().length - 1; m++) {
+          arraysConnected = arraysSplitted[m].concat(arraysSplitted[m+1]);
+        }
+      }
+  
+      var Order = [];
+  
+      for (var temp = 0; temp < arraysConnected.length; temp++) {
+        Order.push(arraysConnected[temp][6]); // We have the order now for the entire path.
+      }
+  
+      for (var i = 0; i < points.length; i++){
+        points[i].selected = false;
+        points[i].schemaInv = false;
+        for (var j = 0; j < ArrayLimit.length; j++){
+          if (ArrayLimit[j][ArrayLimit[0].length-1] == points[i].id){
+            points[i].selected = true;
+            points[i].schemaInv = true;
+          }
+        }
+      }
+      redraw(points); // Redraw the points and leave only the selected points with a color (else gray color)
+  
+      ArrayContainsDataFeaturesCleared = []; // Recalculate that because we want dimensions + 1 (the id) elements in columns.
+      for (let k = 0; k < dataFeatures.length; k++){
+  
+        object = [];
+        for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
+          if(!isString(Object.values(dataFeatures[k])[j]) && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
+            object.push(Object.values(dataFeatures[k])[j]);
+          } else{
+            object.push(null);
+          }
+        }
+        ArrayContainsDataFeaturesCleared.push(object.concat(k)); // The ArrayContainsDataFeaturesCleared contains only numbers without the categorization parameter even if it is a number.
+  
+      }
+  
+      ArrayContainsDataFeaturesCleared = mapOrder(ArrayContainsDataFeaturesCleared, Order, ArrayContainsDataFeaturesCleared[0].length-1); // Order the features according to the order.
+      ArrayContainsDataFeaturesLimit = [];
+      for (var i = 0; i < ArrayContainsDataFeaturesCleared.length; i++){
+        for (var j = 0; j < arraysConnected.length; j++){
+          if (ArrayContainsDataFeaturesCleared[i][ArrayContainsDataFeaturesCleared[0].length-1] == arraysConnected[j][6]){
+            ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeaturesCleared[i]); // These are the selected points in an order from the higher id (the previous local id) to the lower. 
+          } 
+        }
+      }
+  
+      if (ArrayContainsDataFeaturesLimit.length == 0){ // If no points were selected then send a message to the user! And set everything again to the initial state.
+        d3.selectAll("#correlation > *").remove(); 
+        d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
+        d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove();
+        flagForSchema = false; 
+        Arrayx = [];
+        Arrayy = [];
+        XYDistId = [];
+        Arrayxy = [];
+        DistanceDrawing1D = [];
+        allTransformPoints = [];
+        pFinal = [];
+        ArrayLimit = [];
+        correlationResults = [];
+        ArrayContainsDataFeaturesLimit = [];
+        prevRightClick = false;
+  
+        for (var i=0; i < InitialStatePoints.length; i++){
+          InitialStatePoints[i].selected = true;
+          InitialStatePoints[i].pcp = false;
+        }
+        redraw(InitialStatePoints);
+  
+        alert("No points selected! Please, try to increase the correlation threshold.");
+      } else {
+        for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
+          ArrayContainsDataFeaturesLimit[loop].push(loop);
+        }
+    
+        var SignStore = [];
+        correlationResults = [];
+        const arrayColumn = (arr, n) => arr.map(x => x[n]);
+  
+        for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
+          if (ArrayContainsDataFeaturesLimit[0][temp] == null){ // Match the data features with every dimension, which is a number!
+          } else {
+            var tempData = new Array(
+              arrayColumn(ArrayContainsDataFeaturesLimit, temp),
+              arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
+            );
+            if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
+            } else{
+              SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
+                //correlationResults.push([Object.keys(dataFeatures[0])[temp], Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+                correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
+            }
+          }
+        }
+      function getMinMaxOf2DIndex (arr, idx) {
+        return {
+          min: Math.min.apply(null, arr.map(function (e) { return e[idx]})),
+          max: Math.max.apply(null, arr.map(function (e) { return e[idx]}))
+        }
+      } 
+  
+      var maxminArea = [];
+      for (var i=0; i<ArrayContainsDataFeaturesLimit[0].length; i++){
+        maxminArea.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesLimit, i));
+      }
+  
+      if (PreComputFlagCorrelation){
+        maxminTotal = [];
+        for (var i=0; i<ArrayContainsDataFeaturesCleared[0].length; i++){
+          maxminTotal.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesCleared, i));
+        }
+        PreComputFlagCorrelation = false;
+      }
+      correlationResultsFinal = [];
+      for (var i=0; i<correlationResults.length; i++){
+        if (parseFloat(document.getElementById("param-corlim-value").value) < Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])){
+          correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
+        }
+      }
+  
+      correlationResultsFinal = correlationResultsFinal.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
+      function(a,b) {
+        if (a[1] == b[1])
+          return a[0] < b[0] ? -1 : 1;
+          return a[1] < b[1] ? 1 : -1;
+        }
+      );
+  
+      correlationResults = correlationResults.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
+      function(a,b) {
+        if (a[1] == b[1])
+          return a[0] < b[0] ? -1 : 1;
+          return a[1] < b[1] ? 1 : -1;
+        }
+      );
+  
+    for (var j = 0; j < correlationResultsFinal.length; j++) {
+      for (var i = 0; i < SignStore.length; i++) {
+        if (SignStore[i][0] == correlationResults[j][2]){
+          if (SignStore[i][1] < 0)
+          {
+            correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+          }
+          else 
+          {
+            correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
+          }
         }
       }
     }
   }
-}
-//console.log(correlationResultsFinal);
-    drawBarChart(); // Draw the horizontal barchart with the correlations.
+      drawBarChart(); // Draw the horizontal barchart with the correlations.
+      
+      }
+    } else {
+      // This is for KNN!
+      var kvalue = document.getElementById("param-corr-value2").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+      kvalue = parseInt(kvalue);
+
+      allTransformPoints = [];
+      for (var loop = 0; loop < points.length ; loop++){
+          allTransformPoints[loop] = [points[loop].x, points[loop].y, points[loop].id, points[loop].beta, points[loop].cost, points[loop].selected];
+      }
+  
+      var line = svgClick.append("line");
+  
+      paths = svgClick.selectAll("path").filter(".SchemaCheck");
+      XYDistId = [];
+      if (paths.nodes().length == 0){ // We need more than 1 points
+        alert("Please, provide one more point in order to create a line (i.e., path)!")
+      } else{
+        for (var m = 0; m < paths.nodes().length; m++) {
+          for (var j = 0; j < allTransformPoints.length; j++){
+            p = closestPoint(paths.nodes()[m], allTransformPoints[j]); // Closest of each point to the paths that we have.
+            XYDistId.push(p); // Take the XY coordinates, Distance, and ID
+          }
+        }
+
+        for (var j = 0; j < allTransformPoints.length; j++){
+          for (var m = 0; m < paths.nodes().length; m++) { // Find the minimum path distance for each point 
+            if (m == 0){
+              minimum = XYDistId[j].distance;
+            }
+            else if (minimum > XYDistId[(m * allTransformPoints.length) + j].distance) {
+              minimum = XYDistId[(m * allTransformPoints.length) + j].distance;
+            }
+          }
+  
+          for (var l = 0; l < paths.nodes().length ; l++) {
+            if (XYDistId[(l * allTransformPoints.length) + j].distance == minimum){
+              allTransformPoints[j].bucketID = l; // Bucket ID in which each point belongs to...
+            }
+          }
+        }
+  
+      var arrays = [], size = allTransformPoints.length;
+      while (XYDistId.length > 0) { // For each path I have all the necessary information (all the IDs of the points etc..)
+          arrays.push(XYDistId.splice(0, size));
+      }
     
+      var arraysCleared = [];
+  
+      for (var j = 0; j < allTransformPoints.length; j++){ // Now we have the XY coordinates values of the points, the IDs of the points, the xy coordinates on the line, the number of the path that they belong two times.
+        for (var m=0; m < arrays.length; m++) {
+          if (allTransformPoints[j].bucketID == m){
+            arraysCleared.push(arrays[m][j].concat(allTransformPoints[j].bucketID, Arrayxy[m], arrays[m][j].distance, arrays[m][j].id));
+          }
+        }
+      }
+  
+      arraysCleared = sortByKey(arraysCleared, 5);
+      ArrayLimit = [];
+      for (var i=0; i<arraysCleared.length; i++) {
+        if (i <= kvalue) { // Now we add a limit to the distance that we search according to the thresholder which the user changes through a slider.
+          ArrayLimit.push(arraysCleared[i]);
+        }
+      }
+      var temparray = [];
+      var count = new Array(paths.nodes().length).fill(0);
+  
+      for (var m=0; m < paths.nodes().length; m++) { // Sort the arrays from the smaller distance to the highest distance
+        for (var i=0; i<ArrayLimit.length; i++) {
+          if (ArrayLimit[i][2] == m){ // Match the bucket IDs
+              count[m] = count[m] + 1;
+            temparray.push(ArrayLimit[i]);
+          }
+        }
+      }
+      var arraysSplitted = [];
+  
+      for (var m=0; m < paths.nodes().length; m++) {
+        arraysSplitted.push(temparray.splice(0, count[m])); // Separate the combined array according to the number of points in each path.
+      }
+  
+      for (var m=0; m < paths.nodes().length; m++) { // Compare the distances and find the minimum values. Connect the paths afterwards.
+        arraysSplitted[m] = arraysSplitted[m].sort(function(a, b){
+                var dist = (a[0]-a[3]) * (a[0]-a[3]) + (a[1]-a[4]) * (a[1]-a[4]);
+                var distAgain = (b[0]-b[3]) * (b[0]-b[3]) + (b[1]-b[4]) * (b[1]-b[4]);
+                // Compare the 2 dates
+                if(dist < distAgain) return -1;
+                if(distAgain > dist) return 1;
+                return 0;
+        });
+      }
+  
+      // This is how we gain the order.
+      var arraysConnected = [];
+  
+      if (paths.nodes().length == 1) {
+          arraysConnected = arraysSplitted[0];
+      } else {
+        for (var m=0; m < paths.nodes().length - 1; m++) {
+          arraysConnected = arraysSplitted[m].concat(arraysSplitted[m+1]);
+        }
+      }
+  
+      var Order = [];
+  
+      for (var temp = 0; temp < arraysConnected.length; temp++) {
+        Order.push(arraysConnected[temp][6]); // We have the order now for the entire path.
+      }
+  
+      for (var i = 0; i < points.length; i++){
+        points[i].selected = false;
+        points[i].schemaInv = false;
+        for (var j = 0; j < ArrayLimit.length; j++){
+          if (ArrayLimit[j][ArrayLimit[0].length-1] == points[i].id){
+            points[i].selected = true;
+            points[i].schemaInv = true;
+          }
+        }
+      }
+      redraw(points); // Redraw the points and leave only the selected points with a color (else gray color)
+  
+      ArrayContainsDataFeaturesCleared = []; // Recalculate that because we want dimensions + 1 (the id) elements in columns.
+      for (let k = 0; k < dataFeatures.length; k++){
+  
+        object = [];
+        for (let j = 0; j < Object.keys(dataFeatures[k]).length; j++){
+          if(!isString(Object.values(dataFeatures[k])[j]) && Object.keys(dataFeatures[k])[j] != Category){ // Only numbers and not the classification labels. 
+            object.push(Object.values(dataFeatures[k])[j]);
+          } else{
+            object.push(null);
+          }
+        }
+        ArrayContainsDataFeaturesCleared.push(object.concat(k)); // The ArrayContainsDataFeaturesCleared contains only numbers without the categorization parameter even if it is a number.
+  
+      }
+  
+      ArrayContainsDataFeaturesCleared = mapOrder(ArrayContainsDataFeaturesCleared, Order, ArrayContainsDataFeaturesCleared[0].length-1); // Order the features according to the order.
+      ArrayContainsDataFeaturesLimit = [];
+      for (var i = 0; i < ArrayContainsDataFeaturesCleared.length; i++){
+        for (var j = 0; j < arraysConnected.length; j++){
+          if (ArrayContainsDataFeaturesCleared[i][ArrayContainsDataFeaturesCleared[0].length-1] == arraysConnected[j][6]){
+            ArrayContainsDataFeaturesLimit.push(ArrayContainsDataFeaturesCleared[i]); // These are the selected points in an order from the higher id (the previous local id) to the lower. 
+          } 
+        }
+      }
+  
+      if (ArrayContainsDataFeaturesLimit.length == 0){ // If no points were selected then send a message to the user! And set everything again to the initial state.
+        d3.selectAll("#correlation > *").remove(); 
+        d3.selectAll("#modtSNEcanvas_svg > *").remove(); 
+        d3.selectAll("#modtSNEcanvas_svg_Schema > *").remove();
+        flagForSchema = false; 
+        Arrayx = [];
+        Arrayy = [];
+        XYDistId = [];
+        Arrayxy = [];
+        DistanceDrawing1D = [];
+        allTransformPoints = [];
+        pFinal = [];
+        ArrayLimit = [];
+        correlationResults = [];
+        ArrayContainsDataFeaturesLimit = [];
+        prevRightClick = false;
+  
+        for (var i=0; i < InitialStatePoints.length; i++){
+          InitialStatePoints[i].selected = true;
+          InitialStatePoints[i].pcp = false;
+        }
+        redraw(InitialStatePoints);
+  
+        alert("No points selected! Please, try to increase the correlation threshold.");
+      } else {
+        for (var loop = 0; loop < ArrayContainsDataFeaturesLimit.length; loop++) {
+          ArrayContainsDataFeaturesLimit[loop].push(loop);
+        }
+    
+        var SignStore = [];
+        correlationResults = [];
+        const arrayColumn = (arr, n) => arr.map(x => x[n]);
+  
+        for (var temp = 0; temp < ArrayContainsDataFeaturesLimit[0].length - 2; temp++) {
+          if (ArrayContainsDataFeaturesLimit[0][temp] == null){ // Match the data features with every dimension, which is a number!
+          } else {
+            var tempData = new Array(
+              arrayColumn(ArrayContainsDataFeaturesLimit, temp),
+              arrayColumn(ArrayContainsDataFeaturesLimit, ArrayContainsDataFeaturesLimit[0].length - 1)
+            );
+            if (isNaN(pearsonCorrelation(tempData, 0, 1))) {
+            } else{
+              SignStore.push([temp, pearsonCorrelation(tempData, 0, 1)]); // Keep the sign
+                //correlationResults.push([Object.keys(dataFeatures[0])[temp], Math.abs(pearsonCorrelation(tempData, 0, 1)),temp]); // Find the pearson correlations
+                correlationResults.push([Object.keys(dataFeatures[0])[temp] + " (" + temp + ")", Math.pow(pearsonCorrelation(tempData, 0, 1),2),temp]); // Find the pearson correlations (MAYBE!)
+            }
+          }
+        }
+      function getMinMaxOf2DIndex (arr, idx) {
+        return {
+          min: Math.min.apply(null, arr.map(function (e) { return e[idx]})),
+          max: Math.max.apply(null, arr.map(function (e) { return e[idx]}))
+        }
+      } 
+  
+      var maxminArea = [];
+      for (var i=0; i<ArrayContainsDataFeaturesLimit[0].length; i++){
+        maxminArea.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesLimit, i));
+      }
+  
+      if (PreComputFlagCorrelation){
+        maxminTotal = [];
+        for (var i=0; i<ArrayContainsDataFeaturesCleared[0].length; i++){
+          maxminTotal.push(getMinMaxOf2DIndex(ArrayContainsDataFeaturesCleared, i));
+        }
+        PreComputFlagCorrelation = false;
+      }
+      correlationResultsFinal = [];
+      for (var i=0; i<correlationResults.length; i++){
+        if (parseFloat(document.getElementById("param-corlim-value").value) < Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1])){
+          correlationResultsFinal.push([correlationResults[i][0],Math.abs((maxminArea[correlationResults[i][2]].max - maxminArea[correlationResults[i][2]].min) / (maxminTotal[correlationResults[i][2]].max - maxminTotal[correlationResults[i][2]].min) * correlationResults[i][1]),correlationResults[i][2]]);
+        }
+      }
+  
+      correlationResultsFinal = correlationResultsFinal.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
+      function(a,b) {
+        if (a[1] == b[1])
+          return a[0] < b[0] ? -1 : 1;
+          return a[1] < b[1] ? 1 : -1;
+        }
+      );
+  
+      correlationResults = correlationResults.sort( // Sort the correlations from the biggest to the lowest value (absolute values)
+      function(a,b) {
+        if (a[1] == b[1])
+          return a[0] < b[0] ? -1 : 1;
+          return a[1] < b[1] ? 1 : -1;
+        }
+      );
+  
+    for (var j = 0; j < correlationResultsFinal.length; j++) {
+      for (var i = 0; i < SignStore.length; i++) {
+        if (SignStore[i][0] == correlationResults[j][2]){
+          if (SignStore[i][1] < 0)
+          {
+            correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2) * (-1); // Give the negative sign if needed and multiply by 100
+          }
+          else 
+          {
+            correlationResultsFinal[j][1] = parseFloat((correlationResultsFinal[j][1])).toFixed(2); // Give a positive sign and multiply by 100
+          }
+        }
+      }
+    }
+  }
+      drawBarChart(); // Draw the horizontal barchart with the correlations.
+      
+      }
     }
   }
 }
@@ -2364,6 +4930,8 @@ if (points.length) { // If points exist (at least 1 point)
         return parseFloat(a.id) - parseFloat(b.id);
       });
       findNearestTable = [];
+      maxKNN = Math.round(document.getElementById("param-perplexity-value").value*1.25); // Specify the amount of k neighborhoods that we are going to calculate. According to "perplexity."
+
       for (k=maxKNN; k>0; k--){ // Start from the maximum k value and go to the minimum (k=2).
 
         var findNearest = [];
@@ -2416,7 +4984,6 @@ if (points.length) { // If points exist (at least 1 point)
               indexOrderSliced2d[i] = indexOrder2d[i].slice(0,k);
             for (var m=0; m < indexOrderSliced2d[i].length; m++){
               if (indexOrderSliced[i].includes(indexOrderSliced2d[i][m])){ // Union
-
                 count[i] = count[i] + 1;
               }
             }
@@ -2543,7 +5110,9 @@ if (points.length) { // If points exist (at least 1 point)
                 }
               } else{
                 if (indices[m] == j){
+                //if (m == j){
                   Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[indices[m]]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[indices[m]]).toFixed(1)}); // Push the values into the pcp
+                  //Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[m]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[m]).toFixed(1)}); // Push the values into the pcp
                 }
               }
             }
@@ -2556,7 +5125,6 @@ if (points.length) { // If points exist (at least 1 point)
       if(a[CategoryReplaced] > b[CategoryReplaced]) { return 1; }
       return 0;
   })
-  
   function sortByFrequency(array) {
     var frequency = {};
     var CategoryReplaced = Category;
@@ -2593,7 +5161,9 @@ if (points.length) { // If points exist (at least 1 point)
                 }
               } else{
                 if (indices[m] == j){
+                //if (m == j){
                   Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[indices[m]]]:parseFloat(Object.values(dataFeatures[points[i].id])[indices[m]]).toFixed(1)}); // Push the values into the pcp
+                  //Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[m]]:parseFloat(Object.values(dataFeatures[points[i].id])[m]).toFixed(1)}); // Push the values into the pcp
                 }
               }
             }
@@ -2902,7 +5472,7 @@ if (points.length) { // If points exist (at least 1 point)
   function setUpZoom() {
     view.call(zoom);    
     let initial_scale = getScaleFromZ(far);
-    var initial_transform = d3.zoomIdentity.translate(dimensions/2, dimensions/2).scale(initial_scale);    
+    var initial_transform = d3.zoomIdentity.translate(dimensions/2, dimensionsY/2).scale(initial_scale);    
     zoom.transform(view, initial_transform);
     camera.position.set(0, 0, far);
   }
@@ -2924,7 +5494,7 @@ if (points.length) { // If points exist (at least 1 point)
   let geometry = new THREE.Geometry();
   for (var i=0; i<points.length; i++) {
     let pointsGeometry = new THREE.Geometry();
-    let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensions)*2) - 1)*dimensions*-1, 0);
+    let vertex = new THREE.Vector3((((points[i].x/dimensions)*2) - 1)*dimensions, (((points[i].y/dimensionsY)*2) - 1)*dimensionsY*-1, 0);
     pointsGeometry.vertices.push(vertex);
     pointsGeometry.name = points[i].id;
     geometry.vertices.push(vertex);
@@ -3095,7 +5665,7 @@ if (points.length) { // If points exist (at least 1 point)
 function zoomHandler(d3_transform) {
   let scale = d3_transform.k;
   let x = -(d3_transform.x - dimensions/2) / scale;
-  let y = (d3_transform.y - dimensions/2) / scale;
+  let y = (d3_transform.y - dimensionsY/2) / scale;
   let z = getZFromScale(scale);
   camera.position.set(x, y, z);
 }
@@ -3105,14 +5675,14 @@ function getScaleFromZ (camera_z_position) {
   let half_fov_radians = toRadians(half_fov);
   let half_fov_height = Math.tan(half_fov_radians) * camera_z_position;
   let fov_height = half_fov_height * 2;
-  let scale = dimensions / fov_height; // Divide visualization height by height derived from field of view
+  let scale = dimensionsY / fov_height; // Divide visualization height by height derived from field of view
   return scale;
 }
 
 function getZFromScale(scale) {
   let half_fov = fov/2;
   let half_fov_radians = toRadians(half_fov);
-  let scale_height = dimensions / scale;
+  let scale_height = dimensionsY / scale;
   let camera_z_position = scale_height / (2 * Math.tan(half_fov_radians));
   return camera_z_position;
 }
@@ -3135,7 +5705,7 @@ checkIntersects(mouse_position);
 function mouseToThree(mouseX, mouseY) {
   return new THREE.Vector3(
     mouseX / dimensions * 2 - 1,
-    -(mouseY / dimensions) * 2 + 1,
+    -(mouseY / dimensionsY) * 2 + 1,
     1
   );
 }
@@ -3181,7 +5751,7 @@ function highlightPoint(datum) {
   geometry.vertices.push(
     new THREE.Vector3(
       (((datum.x/dimensions)*2) - 1)*dimensions,
-      (((datum.y/dimensions)*2) - 1)*dimensions*-1,
+      (((datum.y/dimensionsY)*2) - 1)*dimensionsY*-1,
       0
     )
   );
@@ -3317,6 +5887,8 @@ function LineBar() {
   if (NBViewOptions == 1){
     var type = 'bar';
   } else if (NBViewOptions == 2){
+    var type = 'differenceBR';
+  } else if (NBViewOptions == 3){
     var type = 'line';
   } else {
     var type = 'difference';
@@ -3326,7 +5898,7 @@ function LineBar() {
     difference.push(findNearestTable[i] - StoreInitialFindNearestTable[i]);
   }
 
-  if (type == 'difference'){
+  if (type == 'difference') {
     var trace = {
       x: kValuesLegend, 
       y: difference, 
@@ -3364,7 +5936,63 @@ function LineBar() {
         }}};
 
   Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
-  } else{
+  } else if (type == 'differenceBR') {
+    var trace1 = {
+      x: kValuesLegend, 
+      y: difference, 
+      name: 'Delta(preservation)', 
+      showlegend:  true,
+      type: 'line',
+      marker: {
+        color: 'rgb(128,128,0)'
+      }
+    };
+    var trace2 = {
+      x: kValuesLegend, 
+      y: StoreInitialFindNearestTable, 
+      name: 'Projection average', 
+      type: 'bar',
+      marker: {
+        color: 'rgb(0,0,0)'
+      }
+    };
+    var trace3 = {
+      x: kValuesLegend, 
+      y: findNearestTable, 
+      name: 'Selected points', 
+      type: 'bar',
+      marker: {
+        color: 'rgb(0, 187, 187)'
+      }
+    };
+    var LimitXaxis = Number(maxKNN) + 1;
+    data = [trace1, trace2, trace3];
+    layout = {
+      barmode: 'group',autosize: false,
+      width: dimensions*0.97,
+      height: vh * 1.3,
+      margin: {
+        l: 50,
+        r: 30,
+        b: 30,
+        t: 5,
+        pad: 4
+      },
+      xaxis: {range: [0, LimitXaxis],
+        title: 'Number of neighbors',
+        titlefont: {
+          size: 12,
+          color: 'black'
+        }},
+      yaxis: {
+        title: '+/- Pres.',
+        titlefont: {
+          size: 12,
+          color: 'black'
+        }}};
+
+    Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
+  } else {
     var trace1 = {
       x: kValuesLegend, 
       y: StoreInitialFindNearestTable, 

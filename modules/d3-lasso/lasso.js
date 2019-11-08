@@ -18,6 +18,7 @@ function lasso(camera) {
     // append a <g> with a rect
     var g = root.append('g').attr('class', 'lasso-group');
     var bbox = root.node().getBoundingClientRect();
+
     var area = g
       .append('rect')
       .attr('width', bbox.width)
@@ -38,7 +39,10 @@ function lasso(camera) {
     var closePath;
 
     function handleDragStart() {
-      lassoPolygon = [d3.mouse(this)];
+      var newMouseEvent = []
+      newMouseEvent.push(d3.mouse(this)[0])
+      newMouseEvent.push(d3.mouse(this)[1])
+      lassoPolygon = [newMouseEvent];
       if (lassoPath) {
         lassoPath.remove();
       }
@@ -57,7 +61,6 @@ function lasso(camera) {
         .attr('stroke', '#0bb')
         .attr('stroke-dasharray', '3, 3')
         .attr('opacity', 0);
-
       dispatch.call('start', lasso, lassoPolygon);
     }
 

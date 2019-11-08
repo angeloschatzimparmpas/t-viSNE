@@ -29,27 +29,60 @@
      <script src="./modules/pca/pca.js"></script>
 
     <!-- CSS - Styling -->
+    <link rel="stylesheet" href="./css/w3.css">
     <link rel="stylesheet" href="./css/style.css"/>
     <link rel="stylesheet" href="./css/bootstrap.min.css"/>
     <link rel="stylesheet" type="text/css" href="./css/d3.parcoords.css">
     <link rel="stylesheet" href="./css/reset.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.0/css/all.css" integrity="sha384-Mmxa0mLqhmOeaE8vgOSbKacftZcsNYDjQzuCOm6D02luYSzBG8vpaOykv9lFQ51Y" crossorigin="anonymous">
-    
     <!-- Bootstrap -->
 
     <script src="./modules/popper/popper.min.js"></script>
     <script src="./modules/bootstrap/bootstrap.min.js"></script>
-
   
   </head>
 
   <body>
+      <div class="w3-container">
+          
+          <div id="myModal" class="w3-modal">
+           <div class="w3-modal-content w3-card-4 w3-animate-zoom">
+            <header class="w3-container w3-blue"> 
+             <h3 style="display:inline-block; font-size: 16px; margin-top: 15px; margin-left: 10px; margin-bottom:15px">t-SNE Grid Search Resulting Diverse Projections</h3>
+             [Sorting Metric:
+             <select id="param-SortMOver-view" name="param-SortMOver-view" style="color: black" onchange="ReSortOver()">
+                <option value="1" selected>Neighborhood Hit (NH)</option>                
+                <option value="2">Trustworthiness (T)</option>
+                <option value="3">Continuity (C)</option>                
+                <option value="4">Stress (S)</option>
+                <option value="5">Shepard Diagram Correlation (SDC)</option>
+               </select>
+             ]
+            </header>
+            <div id="loader"></div>
+            <div id="gridVisual"></div>
+            <div class="w3-container w3-light-grey w3-padding">
+             <button id="confirmModal" class="w3-button w3-left w3-white w3-border" style="margin-top: -3px; margin-bottom: -3px" onclick="ReSort(true)" disabled>Confirm</button>
+             <button id="closeModal" class="w3-button w3-right w3-white w3-border" style="margin-top: -3px; margin-bottom: -3px" onclick="closeModalFun()">Close</button>
+            </div>
+           </div>
+          </div>
+          
+    </div>
+          
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-3">
                 <div class="panel panel-default" id="left-side-param">
                     <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: control t-SNE algorithm and its parameters.">t-SNE Parameters</h2><div id="cost" style="display:inline-block; float:right"></div>
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: control t-SNE algorithm and its parameters.">t-SNE Parameters</h2>
+                        [Mode:
+                        <select id="param-EX-view" name="param-EX-view" data-toggle="tooltip" data-placement="right" title="Tip: change between grid search and a single set of parameters." onchange="ExecuteMode()">
+                            <option value="1" selected>Grid Search</option>
+                            <option value="2">Single Set</option>
+                          </select>
+                        ]
+                        <div id="cost" style="display:inline-block; margin-top:3px; float:right"></div>
                     </div>
                   <div class="panel-body">
                     <div id="control-panel" data-sr="enter left over 8s">
@@ -59,7 +92,6 @@
                             <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
                             <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
                             <option value="iris.csv">Iris</option>
-                            <option value="winequality-red.csv">Red Wine - Quality</option>
                             <option value="empty">Upload New File</option>
                           </select>
                           <button type="button" class="button" id="FactRes" onclick="FactoryReset()" data-toggle="tooltip" data-placement="right" title="Tip: Restart the entire web page/application.">Factory reset</button>
@@ -131,6 +163,27 @@
                 </div>
               </div>
           <div class="col-md-6">
+              <div class="panel panel-default med-bottomProv" style="margin-top:0.2px; margin-bottom:+14px">
+                  <div class="panel-heading">
+                    <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Projections Provenance</h2>
+                    [Sorting Metric:
+                    <select id="param-SortM-view" name="param-SortM-view" onchange="ReSort(false)">
+                        <option value="1" selected>Neighborhood Hit (NH)</option>                
+                        <option value="2">Trustworthiness (T)</option>
+                        <option value="3">Continuity (C)</option>                
+                        <option value="4">Stress (S)</option>
+                        <option value="5">Shepard Diagram Correlation (SDC)</option>
+                      </select>
+                    ]
+                  <div style="display:inline-block; float:right">
+                    <button type="button" class="buttonOptimize" onclick='OptimizePoints();' style="padding: 5px 5px 5px 5px" data-toggle="tooltip" data-placement="right" title="Tip: find the best projections for the selected points">Optimize Selection</button>
+                  </div>
+                  </div>
+                  <div class="panel-body">
+                    <div id="ProjectionsVisual"></div>
+                    <div id="ProjectionsMetrics"></div>
+                  </div>
+              </div>
             <svg id="SvgAnnotator"></svg>
             <svg id="modtSNEcanvas_svg"></svg>
             <svg id="modtSNEcanvas_svg_Schema"></svg>
@@ -174,7 +227,7 @@
                 </div>
               </div>
               <div class="col-md-3 col-md-offset-6">
-                <div class="panel panel-default"  style="margin-top: -195px">
+                <div class="panel panel-default"  style="margin-top: -200px">
                     <div class="panel-heading">
                         <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: in this panel the user can adapt the visual mappings of the main visualization view.">Visual Mapping</h2>
                     </div>
@@ -190,21 +243,31 @@
                                 <option value="size">Size-encoding</option>
                               </select> 
                             </div>
-                            <div class="param" style="padding: 10px 0 10px 0" >
+                            <div class="param" style="padding: 0px 0 0px 0" >
                               <output for="param-neighborHood" id="param-neighborHood-value " ></output>
                               <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: remaining cost of each point throughout the entire projection.">Remaining cost</label>
                               <label id="selectionLabel" style="margin-top:4px; margin-left: 15px" data-toggle="tooltip" data-placement="right" title="Tip: change between size/radius and color encodings.">Size-encoding</label>
                             </div>
+                            <div class="param" style="padding: 20px 0 5px 0; margin-top: 5px;" >
+                                <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: adapt the selection of points in the two-dimensional space: from a simple distance measurement between point and line to KNN algorithm, and vice versa.">Correlation measurement</label>
+                                <select id="param-correlationMeasur" name ="param-correlationMeasur" onchange="setReInitializeDistanceCorrelation(true);" style="display:inline-block;margin-left: 32px">
+                                  <option selected="selected" value="1">Distance</option>
+                                  <option value="2">KNN</option>
+                                </select> 
+                              </div>
                            <div class="param">
-                              <div class="row" style="margin-top: 30px">
+                              <div class="row" style="margin-top: 10px;">
                                   <div class="col-md-6">
-                                <label for="param-corr" data-toggle="tooltip" data-placement="right" title="Tip: percentage of all points taken into account by Dimension Correlation.">Correlation threshold (%)</label>
+                                <label for="param-corr" id="param-corrLabel" data-toggle="tooltip" data-placement="right" title="Tip: percentage of all points taken into account by Dimension Correlation.">Correlation threshold (%)</label>
+                                <label for="param-corr2" id="param-corrLabel2" data-toggle="tooltip" data-placement="right" style="display: none;">K-value (KNN)</label>
                                   </div>
                               <div class="col-md-5">
-                              <input id="param-corr" type="range" min="0" max="100" value="50", step="1" onchange="CalculateCorrel(true);" style="margin-left: -20px;">
+                              <input id="param-corr" type="range" min="0" max="100" value="50", step="1" onchange="CalculateCorrel(true, 1);" style="margin-left: -20px;">
+                              <input id="param-corr2" type="range" min="1" max="250" value="10", step="1" onchange="CalculateCorrel(true, 2);" style="margin-left: -20px; display: none">
                             </div>
                             <div class="col-md-1">
                               <output for="param-corr" id="param-corr-value" style="margin-left: -20px;">50</output>
+                              <output for="param-corr2" id="param-corr-value2" style="margin-left: -20px; display: none">10</output>
                             </div>
                             </div>
                             </div>
@@ -229,7 +292,7 @@
                             <svg id="legend4" style =  "margin-left: -45px"></svg>
                           </div>
                           </div>
-                          <div class="annotationAllClass" style="margin-top: 30px">
+                          <div class="annotationAllClass" style="margin-top: 20px">
                             <label style="padding-bottom: 0px">
                                 <input id="controls" type="checkbox" style="margin-top: 18px">
                                 Hide annotations' controllers</input>
@@ -255,7 +318,15 @@
             <div class="col-md-3"  style="margin-top:-4px">
                 <div class="panel panel-default" style="padding-bottom : 60px">
                   <div class="panel-heading">
-                    <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: a view related to the overall quality of the projection.">Shepard Heatmap</h2>
+                    <h2 class="panel-title" data-toggle="tooltip" data-placement="right" style="display:inline-block" title="Tip: a view related to the overall quality of the projection.">Shepard Heatmap</h2>
+                    <div style="display:inline-block; float:right">
+                    [Visualization:
+                    <select id="param-SH-view" name="param-SH-view" onchange="ShepardHeatMap()">
+                        <option value="1" selected>Shepard Heatmap</option>
+                        <option value="2">Shepard Diagram</option>
+                      </select>
+                    ]
+                  </div>
                   </div>
                 <div class="panel-body">
                   <div class="row">
@@ -270,7 +341,7 @@
                 </div>
               </div>
 
-      <div class="col-md-3 col-md-offset-6">
+      <div class="col-md-3 col-md-offset-6" style="margin-top: -2px">
           <div class="panel panel-default right-side-cor">
               <div class="panel-heading">
                   <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: user-driven shape investigation of the most correlated dimensions.">Dimension Correlation</h2><div class="param" style="display:inline-block; margin-top:-5px; float:right"><label for="param-corlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: the minimum acceptable visible correlation. Default is 0, so the tool accepts all the correlations.">Min. Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
@@ -306,14 +377,15 @@
           
         </div>
         <div class = col-md-6>
-          <div class="panel panel-default med-bottom">
+          <div class="panel panel-default med-bottom" style="margin-top:+172px">
             <div class="panel-heading">
               <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Neighborhood Preservation </h2>
               [Visualization:
               <select id="param-NB-view" name="param-NB-view" onchange="LineBar()">
-                  <option value="1" selected>Bar Chart</option>
-                  <option value="2">Line Plot</option>
-                  <option value="3">Difference Line Plot</option>
+                  <option value="1" selected>Bar Chart</option> 
+                  <option value="2">Difference Bar Chart</option>                
+                  <option value="3">Line Plot</option>
+                  <option value="4">Difference Line Plot</option>
                 </select>
               ]
               <div id="knnBarChartDetails"style="display:inline-block; float:right">
@@ -345,6 +417,21 @@
         $("[rel='tooltip']").tooltip();
       });
 
+      $(document).ready(function(){
+      $("#ExecuteBut").click(function(){
+          var mode = document.getElementById('param-EX-view').value
+          mode = parseInt(mode)
+          if (mode == 1) {
+            $("#myModal").modal('show');
+            $('.modal-backdrop').removeClass("modal-backdrop");  
+          }
+        });
+      });
+
+      function closeModalFun () {
+        $('#myModal').modal('hide');
+      }
+
       $("#cost").html('(Unknown Iteration and Cost Values)');
       $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
       $("#CategoryName").html('No Classification');
@@ -352,6 +439,7 @@
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });
+      $('#param-corr2').bind('input', function () { $('#param-corr-value2').text($('#param-corr2').val()); });
       $('#param-corlim').bind('input', function () { $('#param-corlim-value').text($('#param-corlim').val()); });
       $('#param-costlim').bind('input', function () { $('#param-costlim-value').text($('#param-costlim').val()); });
       $('#param-perplexity').bind('input', function () { $('#param-perplexity-value').text($('#param-perplexity').val()); });
