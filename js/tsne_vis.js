@@ -28,7 +28,7 @@ var ArrayWithCosts = []; var Iterations = [];
 
 var VisiblePoints = []; 
 
-var sliderTrigger = false; var parameters; var SelProjIDS; var SelectedProjections = [];
+var sliderTrigger = false; var sliderInsideTrigger = false; var parameters; var SelProjIDS; var SelProjIDSProv; var SelectedProjections = []; var activeProjectionNumber = []; var activeProjectionNumberProv = [];
 
 // This variable is for the kNN Bar Chart in order to store the first execution.
 var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
@@ -127,12 +127,11 @@ function ReSort(flagInitialize) {
   var height= vh * 2.2;
 
   var graphDiv = 'ProjectionsVisual'
+
   Plotly.purge(graphDiv);
 
   projections = dataReceivedFromServer['projections']
-  console.log(projections)
   parameters = dataReceivedFromServer['parameters']
-  console.log(parameters)
   metricsSorting = dataReceivedFromServer['metrics']
 
   var traces = []
@@ -189,25 +188,40 @@ if (optionMetric == 1) {
   order = metricsSorting[optionMetric-1]
 }
 
-console.log(SelProjIDS[0])
-
 console.log(order)
 
+console.log(activeProjectionNumber)
+
+var index = order.indexOf(activeProjectionNumber);
+
+console.log(index)
+
+var arrayLineColor = []
+
 for (let k = 0; k < 8; k++) {
-  if (SelProjIDS[0] > 7) {
-    if (k == 7) {
-      SelectedProjections.push(order[SelProjIDS[0]])
+  if (index > 7) {
+    if (k == 7 && index > 6) {
+      SelectedProjections.push(activeProjectionNumber)
+      arrayLineColor.push('red')
     } else {
+      if (order[k] == activeProjectionNumber) {
+        arrayLineColor.push('red')
+      } else {
+        arrayLineColor.push('black')
+      }
       SelectedProjections.push(order[k])
     }
   } else {
+    if (order[k] == activeProjectionNumber) {
+      arrayLineColor.push('red')
+    } else {
+      arrayLineColor.push('black')
+    }
     SelectedProjections.push(order[k])
   }
 }
 
-console.log(SelectedProjections)
-
-
+console.log(arrayLineColor)
 
 var checkCounter = 0
 var checkCounterMetr = 0
@@ -307,7 +321,7 @@ if(k >= 8) {
   
       var layout = {
       xaxis: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[0],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -315,7 +329,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[0],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -323,7 +337,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis2: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[1],
         linewidth: 1,
         mirror: true,
         showgrid: false,
@@ -331,7 +345,7 @@ if(k >= 8) {
         showticklabels: false
       },
       yaxis2: {
-          linecolor: 'black',
+          linecolor: arrayLineColor[1],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -339,7 +353,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis3: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[2],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -347,7 +361,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis3: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[2],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -355,7 +369,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis4: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[3],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -363,7 +377,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis4: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[3],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -371,7 +385,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis5: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[4],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -379,7 +393,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis5: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[4],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -387,7 +401,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis6: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[5],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -395,7 +409,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis6: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[5],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -403,7 +417,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis7: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[6],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -411,7 +425,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis7: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[6],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -419,7 +433,7 @@ if(k >= 8) {
           showticklabels: false
       },
       xaxis8: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[7],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -427,7 +441,7 @@ if(k >= 8) {
           showticklabels: false
       },
       yaxis8: {
-        linecolor: 'black',
+        linecolor: arrayLineColor[7],
           linewidth: 1,
           mirror: true,
           showgrid: false,
@@ -542,7 +556,7 @@ if(k >= 8) {
         l: 10,
         r: 10,
         b: 8,
-        t: 1,
+        t: 2,
         pad: 0
       },
       autosize: true,
@@ -554,9 +568,115 @@ if(k >= 8) {
     }
     document.getElementById('overviewRect').style.border = '1px solid red'
     document.getElementById('modtSNEcanvas').style.border = '1px solid red'
-      var config = {displayModeBar: false}
+    
+    var config = {displayModeBar: false}
 
-      Plotly.newPlot(graphDiv, traces, layout, config)
+    Plotly.newPlot(graphDiv, traces, layout, config)
+
+    var myPlotProvenance = document.getElementById('ProjectionsVisual')
+
+    myPlotProvenance.on('plotly_click', function(data){
+      var update = {
+        'xaxis.linecolor': 'black',   // updates the xaxis range
+        'yaxis.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis2.linecolor': 'black',   // updates the xaxis range
+        'yaxis2.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis3.linecolor': 'black',   // updates the xaxis range
+        'yaxis3.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis4.linecolor': 'black',   // updates the xaxis range
+        'yaxis4.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis5.linecolor': 'black',   // updates the xaxis range
+        'yaxis5.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis6.linecolor': 'black',   // updates the xaxis range
+        'yaxis6.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis7.linecolor': 'black',   // updates the xaxis range
+        'yaxis7.linecolor': 'black',    // updates the end of the yaxis range
+        'xaxis8.linecolor': 'black',   // updates the xaxis range
+        'yaxis8.linecolor': 'black',    // updates the end of the yaxis range
+        };
+
+        Plotly.relayout(graphDiv, update)
+      
+          SelProjIDSProv = []
+          if (data.points[0].xaxis._id == 'x') {
+      
+              var update = {
+                'xaxis.linecolor': 'red',   // updates the xaxis range
+                'yaxis.linecolor': 'red'    // updates the end of the yaxis range
+              };
+            
+            SelProjIDSProv.push(0)
+          } else if (data.points[0].xaxis._id == 'x2') {
+      
+              var update = {
+                'xaxis2.linecolor': 'red',   // updates the xaxis range
+                'yaxis2.linecolor': 'red'    // updates the end of the yaxis range
+              };
+      
+            
+              SelProjIDSProv.push(1)
+          } else if (data.points[0].xaxis._id == 'x3') {
+      
+              var update = {
+                'xaxis3.linecolor': 'red',   // updates the xaxis range
+                'yaxis3.linecolor': 'red'    // updates the end of the yaxis range
+              };
+          
+              SelProjIDSProv.push(2)
+          } else if (data.points[0].xaxis._id == 'x4') {
+      
+              var update = {
+                'xaxis4.linecolor': 'red',   // updates the xaxis range
+                'yaxis4.linecolor': 'red'    // updates the end of the yaxis range
+              };
+      
+            
+              SelProjIDSProv.push(3)
+          } else if (data.points[0].xaxis._id == 'x5') {
+      
+              var update = {
+                'xaxis5.linecolor': 'red',   // updates the xaxis range
+                'yaxis5.linecolor': 'red'    // updates the end of the yaxis range
+              };
+      
+              SelProjIDSProv.push(4)
+          } else if (data.points[0].xaxis._id == 'x6') {
+      
+          
+              var update = {
+                'xaxis6.linecolor': 'red',   // updates the xaxis range
+                'yaxis6.linecolor': 'red'    // updates the end of the yaxis range
+              };
+          
+              SelProjIDSProv.push(5)
+          } else if (data.points[0].xaxis._id == 'x7') {
+      
+            
+              var update = {
+                'xaxis7.linecolor': 'red',   // updates the xaxis range
+                'yaxis7.linecolor': 'red'    // updates the end of the yaxis range
+              };
+            
+              SelProjIDSProv.push(6)
+          } else {
+      
+      
+              var update = {
+                'xaxis8.linecolor': 'red',   // updates the xaxis range
+                'yaxis8.linecolor': 'red'    // updates the end of the yaxis range
+              };
+              firstProj = false
+          
+              SelProjIDSProv.push(7)
+          }
+
+          Plotly.relayout(graphDiv, update)
+
+          sliderInsideTrigger = true
+          activeProjectionNumberProv = order[SelProjIDSProv[0]]
+
+      getData()
+    })
 
   if (flagInitialize) {
     closeModalFun()
@@ -763,6 +883,7 @@ if (optionMetric == 1) {
 } else {
   order = metricsSorting[optionMetric-1]
 }
+
   var checkCounter = 0
   var checkCounterMetr = 0
 
@@ -883,7 +1004,7 @@ if (optionMetric == 1) {
   const layout = {
   xaxis: {
     linecolor: 'black',
-    linewidth: 2,
+    linewidth: 1,
     mirror: true,
     showgrid: false,
     zeroline: false,
@@ -891,7 +1012,7 @@ if (optionMetric == 1) {
   },
   yaxis: {
       linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -899,7 +1020,7 @@ if (optionMetric == 1) {
   },
   xaxis2: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -907,7 +1028,7 @@ if (optionMetric == 1) {
   },
   yaxis2: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -915,7 +1036,7 @@ if (optionMetric == 1) {
   },
   xaxis3: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -923,7 +1044,7 @@ if (optionMetric == 1) {
   },
   yaxis3: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -931,7 +1052,7 @@ if (optionMetric == 1) {
   },
   xaxis4: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -939,7 +1060,7 @@ if (optionMetric == 1) {
   },
   yaxis4: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -947,7 +1068,7 @@ if (optionMetric == 1) {
   },
   xaxis5: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -955,7 +1076,7 @@ if (optionMetric == 1) {
   },
   yaxis5: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -963,7 +1084,7 @@ if (optionMetric == 1) {
   },
   xaxis6: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -971,7 +1092,7 @@ if (optionMetric == 1) {
   },
   yaxis6: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1051,7 +1172,7 @@ if (optionMetric == 1) {
   },
   xaxis13: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1059,7 +1180,7 @@ if (optionMetric == 1) {
   },
   yaxis13: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1067,7 +1188,7 @@ if (optionMetric == 1) {
   },
   xaxis14: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1075,7 +1196,7 @@ if (optionMetric == 1) {
   },
   yaxis14: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1083,7 +1204,7 @@ if (optionMetric == 1) {
   },
   xaxis15: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1091,7 +1212,7 @@ if (optionMetric == 1) {
   },
   yaxis15: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1099,7 +1220,7 @@ if (optionMetric == 1) {
   },
   xaxis16: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1107,7 +1228,7 @@ if (optionMetric == 1) {
   },
   yaxis16: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1115,7 +1236,7 @@ if (optionMetric == 1) {
   },
   xaxis17: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1123,7 +1244,7 @@ if (optionMetric == 1) {
   },
   yaxis17: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1132,7 +1253,7 @@ if (optionMetric == 1) {
   xaxis18: {
 
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1141,7 +1262,7 @@ if (optionMetric == 1) {
   yaxis18: {
 
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1221,7 +1342,7 @@ if (optionMetric == 1) {
   },
   xaxis25: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1229,7 +1350,7 @@ if (optionMetric == 1) {
   },
   yaxis25: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1237,7 +1358,7 @@ if (optionMetric == 1) {
   },
   xaxis26: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1245,7 +1366,7 @@ if (optionMetric == 1) {
   },
   yaxis26: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1253,7 +1374,7 @@ if (optionMetric == 1) {
   },
   xaxis27: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1261,7 +1382,7 @@ if (optionMetric == 1) {
   },
   yaxis27: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1269,7 +1390,7 @@ if (optionMetric == 1) {
   },
   xaxis28: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1277,7 +1398,7 @@ if (optionMetric == 1) {
   },
   yaxis28: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1285,7 +1406,7 @@ if (optionMetric == 1) {
   },
   xaxis29: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1293,7 +1414,7 @@ if (optionMetric == 1) {
   },
   yaxis29: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1302,7 +1423,7 @@ if (optionMetric == 1) {
   xaxis30: {
 
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1311,7 +1432,7 @@ if (optionMetric == 1) {
   yaxis30: {
 
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1391,7 +1512,7 @@ if (optionMetric == 1) {
   },
   xaxis37: {
     linecolor: 'black',
-    linewidth: 2,
+    linewidth: 1,
     mirror: true,
     showgrid: false,
     zeroline: false,
@@ -1399,7 +1520,7 @@ if (optionMetric == 1) {
   },
   yaxis37: {
       linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1407,7 +1528,7 @@ if (optionMetric == 1) {
   },
   xaxis38: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1415,7 +1536,7 @@ if (optionMetric == 1) {
   },
   yaxis38: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1423,7 +1544,7 @@ if (optionMetric == 1) {
   },
   xaxis39: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1431,7 +1552,7 @@ if (optionMetric == 1) {
   },
   yaxis39: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1439,7 +1560,7 @@ if (optionMetric == 1) {
   },
   xaxis40: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1447,7 +1568,7 @@ if (optionMetric == 1) {
   },
   yaxis40: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1455,7 +1576,7 @@ if (optionMetric == 1) {
   },
   xaxis41: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1463,7 +1584,7 @@ if (optionMetric == 1) {
   },
   yaxis41: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1472,7 +1593,7 @@ if (optionMetric == 1) {
   xaxis42: {
 
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1481,7 +1602,7 @@ if (optionMetric == 1) {
   yaxis42: {
 
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1561,7 +1682,7 @@ if (optionMetric == 1) {
   },
   xaxis49: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1569,7 +1690,7 @@ if (optionMetric == 1) {
   },
   yaxis49: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1577,7 +1698,7 @@ if (optionMetric == 1) {
   },
   xaxis50: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1585,7 +1706,7 @@ if (optionMetric == 1) {
   },
   yaxis50: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1593,7 +1714,7 @@ if (optionMetric == 1) {
   },
   xaxis51: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1601,7 +1722,7 @@ if (optionMetric == 1) {
   },
   yaxis51: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1609,7 +1730,7 @@ if (optionMetric == 1) {
   },
   xaxis52: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1617,7 +1738,7 @@ if (optionMetric == 1) {
   },
   yaxis52: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1625,7 +1746,7 @@ if (optionMetric == 1) {
   },
   xaxis53: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1633,7 +1754,7 @@ if (optionMetric == 1) {
   },
   yaxis53: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1641,7 +1762,7 @@ if (optionMetric == 1) {
   },
   xaxis54: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1649,7 +1770,7 @@ if (optionMetric == 1) {
   },
   yaxis54: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1729,7 +1850,7 @@ if (optionMetric == 1) {
   },
   xaxis61: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1737,7 +1858,7 @@ if (optionMetric == 1) {
   },
   yaxis61: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1745,7 +1866,7 @@ if (optionMetric == 1) {
   },
   xaxis62: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1753,7 +1874,7 @@ if (optionMetric == 1) {
   },
   yaxis62: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1761,7 +1882,7 @@ if (optionMetric == 1) {
   },
   xaxis63: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1769,7 +1890,7 @@ if (optionMetric == 1) {
   },
   yaxis63: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1777,7 +1898,7 @@ if (optionMetric == 1) {
   },
   xaxis64: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1785,7 +1906,7 @@ if (optionMetric == 1) {
   },
   yaxis64: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1793,7 +1914,7 @@ if (optionMetric == 1) {
   },
   xaxis65: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1801,7 +1922,7 @@ if (optionMetric == 1) {
   },
   yaxis65: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1809,7 +1930,7 @@ if (optionMetric == 1) {
   },
   xaxis66: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1817,7 +1938,7 @@ if (optionMetric == 1) {
   },
   yaxis66: {
     linecolor: 'black',
-      linewidth: 2,
+      linewidth: 1,
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -2298,6 +2419,10 @@ if (optionMetric == 1) {
     document.getElementById("confirmModal").disabled = false;
 
   Plotly.relayout(graphDiv, update)
+
+
+  activeProjectionNumber = order[SelProjIDS[0]]
+
 });
 }
 
@@ -2673,8 +2798,13 @@ function init(data, results_all, fields) {
     step_counter = 0;
     // Get the new parameters from the t-SNE parameters panel.
     if (sliderTrigger) {
-      max_counter = parameters[SelProjIDS[0]][2]
-      $('#param-maxiter-value').text(max_counter);
+      if (sliderInsideTrigger) {
+        max_counter = parameters[activeProjectionNumberProv][2]
+        $('#param-maxiter-value').text(max_counter);
+      } else {
+        max_counter = parameters[activeProjectionNumber][2]
+        $('#param-maxiter-value').text(max_counter);
+      }
     } else {
       max_counter = document.getElementById("param-maxiter-value").value;
     }
@@ -2683,10 +2813,17 @@ function init(data, results_all, fields) {
     fields.push("beta");
     fields.push("cost");
     if (sliderTrigger) {
-      opt.perplexity = parameters[SelProjIDS[0]][0]
-      opt.epsilon = parameters[SelProjIDS[0]][1]
-      $('#param-perplexity-value').text(opt.perplexity);
-      $('#param-learningrate-value').text(opt.epsilon);
+      if (sliderInsideTrigger) {
+        opt.perplexity = parameters[activeProjectionNumberProv][0]
+        opt.epsilon = parameters[activeProjectionNumberProv][1]
+        $('#param-perplexity-value').text(opt.perplexity);
+        $('#param-learningrate-value').text(opt.epsilon);
+      } else {
+        opt.perplexity = parameters[activeProjectionNumber][0]
+        opt.epsilon = parameters[activeProjectionNumber][1]
+        $('#param-perplexity-value').text(opt.perplexity);
+        $('#param-learningrate-value').text(opt.epsilon);
+      }
     } else {
       opt.epsilon = document.getElementById("param-learningrate-value").value; // Epsilon is learning rate (10 = default)
       opt.perplexity = document.getElementById("param-perplexity-value").value; // Roughly how many neighbors each point influences (30 = default)
