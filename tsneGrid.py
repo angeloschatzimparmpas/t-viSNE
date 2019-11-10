@@ -81,12 +81,8 @@ def neighborhood_hit(X, y, k):
     knn = KNeighborsClassifier(n_neighbors=k)
     knn.fit(X, y)
     neighbors = knn.kneighbors(X, return_distance=False)
-    y = np.array(y)
-    neigh = y[neighbors]
-    tile =  np.tile(y.reshape((-1, 1)), k)
-    equals = (neigh == tile)
-    returnthis = np.mean(np.mean(equals).astype('uint8'), axis=1)
-    return returnthis
+    yPred = knn.predict(X)
+    return np.mean(np.mean((yPred[neighbors] == np.tile(yPred.reshape((-1, 1)), k)).astype('uint8'), axis=1))
 
 def trustworthiness(D_high, D_low, k):
     n = D_high.shape[0]
@@ -277,8 +273,7 @@ def calculateGrid():
         k = listofParamsAll[index][0] # k = perplexity
         KeepKs.append(k)
 
-        #resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, k)
-        resultNeigh = trustworthiness(D_highSpace, D_lowSpace, k)
+        resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, k)
         resultTrust = trustworthiness(D_highSpace, D_lowSpace, k)
         resultContinuity = continuity(D_highSpace, D_lowSpace, k)
         resultStress = normalized_stress(D_highSpace, D_lowSpace)
@@ -309,8 +304,7 @@ def calculateGrid():
     metricsMatrixEntire = []
 
     for index, data in enumerate(metricTrust):
-        #valueNeigh = (metricNeigh[index] - min_value_neigh) / (max_value_neigh - min_value_neigh) 
-        valueNeigh = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
+        valueNeigh = (metricNeigh[index] - min_value_neigh) / (max_value_neigh - min_value_neigh) 
         valueTrust = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
         valueCont = (metricCont[index] - min_value_cont) / (max_value_cont - min_value_cont) 
         valueStress = (metricStress[index] - min_value_stress) / (max_value_stress - min_value_stress) 
@@ -362,8 +356,7 @@ def OptimizeSelection():
     metricShepCorr = []
 
     for index, loop in enumerate(clusterIndex):
-        #resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, k)
-        resultNeigh = trustworthiness(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
+        resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, KeepKs[index])
         resultTrust = trustworthiness(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
         resultContinuity = continuity(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
         resultStress = normalized_stress(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :])
@@ -395,8 +388,7 @@ def OptimizeSelection():
     metricsMatrixEntireSel = []
 
     for index, data in enumerate(metricTrust):
-        #valueNeigh = (metricNeigh[index] - min_value_neigh) / (max_value_neigh - min_value_neigh) 
-        valueNeigh = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
+        valueNeigh = (metricNeigh[index] - min_value_neigh) / (max_value_neigh - min_value_neigh) 
         valueTrust = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
         valueCont = (metricCont[index] - min_value_cont) / (max_value_cont - min_value_cont) 
         valueStress = (metricStress[index] - min_value_stress) / (max_value_stress - min_value_stress) 
