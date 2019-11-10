@@ -63,6 +63,10 @@ var results_all_global = []
 
 // This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
+  var graphDiv = 'ProjectionsVisual'
+
+  Plotly.purge(graphDiv);
+  
   location.reload(); 
 }
 
@@ -768,6 +772,12 @@ var getData = function() {
 
 // Parse the data set with the use of PapaParse.
 function parseData(url) {
+
+  var graphDiv = 'gridVisual'
+  Plotly.purge(graphDiv);
+
+  document.getElementById("loader").style.display = "block";
+  
   Papa.parse(url, { 
       download: true,
       header: true,
@@ -820,6 +830,8 @@ function parseData(url) {
               init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
             } else {
               // ajax the JSON to the server
+              $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+              });
               $.post("http://127.0.0.1:5000/receiver", JSON.stringify(results_all), function(){
                 $.get("http://127.0.0.1:5000/sender", function( data ) {
                   dataReceivedFromServer = data
@@ -2470,6 +2482,8 @@ function setReset(){ // Reset only the filters which were applied into the data 
   correlationResults = [];
   ArrayContainsDataFeaturesLimit = [];
   prevRightClick = false;
+
+  
 
   //pcpInitialize();
 

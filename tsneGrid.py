@@ -25,6 +25,56 @@ import bhtsne
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/resetAll', methods = ['POST'])
+def Reset():
+
+    print('mpike')
+
+    global dataProc
+    dataProc = []
+
+    global D_highSpace
+    D_highSpace = []
+
+    global overalProjectionsNumber
+    overalProjectionsNumber = []
+
+    global projectionsAll
+    projectionsAll = []
+
+    global SelectedListofParams
+    SelectedListofParams = []
+
+    global SelectedProjectionsReturn
+    SelectedProjectionsReturn = []
+
+    global clusterIndex
+    clusterIndex = []
+
+    global convertLabels
+    convertLabels = []
+
+    global D_lowSpaceList
+    D_lowSpaceList = []
+
+    global KeepKs 
+    KeepKs = []
+
+    global metricsMatrixEntire 
+    metricsMatrixEntire = []
+
+    global metricsMatrix
+    metricsMatrix = []
+
+    global metricsMatrixSel
+    metricsMatrixSel = []
+
+    global metricsMatrixEntireSel
+    metricsMatrixEntireSel = []
+
+    return 'Reset'
+
+
 # NOTE: Only works with labeled data
 def neighborhood_hit(X, y, k):
 
