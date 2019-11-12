@@ -197,9 +197,13 @@ function ReSort(flagInitialize) {
 } else {
   labelsTarget = uniqueTarget
 }
-
+if(flagInitialize) {
+  var optionMetricOver = document.getElementById("param-SortMOver-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+  $('#param-SortM-view').val(optionMetricOver).change();
+}
 
 var optionMetric = document.getElementById("param-SortM-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
+
 var order = [];
 SelectedProjections = []
 
@@ -5279,6 +5283,7 @@ if (points.length) { // If points exist (at least 1 point)
                 //if (m == j){
                   Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[indices[m]]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[indices[m]]).toFixed(1)}); // Push the values into the pcp
                   //Object.assign(data,{[Object.keys(dataFeatures[selectedPoints[i].id])[m]]:parseFloat(Object.values(dataFeatures[selectedPoints[i].id])[m]).toFixed(1)}); // Push the values into the pcp
+                //}
                 }
               }
             }
@@ -5309,7 +5314,7 @@ if (points.length) { // If points exist (at least 1 point)
   if (lessmore[0] < lessmore[1]){
     wrapData2.reverse();
   }
-
+  console.log(dataFeatures)
       var AllPointsWrapData2 = [];
       for (var i=0; i<points.length; i++){
         var data = [];
@@ -5330,6 +5335,7 @@ if (points.length) { // If points exist (at least 1 point)
                 //if (m == j){
                   Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[indices[m]]]:parseFloat(Object.values(dataFeatures[points[i].id])[indices[m]]).toFixed(1)}); // Push the values into the pcp
                   //Object.assign(data,{[Object.keys(dataFeatures[points[i].id])[m]]:parseFloat(Object.values(dataFeatures[points[i].id])[m]).toFixed(1)}); // Push the values into the pcp
+                //}
                 }
               }
             }
