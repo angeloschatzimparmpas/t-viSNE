@@ -28,8 +28,6 @@ CORS(app)
 @app.route('/resetAll', methods = ['POST'])
 def Reset():
 
-    print('mpike')
-
     global dataProc
     dataProc = []
 
@@ -74,15 +72,24 @@ def Reset():
 
     return 'Reset'
 
-
 # NOTE: Only works with labeled data
-def neighborhood_hit(X, y, k):
+def neighborhood_hit(X, y, k, selected=None):
+    # Add 1 to k because the nearest neighbor is always the point itself
+    k += 1
+    
+    y = np.array(y)
 
     knn = KNeighborsClassifier(n_neighbors=k)
     knn.fit(X, y)
-    neighbors = knn.kneighbors(X, return_distance=False)
-    yPred = knn.predict(X)
-    return np.mean(np.mean((yPred[neighbors] == np.tile(yPred.reshape((-1, 1)), k)).astype('uint8'), axis=1))
+
+    if selected:        
+        X = X[selected, :]
+
+    neighbors = knn.kneighbors(X, return_distance=False)    
+
+    score = np.mean((y[neighbors] == np.tile(y[selected].reshape((-1, 1)), k)).astype('uint8'))
+
+    return score
 
 def trustworthiness(D_high, D_low, k):
     n = D_high.shape[0]
@@ -136,6 +143,7 @@ def shepard_diagram_correlation(D_high, D_low):
         D_high = spatial.distance.squareform(D_high)
     if len(D_low.shape) > 1:
         D_low = spatial.distance.squareform(D_low)
+
     return stats.spearmanr(D_high, D_low)[0]
 
 def preprocess(data):
@@ -272,7 +280,7 @@ def calculateGrid():
 
         k = listofParamsAll[index][0] # k = perplexity
         KeepKs.append(k)
-
+    
         resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, k)
         resultTrust = trustworthiness(D_highSpace, D_lowSpace, k)
         resultContinuity = continuity(D_highSpace, D_lowSpace, k)
@@ -356,12 +364,11 @@ def OptimizeSelection():
     metricShepCorr = []
 
     for index, loop in enumerate(clusterIndex):
-        resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, KeepKs[index])
+        resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, KeepKs[index], dataSelected)
         resultTrust = trustworthiness(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
         resultContinuity = continuity(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
         resultStress = normalized_stress(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :])
-        resultShep = normalized_stress(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :])
-        #resultShep = shepard_diagram_correlation(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :]) 
+        resultShep = shepard_diagram_correlation(D_highSpace[dataSelected][:, dataSelected], D_lowSpaceList[index][dataSelected][:, dataSelected]) 
 
         metricNeigh.append(resultNeigh)
         metricTrust.append(resultTrust)
