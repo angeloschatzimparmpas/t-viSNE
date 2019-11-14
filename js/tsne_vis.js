@@ -5292,8 +5292,6 @@ if (points.length) { // If points exist (at least 1 point)
           } 
           wrapData2.push(data);
       }
-
-    console.log(wrapData2)
       
     var CategoryReplaced = Category;
     wrapData2.sort(function(a, b){
