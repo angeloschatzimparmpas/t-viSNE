@@ -128,7 +128,7 @@ function ReSort(flagInitialize) {
   var width= dimensions*0.97;
   var viewport = getViewport(); // Get the width and height of the main visualization
   var vh = viewport[1] * 0.035;
-  var height= vh * 2.2;
+  var height= vh * 2;
 
   var graphDiv = 'ProjectionsVisual'
 
@@ -578,7 +578,7 @@ if(k >= 8) {
       margin: {
         l: 10,
         r: 10,
-        b: 2,
+        b: 10,
         t: 2,
         pad: 0
       },
