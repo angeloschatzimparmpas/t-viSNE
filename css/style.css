@@ -508,11 +508,11 @@ ul {
   border: 16px solid #f3f3f3;
   border-radius: 50%;
   border-top: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
   -webkit-animation: spin 2s linear infinite; /* Safari */
   animation: spin 2s linear infinite;
-  margin-left: 375px;
+  margin-left: 1025px;
   margin-top: 500px;
   margin-bottom: 500px;
 }

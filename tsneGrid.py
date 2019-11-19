@@ -16,6 +16,8 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from scipy import spatial
 from scipy import stats
+from joblib import Memory
+
 
 import numpy as np
 import pandas as pd
@@ -161,7 +163,6 @@ def multi_run_wrapper(args):
     embedding_array = bhtsne.run_bh_tsne(*args)
     return embedding_array
 
-
 def procrustesFun(projections):
     similarityList = []
     for proj1 in projections:
@@ -191,6 +192,15 @@ def Clustering(similarity):
 
     return clusterIndex
 
+location = './cachedir'
+memory = Memory(location, verbose=0)
+
+def wrapGetResults(listofParamsPlusData):
+    pool = Pool()
+    
+    return pool.map(multi_run_wrapper, listofParamsPlusData)
+
+wrapGetResults = memory.cache(wrapGetResults)
 
 @app.route('/receiver', methods = ['POST'])
 def calculateGrid():
@@ -209,9 +219,24 @@ def calculateGrid():
     EMPTY_SEED = -1
     VERBOSE = True
     DEFAULT_USE_PCA = False
-    perplexity = [25,30] # 10 perplexity
-    learning_rate = [10,20,30,40,50,60] # 15 learning rate
-    n_iter = [200,250,300,350] # 7 iterations
+
+    # all other data sets
+    perplexity = [5,10,15,20,25,30,35,40,45,50] # 10 perplexity
+
+    # iris data set
+    if (labels[0] == 'Iris-setosa'):
+        perplexity = [5,10,15,20,25,28,32,35,40,45] # 10 perplexity
+
+     # breast cancer data set
+    if (labels[0] == 'Benign'):
+        perplexity =[30,35,40,45,50,55,60,65,70,75] # 10 perplexity
+
+    # diabetes data set
+    if (labels[0] == 1):
+        perplexity = [10,15,20,25,30,35,40,45,50,55] # 10 perplexity
+
+    learning_rate = [10,20,30,40,50,60,70,80,90,100] # 10 learning rate
+    n_iter = [100,150,200,250,350] # 5 iterations
 
     global overalProjectionsNumber
     overalProjectionsNumber = 0
@@ -219,18 +244,16 @@ def calculateGrid():
     
     global projectionsAll
 
-    pool = Pool()
     listofParamsPlusData = []
     listofParamsAll= []
     for k in n_iter:
         for j in learning_rate:
             for i in perplexity:
                 listofParamsPlusData.append((dataProc,DEFAULT_NO_DIMS,length,i,j,EMPTY_SEED,VERBOSE,DEFAULT_USE_PCA,k))
-                listofParamsAll.append((i,j,k))         
-    projectionsAll = pool.map(multi_run_wrapper, listofParamsPlusData)
-    pool.close()
-    pool.join()
+                listofParamsAll.append((i,j,k)) 
 
+    projectionsAll = wrapGetResults(listofParamsPlusData)
+    
     global SelectedListofParams
     SelectedListofParams = []
     global SelectedProjectionsReturn

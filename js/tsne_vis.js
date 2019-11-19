@@ -1028,7 +1028,7 @@ if (optionMetric == 1) {
 
 }
 
-  var width = 900 // interactive visualization
+  var width = 2200 // interactive visualization
   var height = 1150 // interactive visualization
   document.getElementById("confirmModal").disabled = true;
 
