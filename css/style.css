@@ -512,7 +512,7 @@ ul {
   height: 140px;
   -webkit-animation: spin 2s linear infinite; /* Safari */
   animation: spin 2s linear infinite;
-  margin-left: 550px;
+  margin-left: 540px;
   margin-top: 500px;
   margin-bottom: 500px;
 }
