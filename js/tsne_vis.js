@@ -224,9 +224,9 @@ var index = order.indexOf(activeProjectionNumber);
 
 var arrayLineColor = []
 
-for (let k = 0; k < 8; k++) {
-  if (index > 7) {
-    if (k == 7 && index > 6) {
+for (let k = 0; k < 6; k++) {
+  if (index > 5) {
+    if (k == 5 && index > 4) {
       SelectedProjections.push(activeProjectionNumber)
       arrayLineColor.push('red')
     } else {
@@ -257,9 +257,9 @@ var colorscaleValue = [
   [1, '#000000']
 ];
 
-for (let k = 0; k < 8*2; k++) {
-if(k >= 8) {
-  if (k == 8) {
+for (let k = 0; k < 6*2; k++) {
+if(k >= 6) {
+  if (k == 6) {
     traces.push({
       y: [],
       x: xValues,
@@ -350,6 +350,8 @@ if(k >= 8) {
           mirror: true,
           showgrid: false,
           zeroline: false,
+          anchor: 'y',
+          domain: [0, 0.15],
           showticklabels: false
       },
       yaxis: {
@@ -358,6 +360,8 @@ if(k >= 8) {
           mirror: true,
           showgrid: false,
           zeroline: false,
+          anchor: 'x',
+          domain: [0.22, 1],
           showticklabels: false
       },
       xaxis2: {
@@ -365,6 +369,8 @@ if(k >= 8) {
         linewidth: 1,
         mirror: true,
         showgrid: false,
+        anchor: 'y2',
+        domain: [0.17, 0.32],
         zeroline: false,
         showticklabels: false
       },
@@ -374,6 +380,8 @@ if(k >= 8) {
           mirror: true,
           showgrid: false,
           zeroline: false,
+          anchor: 'x2',
+          domain: [0.22, 1],
           showticklabels: false
       },
       xaxis3: {
@@ -381,6 +389,8 @@ if(k >= 8) {
           linewidth: 1,
           mirror: true,
           showgrid: false,
+          anchor: 'y3',
+          domain: [0.34, 0.49],
           zeroline: false,
           showticklabels: false
       },
@@ -388,6 +398,8 @@ if(k >= 8) {
         linecolor: arrayLineColor[2],
           linewidth: 1,
           mirror: true,
+          anchor: 'x3',
+          domain: [0.22, 1],
           showgrid: false,
           zeroline: false,
           showticklabels: false
@@ -397,6 +409,8 @@ if(k >= 8) {
           linewidth: 1,
           mirror: true,
           showgrid: false,
+          anchor: 'y4',
+          domain: [0.51, 0.66],
           zeroline: false,
           showticklabels: false
       },
@@ -405,6 +419,8 @@ if(k >= 8) {
           linewidth: 1,
           mirror: true,
           showgrid: false,
+          anchor: 'x4',
+          domain: [0.22, 1],
           zeroline: false,
           showticklabels: false
       },
@@ -412,6 +428,8 @@ if(k >= 8) {
         linecolor: arrayLineColor[4],
           linewidth: 1,
           mirror: true,
+          anchor: 'y5',
+          domain: [0.68, 0.83],
           showgrid: false,
           zeroline: false,
           showticklabels: false
@@ -421,6 +439,8 @@ if(k >= 8) {
           linewidth: 1,
           mirror: true,
           showgrid: false,
+          anchor: 'x5',
+          domain: [0.22, 1],
           zeroline: false,
           showticklabels: false
       },
@@ -429,6 +449,8 @@ if(k >= 8) {
           linewidth: 1,
           mirror: true,
           showgrid: false,
+          anchor: 'y6',
+          domain: [0.85, 1],
           zeroline: false,
           showticklabels: false
       },
@@ -437,141 +459,109 @@ if(k >= 8) {
           linewidth: 1,
           mirror: true,
           showgrid: false,
+          anchor: 'x6',
+          domain: [0.22, 1],
           zeroline: false,
           showticklabels: false
       },
       xaxis7: {
-        linecolor: arrayLineColor[6],
-          linewidth: 1,
-          mirror: true,
-          showgrid: false,
-          zeroline: false,
-          showticklabels: false
+        ticks: '',
+        side: 'bottom',
+        anchor: 'y7',
+        domain: [0, 0.15],
       },
       yaxis7: {
-        linecolor: arrayLineColor[6],
-          linewidth: 1,
-          mirror: true,
-          showgrid: false,
-          zeroline: false,
-          showticklabels: false
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        anchor: 'x7',
+        domain: [0, 0.18],
+        autotick: true,
+        ticks: '',
+        showticklabels: false
       },
       xaxis8: {
-        linecolor: arrayLineColor[7],
-          linewidth: 1,
-          mirror: true,
-          showgrid: false,
-          zeroline: false,
-          showticklabels: false
+        ticks: '',
+        side: 'bottom',
+        anchor: 'y8',
+        domain: [0.17, 0.32],
       },
       yaxis8: {
-        linecolor: arrayLineColor[7],
-          linewidth: 1,
-          mirror: true,
-          showgrid: false,
-          zeroline: false,
-          showticklabels: false
+        autorange: true,
+        showgrid: false,
+        zeroline: false,
+        showline: false,
+        anchor: 'x8',
+        domain: [0, 0.18],
+        autotick: true,
+        ticks: '',
+        showticklabels: false
       },
       xaxis9: {
         ticks: '',
-        side: 'top'
+        side: 'bottom',
+        anchor: 'y9',
+        domain: [0.34, 0.49],
       },
       yaxis9: {
         autorange: true,
         showgrid: false,
         zeroline: false,
         showline: false,
+        anchor: 'x9',
+        domain: [0, 0.18],
         autotick: true,
         ticks: '',
         showticklabels: false
       },
       xaxis10: {
         ticks: '',
-        side: 'top'
+        side: 'bottom',
+        anchor: 'y10',
+        domain: [0.51, 0.66],
       },
       yaxis10: {
         autorange: true,
         showgrid: false,
         zeroline: false,
         showline: false,
+        anchor: 'x10',
+        domain: [0, 0.18],
         autotick: true,
         ticks: '',
         showticklabels: false
       },
       xaxis11: {
         ticks: '',
-        side: 'top'
+        side: 'bottom',
+        anchor: 'y11',
+        domain: [0.68, 0.83],
       },
       yaxis11: {
         autorange: true,
         showgrid: false,
         zeroline: false,
         showline: false,
+        anchor: 'x11',
+        domain: [0, 0.18],
         autotick: true,
         ticks: '',
         showticklabels: false
       },
       xaxis12: {
         ticks: '',
-        side: 'top'
+        side: 'bottom',
+        anchor: 'y12',
+        domain: [0.85, 1],
       },
       yaxis12: {
         autorange: true,
         showgrid: false,
         zeroline: false,
         showline: false,
-        autotick: true,
-        ticks: '',
-        showticklabels: false
-      },
-      xaxis13: {
-        ticks: '',
-        side: 'top'
-      },
-      yaxis13: {
-        autorange: true,
-        showgrid: false,
-        zeroline: false,
-        showline: false,
-        autotick: true,
-        ticks: '',
-        showticklabels: false
-      },
-      xaxis14: {
-        ticks: '',
-        side: 'top'
-      },
-      yaxis14: {
-        autorange: true,
-        showgrid: false,
-        zeroline: false,
-        showline: false,
-        autotick: true,
-        ticks: '',
-        showticklabels: false
-      },
-      xaxis15: {
-        ticks: '',
-        side: 'top'
-      },
-      yaxis15: {
-        autorange: true,
-        showgrid: false,
-        zeroline: false,
-        showline: false,
-        autotick: true,
-        ticks: '',
-        showticklabels: false
-      },
-      xaxis16: {
-        ticks: '',
-        side: 'top'
-      },
-      yaxis16: {
-        autorange: true,
-        showgrid: false,
-        zeroline: false,
-        showline: false,
+        anchor: 'x12',
+        domain: [0, 0.18],
         autotick: true,
         ticks: '',
         showticklabels: false
@@ -579,7 +569,7 @@ if(k >= 8) {
       margin: {
         l: 10,
         r: 10,
-        b: 10,
+        b: 15,
         t: 2,
         pad: 0
       },
@@ -588,7 +578,7 @@ if(k >= 8) {
       height: height,
       hovermode:'closest',
       legend: {"orientation": "h"},
-      grid: {rows: 2, columns: 8, pattern: 'independent'},
+      grid: {pattern: 'independent'},
     }
     document.getElementById('overviewRect').style.border = '1px solid red'
     document.getElementById('modtSNEcanvas').style.border = '1px solid red'
@@ -613,10 +603,6 @@ if(k >= 8) {
         'yaxis5.linecolor': 'black',    // updates the end of the yaxis range
         'xaxis6.linecolor': 'black',   // updates the xaxis range
         'yaxis6.linecolor': 'black',    // updates the end of the yaxis range
-        'xaxis7.linecolor': 'black',   // updates the xaxis range
-        'yaxis7.linecolor': 'black',    // updates the end of the yaxis range
-        'xaxis8.linecolor': 'black',   // updates the xaxis range
-        'yaxis8.linecolor': 'black',    // updates the end of the yaxis range
         };
 
         Plotly.relayout(graphDiv, update)
@@ -664,7 +650,7 @@ if(k >= 8) {
               };
       
               SelProjIDSProv.push(4)
-          } else if (data.points[0].xaxis._id == 'x6') {
+          } else {
       
           
               var update = {
@@ -673,25 +659,6 @@ if(k >= 8) {
               };
           
               SelProjIDSProv.push(5)
-          } else if (data.points[0].xaxis._id == 'x7') {
-      
-            
-              var update = {
-                'xaxis7.linecolor': 'red',   // updates the xaxis range
-                'yaxis7.linecolor': 'red'    // updates the end of the yaxis range
-              };
-            
-              SelProjIDSProv.push(6)
-          } else {
-      
-      
-              var update = {
-                'xaxis8.linecolor': 'red',   // updates the xaxis range
-                'yaxis8.linecolor': 'red'    // updates the end of the yaxis range
-              };
-              firstProj = false
-          
-              SelProjIDSProv.push(7)
           }
 
           Plotly.relayout(graphDiv, update)
@@ -901,8 +868,6 @@ function ReSortOver() {
   labelsTarget = uniqueTarget
 }
 
-console.log(metrics)
-
 var optionMetric = document.getElementById("param-SortMOver-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
 var order = [];
 
@@ -919,7 +884,7 @@ if (optionMetric == 1) {
 } else {
   order = metricsSorting[optionMetric-1]
 }
-  console.log(order)
+
   var checkCounter = 0
   var checkCounterMetr = 0
 
@@ -1033,7 +998,7 @@ if (optionMetric == 1) {
 
 }
 
-  var width = 2200 // interactive visualization
+  var width = 1250 // interactive visualization
   var height = 1150 // interactive visualization
   document.getElementById("confirmModal").disabled = true;
 
@@ -1044,6 +1009,8 @@ if (optionMetric == 1) {
     mirror: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'y1',
+    domain: [0, 0.19],
     showticklabels: false,
   },
   yaxis: {
@@ -1052,6 +1019,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'x1',
+      domain: [0.86, 1],
       showticklabels: false
   },
   xaxis2: {
@@ -1059,6 +1028,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y2',
+      domain: [0.21, 0.39],
       zeroline: false,
       showticklabels: false
   },
@@ -1067,6 +1038,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x2',
+      domain: [0.86, 1],
       zeroline: false,
       showticklabels: false
   },
@@ -1076,6 +1049,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'y3',
+      domain: [0.41, 0.59],
       showticklabels: false
   },
   yaxis3: {
@@ -1084,6 +1059,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'x3',
+      domain: [0.86, 1],
       showticklabels: false
   },
   xaxis4: {
@@ -1092,6 +1069,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'y4',
+      domain: [0.61, 0.79],
       showticklabels: false
   },
   yaxis4: {
@@ -1100,6 +1079,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'x4',
+      domain: [0.86, 1],
       showticklabels: false
   },
   xaxis5: {
@@ -1108,6 +1089,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'y5',
+      domain: [0.81, 1],
       showticklabels: false
   },
   yaxis5: {
@@ -1116,26 +1099,36 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'x5',
+      domain: [0.86, 1],
       showticklabels: false
   },
   xaxis6: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y6',
+    domain: [0, 0.19],
   },
   yaxis6: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x6',
+    domain: [0.82, 0.84],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis7: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y7',
+    domain: [0.21, 0.39],
   },
   yaxis7: {
     autorange: true,
     showgrid: false,
+    anchor: 'x7',
+    domain: [0.82, 0.84],
     zeroline: false,
     showline: false,
     autotick: true,
@@ -1143,35 +1136,47 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis8: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y8',
+    domain: [0.41, 0.59],
   },
   yaxis8: {
     autorange: true,
     showgrid: false,
     zeroline: false,
     showline: false,
+    anchor: 'x8',
+    domain: [0.82, 0.84],
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis9: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y9',
+    domain: [0.61, 0.79],
   },
   yaxis9: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x9',
+    domain: [0.82, 0.84],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis10: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y10',
+    domain: [0.81, 1],
   },
   yaxis10: {
     autorange: true,
     showgrid: false,
+    anchor: 'x10',
+    domain: [0.82, 0.84],
     zeroline: false,
     showline: false,
     autotick: true,
@@ -1183,6 +1188,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y11',
+      domain: [0, 0.19],
       zeroline: false,
       showticklabels: false
   },
@@ -1191,6 +1198,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x11',
+      domain: [0.66, 0.80],
       zeroline: false,
       showticklabels: false
   },
@@ -1199,6 +1208,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y12',
+      domain: [0.21, 0.39],
       zeroline: false,
       showticklabels: false
   },
@@ -1206,6 +1217,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x12',
+      domain: [0.66, 0.80],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1214,6 +1227,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'y13',
+      domain: [0.41, 0.59],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1222,6 +1237,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x13',
+      domain: [0.66, 0.80],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1230,6 +1247,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'y14',
+      domain: [0.61, 0.79],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1238,6 +1257,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x14',
+      domain: [0.66, 0.80],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1246,6 +1267,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'y15',
+      domain: [0.81, 1],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1254,28 +1277,40 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x15',
+      domain: [0.66, 0.80],
       showgrid: false,
       zeroline: false,
       showticklabels: false
   },
   xaxis16: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y16',
+    domain: [0, 0.19],
+    
   },
   yaxis16: {
     autorange: true,
     showgrid: false,
+    anchor: 'x16',
+    domain: [0.62, 0.64],
     zeroline: false,
     showline: false,
+    
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis17: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y17',
+    domain: [0.21, 0.39],
   },
   yaxis17: {
     autorange: true,
     showgrid: false,
+    anchor: 'x17',
+    domain: [0.62, 0.64],
     zeroline: false,
     showline: false,
     autotick: true,
@@ -1283,23 +1318,31 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis18: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y18',
+    domain: [0.41, 0.59],
   },
   yaxis18: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x18',
+    domain: [0.62, 0.64],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis19: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y19',
+    domain: [0.61, 0.79],
   },
   yaxis19: {
     autorange: true,
     showgrid: false,
+    anchor: 'x19',
+    domain: [0.62, 0.64],
     zeroline: false,
     showline: false,
     autotick: true,
@@ -1307,11 +1350,15 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis20: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y20',
+    domain: [0.81, 1],
   },
   yaxis20: {
     autorange: true,
     showgrid: false,
+    anchor: 'x20',
+    domain: [0.62, 0.64],
     zeroline: false,
     showline: false,
     autotick: true,
@@ -1323,6 +1370,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y21',
+      domain: [0, 0.19],
       zeroline: false,
       showticklabels: false
   },
@@ -1331,6 +1380,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x21',
+      domain: [0.46, 0.60],
       zeroline: false,
       showticklabels: false
   },
@@ -1339,6 +1390,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y22',
+      domain: [0.21, 0.39],
       zeroline: false,
       showticklabels: false
   },
@@ -1347,6 +1400,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x22',
+      domain: [0.46, 0.60],
       zeroline: false,
       showticklabels: false
   },
@@ -1355,6 +1410,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y23',
+      domain: [0.41, 0.59],
       zeroline: false,
       showticklabels: false
   },
@@ -1362,6 +1419,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x23',
+      domain: [0.46, 0.60],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1371,6 +1430,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y24',
+      domain: [0.61, 0.79],
       zeroline: false,
       showticklabels: false
   },
@@ -1380,6 +1441,8 @@ if (optionMetric == 1) {
       mirror: true,
       showgrid: false,
       zeroline: false,
+      anchor: 'x24',
+      domain: [0.46, 0.60],
       showticklabels: false
   },
   xaxis25: {
@@ -1387,6 +1450,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y25',
+      domain: [0.81, 1],
       zeroline: false,
       showticklabels: false
   },
@@ -1394,66 +1459,88 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x25',
+      domain: [0.46, 0.60],
       showgrid: false,
       zeroline: false,
       showticklabels: false
   },
   xaxis26: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y26',
+    domain: [0, 0.19],
   },
   yaxis26: {
     autorange: true,
     showgrid: false,
     zeroline: false,
     showline: false,
+    anchor: 'x26',
+    domain: [0.42, 0.44],
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis27: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y27',
+    domain: [0.21, 0.39],
   },
   yaxis27: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x27',
+    domain: [0.42, 0.44],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis28: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y28',
+    domain: [0.41, 0.59],
   },
   yaxis28: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x28',
+    domain: [0.42, 0.44],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis29: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y29',
+    domain: [0.61, 0.79],
   },
   yaxis29: {
     autorange: true,
     showgrid: false,
     zeroline: false,
     showline: false,
+    anchor: 'x29',
+    domain: [0.42, 0.44],
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis30: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y30',
+    domain: [0.81, 1],
   },
   yaxis30: {
     autorange: true,
     showgrid: false,
     zeroline: false,
     showline: false,
+    anchor: 'x30',
+    domain: [0.42, 0.44],
     autotick: true,
     ticks: '',
     showticklabels: false
@@ -1464,12 +1551,16 @@ if (optionMetric == 1) {
     mirror: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'y31',
+    domain: [0, 0.19],
     showticklabels: false
   },
   yaxis31: {
       linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x31',
+      domain: [0.26, 0.40],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1478,6 +1569,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'y32',
+      domain: [0.21, 0.39],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1486,6 +1579,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x32',
+      domain: [0.26, 0.40],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1495,6 +1590,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y33',
+      domain: [0.41, 0.59],
       zeroline: false,
       showticklabels: false
   },
@@ -1503,13 +1600,17 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x33',
+      domain: [0.26, 0.40],
       zeroline: false,
       showticklabels: false
   },
   xaxis34: {
     linecolor: 'black',
       linewidth: 1,
-      mirror: true,
+      mirror: true, 
+      anchor: 'y34',
+      domain: [0.61, 0.79],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1519,6 +1620,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x34',
+      domain: [0.26, 0.40],
       zeroline: false,
       showticklabels: false
   },
@@ -1526,6 +1629,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'y35',
+      domain: [0.81, 1],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1534,65 +1639,87 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'x35',
+      domain: [0.26, 0.40],
       showgrid: false,
       zeroline: false,
       showticklabels: false
   },
   xaxis36: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y36',
+    domain: [0, 0.19],
   },
   yaxis36: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x36',
+    domain: [0.22, 0.24],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis37: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y37',
+    domain: [0.21, 0.39],
   },
   yaxis37: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x37',
+    domain: [0.22, 0.24],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis38: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y38',
+    domain: [0.41, 0.59],
   },
   yaxis38: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x38',
+    domain: [0.22, 0.24],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis39: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y39',
+    domain: [0.61, 0.79],
   },
   yaxis39: {
     autorange: true,
     showgrid: false,
     zeroline: false,
     showline: false,
+    anchor: 'x39',
+    domain: [0.22, 0.24],
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis40: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y40',
+    domain: [0.81, 1],
   },
   yaxis40: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x40',
+    domain: [0.22, 0.24],
     showline: false,
     autotick: true,
     ticks: '',
@@ -1603,6 +1730,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y41',
+      domain: [0, 0.19],
       zeroline: false,
       showticklabels: false
   },
@@ -1611,12 +1740,16 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x41',
+      domain: [0.06, 0.20],
       zeroline: false,
       showticklabels: false
   },
   xaxis42: {
     linecolor: 'black',
       linewidth: 1,
+      anchor: 'y42',
+      domain: [0.21, 0.39],
       mirror: true,
       showgrid: false,
       zeroline: false,
@@ -1627,6 +1760,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x42',
+      domain: [0.06, 0.20],
       zeroline: false,
       showticklabels: false
   },
@@ -1635,6 +1770,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y43',
+      domain: [0.41, 0.59],
       zeroline: false,
       showticklabels: false
   },
@@ -1643,6 +1780,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x43',
+      domain: [0.06, 0.20],
       zeroline: false,
       showticklabels: false
   },
@@ -1651,6 +1790,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'y44',
+      domain: [0.61, 0.79],
       zeroline: false,
       showticklabels: false
   },
@@ -1659,6 +1800,8 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x44',
+      domain: [0.06, 0.20],
       zeroline: false,
       showticklabels: false
   },
@@ -1666,6 +1809,8 @@ if (optionMetric == 1) {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
+      anchor: 'y45',
+      domain: [0.81, 1],
       showgrid: false,
       zeroline: false,
       showticklabels: false
@@ -1675,63 +1820,85 @@ if (optionMetric == 1) {
       linewidth: 1,
       mirror: true,
       showgrid: false,
+      anchor: 'x45',
+      domain: [0.06, 0.20],
       zeroline: false,
       showticklabels: false
   },
   xaxis46: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y46',
+    domain: [0, 0.19],
   },
   yaxis46: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x46',
+    domain: [0.02, 0.04],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis47: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y47',
+    domain: [0.21, 0.39],
   },
   yaxis47: {
     autorange: true,
     showgrid: false,
     zeroline: false,
     showline: false,
+    anchor: 'x47',
+    domain: [0.02, 0.04],
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis48: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y48',
+    domain: [0.41, 0.59],
   },
   yaxis48: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x48',
+    domain: [0.02, 0.04],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis49: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y49',
+    domain: [0.61, 0.79],
   },
   yaxis49: {
     autorange: true,
     showgrid: false,
     zeroline: false,
+    anchor: 'x49',
+    domain: [0.02, 0.04],
     showline: false,
     autotick: true,
     ticks: '',
     showticklabels: false
   },
   xaxis50: {
-    side: 'top'
+    side: 'top',
+    anchor: 'y50',
+    domain: [0.81, 1],
   },
   yaxis50: {
     autorange: true,
     showgrid: false,
+    anchor: 'x50',
+    domain: [0.02, 0.04],
     zeroline: false,
     showline: false,
     autotick: true,
@@ -1752,7 +1919,7 @@ if (optionMetric == 1) {
   hovermode:'closest',
   legend: {"orientation": "h",
           y: 0},
-  grid: {rows: 10, columns: 5, pattern: 'independent'},
+  grid: {pattern: 'independent'},
   }
 
   var config = {displayModeBar: false}
