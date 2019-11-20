@@ -147,7 +147,7 @@ function ReSort(flagInitialize) {
       metricsCopy = metrics
     }
     globalFlagCheck = false
-    document.getElementById("textToChange").innerHTML = "[Sorting Metric for Optimized Selection:";
+    document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for the Current Points Selection:";
     metricsSorting = dataReceivedFromServerOptimized['metrics']
     metrics = dataReceivedFromServerOptimized['metricsEntire']
     if (FocusedIDs.length == points.length) {
@@ -206,7 +206,6 @@ var optionMetric = document.getElementById("param-SortM-view").value; // Get the
 
 var order = [];
 SelectedProjections = []
-
 if (optionMetric == 1) {
   order = metricsSorting[optionMetric-1]
 } else if (optionMetric == 2) {
@@ -214,6 +213,8 @@ if (optionMetric == 1) {
 } else if (optionMetric == 3) {
   order = metricsSorting[optionMetric-1]
 } else if (optionMetric == 4) {
+  order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 5) {
   order = metricsSorting[optionMetric-1]
 } else {
   order = metricsSorting[optionMetric-1]
@@ -249,7 +250,7 @@ for (let k = 0; k < 8; k++) {
 var checkCounter = 0
 var checkCounterMetr = 0
 
-var xValues = ['NH', 'T', 'C', 'S', 'SDC'];
+var xValues = ['QMA', 'NH', 'T', 'C', 'S', 'SDC'];
 
 var colorscaleValue = [
   [0, '#d9d9d9'],
@@ -267,7 +268,7 @@ if(k >= 8) {
       hoverinfo:"z",
       colorscale: colorscaleValue,
       colorbar: {
-          title: 'Met. Val.',
+          title: 'Met. Per.',
           tickvals:[0,0.2,0.4,0.6,0.8,1],
           titleside:'right',
         },
@@ -900,6 +901,8 @@ function ReSortOver() {
   labelsTarget = uniqueTarget
 }
 
+console.log(metrics)
+
 var optionMetric = document.getElementById("param-SortMOver-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
 var order = [];
 
@@ -911,14 +914,16 @@ if (optionMetric == 1) {
   order = metricsSorting[optionMetric-1]
 } else if (optionMetric == 4) {
   order = metricsSorting[optionMetric-1]
+} else if (optionMetric == 5) {
+  order = metricsSorting[optionMetric-1]
 } else {
   order = metricsSorting[optionMetric-1]
 }
-
+  console.log(order)
   var checkCounter = 0
   var checkCounterMetr = 0
 
-  var xValues = ['NH', 'T', 'C', 'S', 'SDC'];
+  var xValues = ['QMA', 'NH', 'T', 'C', 'S', 'SDC'];
 
   var colorscaleValue = [
     [0, '#d9d9d9'],
@@ -926,7 +931,7 @@ if (optionMetric == 1) {
   ];
 
   for (let k = 0; k < projections.length*2; k++) {
-  if((k >= 6 && k <= 11) || (k >=18 && k<=23) || (k >= 30 && k<= 35) || (k >= 42 && k<=47) || (k>=54 && k<=59) || (k >= 66 && k<=71)) {
+  if((k >= 5 && k < 10) || (k >=15 && k< 20) || (k >= 25 && k< 30) || (k >= 35 && k< 40) || (k >= 45 && k< 50)) {
     if (k == 6) {
       traces.push({
         y: [],
@@ -936,7 +941,7 @@ if (optionMetric == 1) {
         hoverinfo:"z",
         colorscale: colorscaleValue,
         colorbar: {
-            title: 'Metrics\' Values (Normalized)',
+            title: 'Normalized Metrics Performance',
             tickvals:[0,0.2,0.4,0.6,0.8,1],
             titleside:'right',
           },
@@ -1114,20 +1119,16 @@ if (optionMetric == 1) {
       showticklabels: false
   },
   xaxis6: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis6: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis7: {
     side: 'top'
@@ -1178,28 +1179,36 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis11: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis11: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis12: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis12: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis13: {
     linecolor: 'black',
@@ -1250,54 +1259,40 @@ if (optionMetric == 1) {
       showticklabels: false
   },
   xaxis16: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis16: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis17: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis17: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis18: {
-
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis18: {
-
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis19: {
     side: 'top'
@@ -1324,52 +1319,68 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis21: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis21: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis22: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis22: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis23: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis23: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis24: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis24: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis25: {
     linecolor: 'black',
@@ -1388,80 +1399,82 @@ if (optionMetric == 1) {
       showticklabels: false
   },
   xaxis26: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis26: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis27: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis27: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis28: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis28: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis29: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis29: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis30: {
-
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis30: {
-
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
+  },
+  xaxis31: {
+    linecolor: 'black',
+    linewidth: 1,
+    mirror: true,
+    showgrid: false,
+    zeroline: false,
+    showticklabels: false
+  },
+  yaxis31: {
+      linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
+  },
+  xaxis32: {
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
@@ -1469,65 +1482,61 @@ if (optionMetric == 1) {
       zeroline: false,
       showticklabels: false
   },
-  xaxis31: {
-    side: 'top'
-  },
-  yaxis31: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis32: {
-    side: 'top'
-  },
   yaxis32: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis33: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis33: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis34: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis34: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis35: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis35: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis36: {
     side: 'top'
@@ -1542,68 +1551,52 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis37: {
-    linecolor: 'black',
-    linewidth: 1,
-    mirror: true,
-    showgrid: false,
-    zeroline: false,
-    showticklabels: false
+    side: 'top'
   },
   yaxis37: {
-      linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis38: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis38: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis39: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis39: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis40: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis40: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis41: {
     linecolor: 'black',
@@ -1622,7 +1615,6 @@ if (optionMetric == 1) {
       showticklabels: false
   },
   xaxis42: {
-
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
@@ -1631,7 +1623,6 @@ if (optionMetric == 1) {
       showticklabels: false
   },
   yaxis42: {
-
     linecolor: 'black',
       linewidth: 1,
       mirror: true,
@@ -1640,40 +1631,52 @@ if (optionMetric == 1) {
       showticklabels: false
   },
   xaxis43: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis43: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis44: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis44: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis45: {
-    side: 'top'
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   yaxis45: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
+    linecolor: 'black',
+      linewidth: 1,
+      mirror: true,
+      showgrid: false,
+      zeroline: false,
+      showticklabels: false
   },
   xaxis46: {
     side: 'top'
@@ -1712,105 +1715,21 @@ if (optionMetric == 1) {
     showticklabels: false
   },
   xaxis49: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis49: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    autorange: true,
+    showgrid: false,
+    zeroline: false,
+    showline: false,
+    autotick: true,
+    ticks: '',
+    showticklabels: false
   },
   xaxis50: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
+    side: 'top'
   },
   yaxis50: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis51: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis51: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis52: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis52: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis53: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis53: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis54: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis54: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis55: {
-    side: 'top'
-  },
-  yaxis55: {
     autorange: true,
     showgrid: false,
     zeroline: false,
@@ -1819,234 +1738,7 @@ if (optionMetric == 1) {
     ticks: '',
     showticklabels: false
   },
-  xaxis56: {
-    side: 'top'
-  },
-  yaxis56: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis57: {
-    side: 'top'
-  },
-  yaxis57: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis58: {
-    side: 'top'
-  },
-  yaxis58: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis59: {
-    side: 'top'
-  },
-  yaxis59: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis60: {
-    side: 'top'
-  },
-  yaxis60: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis61: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis61: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis62: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis62: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis63: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis63: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis64: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis64: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis65: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis65: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis66: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  yaxis66: {
-    linecolor: 'black',
-      linewidth: 1,
-      mirror: true,
-      showgrid: false,
-      zeroline: false,
-      showticklabels: false
-  },
-  xaxis67: {
-    side: 'top'
-  },
-  yaxis67: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis68: {
-    side: 'top'
-  },
-  yaxis68: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis69: {
-    side: 'top'
-  },
-  yaxis69: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis70: {
-    side: 'top'
-  },
-  yaxis70: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis71: {
-    side: 'top'
-  },
-  yaxis71: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
-  xaxis72: {
-    side: 'top'
-  },
-  yaxis72: {
-    autorange: true,
-    showgrid: false,
-    zeroline: false,
-    showline: false,
-    autotick: true,
-    ticks: '',
-    showticklabels: false
-  },
+
   margin: {
     l: 10,
     r: 5,
@@ -2060,7 +1752,7 @@ if (optionMetric == 1) {
   hovermode:'closest',
   legend: {"orientation": "h",
           y: 0},
-  grid: {rows: 12, columns: 6, pattern: 'independent'},
+  grid: {rows: 10, columns: 5, pattern: 'independent'},
   }
 
   var config = {displayModeBar: false}
@@ -2084,68 +1776,46 @@ if (optionMetric == 1) {
   'yaxis4.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis5.linecolor': 'black',   // updates the xaxis range
   'yaxis5.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis6.linecolor': 'black',   // updates the xaxis range
-  'yaxis6.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis11.linecolor': 'black',   // updates the xaxis range
+  'yaxis11.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis12.linecolor': 'black',   // updates the xaxis range
+  'yaxis12.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis13.linecolor': 'black',   // updates the xaxis range
   'yaxis13.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis14.linecolor': 'black',   // updates the xaxis range
   'yaxis14.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis15.linecolor': 'black',   // updates the xaxis range
   'yaxis15.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis16.linecolor': 'black',   // updates the xaxis range
-  'yaxis16.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis17.linecolor': 'black',   // updates the xaxis range
-  'yaxis17.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis18.linecolor': 'black',   // updates the xaxis range
-  'yaxis18.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis21.linecolor': 'black',   // updates the xaxis range
+  'yaxis21.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis22.linecolor': 'black',   // updates the xaxis range
+  'yaxis22.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis23.linecolor': 'black',   // updates the xaxis range
+  'yaxis23.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis24.linecolor': 'black',   // updates the xaxis range
+  'yaxis24.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis25.linecolor': 'black',   // updates the xaxis range
   'yaxis25.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis26.linecolor': 'black',   // updates the xaxis range
-  'yaxis26.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis27.linecolor': 'black',   // updates the xaxis range
-  'yaxis27.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis28.linecolor': 'black',   // updates the xaxis range
-  'yaxis28.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis29.linecolor': 'black',   // updates the xaxis range
-  'yaxis29.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis30.linecolor': 'black',   // updates the xaxis range
-  'yaxis30.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis37.linecolor': 'black',   // updates the xaxis range
-  'yaxis37.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis38.linecolor': 'black',   // updates the xaxis range
-  'yaxis38.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis39.linecolor': 'black',   // updates the xaxis range
-  'yaxis39.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis40.linecolor': 'black',   // updates the xaxis range
-  'yaxis40.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis31.linecolor': 'black',   // updates the xaxis range
+  'yaxis31.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis32.linecolor': 'black',   // updates the xaxis range
+  'yaxis32.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis33.linecolor': 'black',   // updates the xaxis range
+  'yaxis33.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis34.linecolor': 'black',   // updates the xaxis range
+  'yaxis34.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis35.linecolor': 'black',   // updates the xaxis range
+  'yaxis35.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis41.linecolor': 'black',   // updates the xaxis range
   'yaxis41.linecolor': 'black',    // updates the end of the yaxis range
   'xaxis42.linecolor': 'black',   // updates the xaxis range
   'yaxis42.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis49.linecolor': 'black',   // updates the xaxis range
-  'yaxis49.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis50.linecolor': 'black',   // updates the xaxis range
-  'yaxis50.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis51.linecolor': 'black',   // updates the xaxis range
-  'yaxis51.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis52.linecolor': 'black',   // updates the xaxis range
-  'yaxis52.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis53.linecolor': 'black',   // updates the xaxis range
-  'yaxis53.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis54.linecolor': 'black',   // updates the xaxis range
-  'yaxis54.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis61.linecolor': 'black',   // updates the xaxis range
-  'yaxis61.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis62.linecolor': 'black',   // updates the xaxis range
-  'yaxis62.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis63.linecolor': 'black',   // updates the xaxis range
-  'yaxis63.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis64.linecolor': 'black',   // updates the xaxis range
-  'yaxis64.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis65.linecolor': 'black',   // updates the xaxis range
-  'yaxis65.linecolor': 'black',    // updates the end of the yaxis range
-  'xaxis66.linecolor': 'black',   // updates the xaxis range
-  'yaxis66.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis43.linecolor': 'black',   // updates the xaxis range
+  'yaxis43.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis44.linecolor': 'black',   // updates the xaxis range
+  'yaxis44.linecolor': 'black',    // updates the end of the yaxis range
+  'xaxis45.linecolor': 'black',   // updates the xaxis range
+  'yaxis45.linecolor': 'black',    // updates the end of the yaxis range
   };
   Plotly.relayout(graphDiv, update)
 
@@ -2192,34 +1862,42 @@ if (optionMetric == 1) {
         };
 
       SelProjIDS.push(4)
-    } else if (data.points[0].xaxis._id == 'x6') {
+    } else if (data.points[0].xaxis._id == 'x11') {
 
     
         var update = {
-          'xaxis6.linecolor': 'red',   // updates the xaxis range
-          'yaxis6.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis11.linecolor': 'red',   // updates the xaxis range
+          'yaxis11.linecolor': 'red'    // updates the end of the yaxis range
         };
     
       SelProjIDS.push(5)
-    } else if (data.points[0].xaxis._id == 'x13') {
+    } else if (data.points[0].xaxis._id == 'x12') {
 
       
+        var update = {
+          'xaxis12.linecolor': 'red',   // updates the xaxis range
+          'yaxis12.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(6)
+    } else if (data.points[0].xaxis._id == 'x13') {
+
+
         var update = {
           'xaxis13.linecolor': 'red',   // updates the xaxis range
           'yaxis13.linecolor': 'red'    // updates the end of the yaxis range
         };
-      
-      SelProjIDS.push(6)
+        firstProj = false
+    
+      SelProjIDS.push(7)
     } else if (data.points[0].xaxis._id == 'x14') {
-
 
         var update = {
           'xaxis14.linecolor': 'red',   // updates the xaxis range
           'yaxis14.linecolor': 'red'    // updates the end of the yaxis range
         };
-        firstProj = false
-    
-      SelProjIDS.push(7)
+      
+      SelProjIDS.push(8)
     } else if (data.points[0].xaxis._id == 'x15') {
 
         var update = {
@@ -2227,120 +1905,96 @@ if (optionMetric == 1) {
           'yaxis15.linecolor': 'red'    // updates the end of the yaxis range
         };
       
-      SelProjIDS.push(8)
-    } else if (data.points[0].xaxis._id == 'x16') {
-
-        var update = {
-          'xaxis16.linecolor': 'red',   // updates the xaxis range
-          'yaxis16.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
       SelProjIDS.push(9)
-    } else if (data.points[0].xaxis._id == 'x17') {
+    } else if (data.points[0].xaxis._id == 'x21') {
 
         var update = {
-          'xaxis17.linecolor': 'red',   // updates the xaxis range
-          'yaxis17.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis21.linecolor': 'red',   // updates the xaxis range
+          'yaxis21.linecolor': 'red'    // updates the end of the yaxis range
         };
       
       SelProjIDS.push(10)
-    } else if (data.points[0].xaxis._id == 'x18') {
+    } else if (data.points[0].xaxis._id == 'x22') {
 
         var update = {
-          'xaxis18.linecolor': 'red',   // updates the xaxis range
-          'yaxis18.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis22.linecolor': 'red',   // updates the xaxis range
+          'yaxis22.linecolor': 'red'    // updates the end of the yaxis range
         };
 
       SelProjIDS.push(11)
+    } else if (data.points[0].xaxis._id == 'x23') {
+
+        var update = {
+          'xaxis23.linecolor': 'red',   // updates the xaxis range
+          'yaxis23.linecolor': 'red'    // updates the end of the yaxis range
+        };
+    
+      SelProjIDS.push(12)
+    } else if (data.points[0].xaxis._id == 'x24') {
+
+        var update = {
+          'xaxis24.linecolor': 'red',   // updates the xaxis range
+          'yaxis24.linecolor': 'red'    // updates the end of the yaxis range
+        };
+
+      SelProjIDS.push(13)
     } else if (data.points[0].xaxis._id == 'x25') {
 
         var update = {
           'xaxis25.linecolor': 'red',   // updates the xaxis range
           'yaxis25.linecolor': 'red'    // updates the end of the yaxis range
         };
-    
-      SelProjIDS.push(12)
-    } else if (data.points[0].xaxis._id == 'x26') {
-
-        var update = {
-          'xaxis26.linecolor': 'red',   // updates the xaxis range
-          'yaxis26.linecolor': 'red'    // updates the end of the yaxis range
-        };
-
-      SelProjIDS.push(13)
-    } else if (data.points[0].xaxis._id == 'x27') {
-
-        var update = {
-          'xaxis27.linecolor': 'red',   // updates the xaxis range
-          'yaxis27.linecolor': 'red'    // updates the end of the yaxis range
-        };
 
       SelProjIDS.push(14)
-    } else if (data.points[0].xaxis._id == 'x28') {
+    } else if (data.points[0].xaxis._id == 'x31') {
 
         var update = {
-          'xaxis28.linecolor': 'red',   // updates the xaxis range
-          'yaxis28.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis31.linecolor': 'red',   // updates the xaxis range
+          'yaxis31.linecolor': 'red'    // updates the end of the yaxis range
         };
       
       SelProjIDS.push(15)
-    } else if (data.points[0].xaxis._id == 'x29') {
+    } else if (data.points[0].xaxis._id == 'x32') {
 
         var update = {
-          'xaxis29.linecolor': 'red',   // updates the xaxis range
-          'yaxis29.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis32.linecolor': 'red',   // updates the xaxis range
+          'yaxis32.linecolor': 'red'    // updates the end of the yaxis range
         };
       
       SelProjIDS.push(16)
-    } else if (data.points[0].xaxis._id == 'x30') {
+    } else if (data.points[0].xaxis._id == 'x33') {
 
         var update = {
-          'xaxis30.linecolor': 'red',   // updates the xaxis range
-          'yaxis30.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis33.linecolor': 'red',   // updates the xaxis range
+          'yaxis33.linecolor': 'red'    // updates the end of the yaxis range
         };
         firstProj = false
       
       SelProjIDS.push(17)
-    } else if (data.points[0].xaxis._id == 'x37') {
+    } else if (data.points[0].xaxis._id == 'x34') {
 
         var update = {
-          'xaxis37.linecolor': 'red',   // updates the xaxis range
-          'yaxis37.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis34.linecolor': 'red',   // updates the xaxis range
+          'yaxis34.linecolor': 'red'    // updates the end of the yaxis range
         };
       
       SelProjIDS.push(18)
-    } else if (data.points[0].xaxis._id == 'x38') {
+    } else if (data.points[0].xaxis._id == 'x35') {
 
         var update = {
-          'xaxis38.linecolor': 'red',   // updates the xaxis range
-          'yaxis38.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis35.linecolor': 'red',   // updates the xaxis range
+          'yaxis35.linecolor': 'red'    // updates the end of the yaxis range
         };
       
       SelProjIDS.push(19)
-    } else if (data.points[0].xaxis._id == 'x39') {
-
-        var update = {
-          'xaxis39.linecolor': 'red',   // updates the xaxis range
-          'yaxis39.linecolor': 'red'    // updates the end of the yaxis range
-        };
-    
-      SelProjIDS.push(20)
-    } else if (data.points[0].xaxis._id == 'x40') {
-
-        var update = {
-          'xaxis40.linecolor': 'red',   // updates the xaxis range
-          'yaxis40.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(21)
     } else if (data.points[0].xaxis._id == 'x41') {
 
         var update = {
           'xaxis41.linecolor': 'red',   // updates the xaxis range
           'yaxis41.linecolor': 'red'    // updates the end of the yaxis range
         };
-      
-      SelProjIDS.push(22)
+    
+      SelProjIDS.push(20)
     } else if (data.points[0].xaxis._id == 'x42') {
 
         var update = {
@@ -2348,103 +2002,31 @@ if (optionMetric == 1) {
           'yaxis42.linecolor': 'red'    // updates the end of the yaxis range
         };
       
+      SelProjIDS.push(21)
+    } else if (data.points[0].xaxis._id == 'x43') {
+
+        var update = {
+          'xaxis43.linecolor': 'red',   // updates the xaxis range
+          'yaxis43.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
+      SelProjIDS.push(22)
+    } else if (data.points[0].xaxis._id == 'x44') {
+
+        var update = {
+          'xaxis44.linecolor': 'red',   // updates the xaxis range
+          'yaxis44.linecolor': 'red'    // updates the end of the yaxis range
+        };
+      
       SelProjIDS.push(23)
-    } else if (data.points[0].xaxis._id == 'x49') {
-
-        var update = {
-          'xaxis49.linecolor': 'red',   // updates the xaxis range
-          'yaxis49.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(24)
-    } else if (data.points[0].xaxis._id == 'x50') {
-
-        var update = {
-          'xaxis50.linecolor': 'red',   // updates the xaxis range
-          'yaxis50.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(25)
-    } else if (data.points[0].xaxis._id == 'x51') {
-
-        var update = {
-          'xaxis51.linecolor': 'red',   // updates the xaxis range
-          'yaxis51.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(26)
-    } else if (data.points[0].xaxis._id == 'x52') {
-
-        var update = {
-          'xaxis52.linecolor': 'red',   // updates the xaxis range
-          'yaxis52.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(27)
-    } else if (data.points[0].xaxis._id == 'x53') {
-
-        var update = {
-          'xaxis53.linecolor': 'red',   // updates the xaxis range
-          'yaxis53.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(28)
-    } else if (data.points[0].xaxis._id == 'x54') {
-
-        var update = {
-          'xaxis54.linecolor': 'red',   // updates the xaxis range
-          'yaxis54.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(29)
-    } else if (data.points[0].xaxis._id == 'x61') {
-
-        var update = {
-          'xaxis61.linecolor': 'red',   // updates the xaxis range
-          'yaxis61.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(30)
-    } else if (data.points[0].xaxis._id == 'x62') {
-
-        var update = {
-          'xaxis62.linecolor': 'red',   // updates the xaxis range
-          'yaxis62.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(31)
-    } else if (data.points[0].xaxis._id == 'x63') {
-
-        var update = {
-          'xaxis63.linecolor': 'red',   // updates the xaxis range
-          'yaxis63.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(32)
-    } else if (data.points[0].xaxis._id == 'x64') {
-
-        var update = {
-          'xaxis64.linecolor': 'red',   // updates the xaxis range
-          'yaxis64.linecolor': 'red'    // updates the end of the yaxis range
-        };
-      
-      SelProjIDS.push(33)
-    } else if (data.points[0].xaxis._id == 'x65') {
-
-        var update = {
-          'xaxis65.linecolor': 'red',   // updates the xaxis range
-          'yaxis65.linecolor': 'red'    // updates the end of the yaxis range
-        };
-
-      SelProjIDS.push(34)
     } else {
 
         var update = {
-          'xaxis66.linecolor': 'red',   // updates the xaxis range
-          'yaxis66.linecolor': 'red'    // updates the end of the yaxis range
+          'xaxis45.linecolor': 'red',   // updates the xaxis range
+          'yaxis45.linecolor': 'red'    // updates the end of the yaxis range
         };
       
-      SelProjIDS.push(35)
+      SelProjIDS.push(24)
     }
 
     document.getElementById("confirmModal").disabled = false;

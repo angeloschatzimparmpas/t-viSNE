@@ -49,13 +49,14 @@
            <div class="w3-modal-content w3-card-4 w3-animate-zoom">
             <header class="w3-container w3-blue"> 
              <h3 style="display:inline-block; font-size: 16px; margin-top: 15px; margin-left: 10px; margin-bottom:15px">t-SNE Grid Search Resulting Diverse Projections</h3>
-             [Sorting Metric:
+             [Sorting Projections According to Metric:
              <select id="param-SortMOver-view" name="param-SortMOver-view" style="color: black" onchange="ReSortOver()">
-                <option value="1" selected>Neighborhood Hit (NH)</option>                
-                <option value="2">Trustworthiness (T)</option>
-                <option value="3">Continuity (C)</option>                
-                <option value="4">Stress (S)</option>
-                <option value="5">Shepard Diagram Correlation (SDC)</option>
+                <option value="1" selected>Quality Metrics Average (QMA)</option>   
+                <option value="2">Neighborhood Hit (NH)</option>                
+                <option value="3">Trustworthiness (T)</option>
+                <option value="4">Continuity (C)</option>                
+                <option value="5">Stress (S)</option>
+                <option value="6">Shepard Diagram Correlation (SDC)</option>
                </select>
              ]
             </header>
@@ -166,13 +167,14 @@
               <div class="panel panel-default med-bottomProv" style="margin-top:0.2px; margin-bottom:+14px">
                   <div class="panel-heading">
                     <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Projections Provenance</h2>
-                    <div id="textToChange" style="display:inline-block">[Sorting Metric:</div>
+                    <div id="textToChange" style="display:inline-block">[Sorting Projections According to Metric:</div>
                     <select id="param-SortM-view" name="param-SortM-view" onchange="ReSort(false)">
-                        <option value="1" selected>Neighborhood Hit (NH)</option>                
-                        <option value="2">Trustworthiness (T)</option>
-                        <option value="3">Continuity (C)</option>                
-                        <option value="4">Stress (S)</option>
-                        <option value="5">Shepard Diagram Correlation (SDC)</option>
+                        <option value="1" selected>Quality Metrics Average (QMA)</option>   
+                        <option value="2">Neighborhood Hit (NH)</option>                
+                        <option value="3">Trustworthiness (T)</option>
+                        <option value="4">Continuity (C)</option>                
+                        <option value="5">Stress (S)</option>
+                        <option value="6">Shepard Diagram Correlation (SDC)</option>
                       </select>
                     ]
                   <div style="display:inline-block; float:right">

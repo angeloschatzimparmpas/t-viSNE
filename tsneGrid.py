@@ -138,7 +138,7 @@ def continuity(D_high, D_low, k):
     return float((1 - (2 / (n * k * (2 * n - 3 * k - 1)) * sum_i)).squeeze())
 
 def normalized_stress(D_high, D_low):
-    return np.sum((D_high - D_low)**2) / np.sum(D_high**2) / 100
+    return (-1) * (np.sum((D_high - D_low)**2) / np.sum(D_high**2) / 100)
 
 def shepard_diagram_correlation(D_high, D_low):
     if len(D_high.shape) > 1:
@@ -180,7 +180,7 @@ def procrustesFun(projections):
     
 def Clustering(similarity):
     similarityNP = np.array(similarity)
-    n_clusters = 36
+    n_clusters = 25 # change that to send less diverse projections
     kmedoids = KMedoids(n_clusters=n_clusters, random_state=0, metric='precomputed').fit(similarityNP)   
     global dataProc 
     clusterIndex = []
@@ -267,6 +267,7 @@ def calculateGrid():
     metricCont = []
     metricStress = []
     metricShepCorr = []
+    metricsAverage = []
 
     global convertLabels
     convertLabels = []
@@ -338,10 +339,14 @@ def calculateGrid():
         valueNeigh = (metricNeigh[index] - min_value_neigh) / (max_value_neigh - min_value_neigh) 
         valueTrust = (metricTrust[index] - min_value_trust) / (max_value_trust - min_value_trust) 
         valueCont = (metricCont[index] - min_value_cont) / (max_value_cont - min_value_cont) 
-        valueStress = (metricStress[index] - min_value_stress) / (max_value_stress - min_value_stress) 
+        valueStress = 1 - ((metricStress[index]*(-1) - max_value_stress*(-1)) / (min_value_stress*(-1) - max_value_stress*(-1))) # we need the opposite
         valueShep = (metricShepCorr[index] - min_value_shep) / (max_value_shep - min_value_shep) 
-        metricsMatrixEntire.append([valueNeigh,valueTrust,valueCont,valueStress,valueShep])
+        average = (valueNeigh + valueTrust + valueCont + valueStress + valueShep) / 5
 
+        metricsAverage.append(average)
+        metricsMatrixEntire.append([average,valueNeigh,valueTrust,valueCont,valueStress,valueShep])
+
+    sortMetricsAverage = sorted(range(len(metricsAverage)), key=lambda k: metricsAverage[k], reverse=True)
     sortNeigh = sorted(range(len(metricNeigh)), key=lambda k: metricNeigh[k], reverse=True)
     sortTrust = sorted(range(len(metricTrust)), key=lambda k: metricTrust[k], reverse=True)
     sortCont = sorted(range(len(metricCont)), key=lambda k: metricCont[k], reverse=True)
@@ -351,6 +356,7 @@ def calculateGrid():
     global metricsMatrix
     metricsMatrix = []
 
+    metricsMatrix.append(sortMetricsAverage)
     metricsMatrix.append(sortNeigh)
     metricsMatrix.append(sortTrust)
     metricsMatrix.append(sortCont)
@@ -385,6 +391,7 @@ def OptimizeSelection():
     metricCont = []
     metricStress = []
     metricShepCorr = []
+    metricsAverage = []
 
     for index, loop in enumerate(clusterIndex):
         resultNeigh = neighborhood_hit(np.array(projectionsAll[index]), convertLabels, KeepKs[index], dataSelected)
@@ -392,7 +399,9 @@ def OptimizeSelection():
         resultContinuity = continuity(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :], KeepKs[index])
         resultStress = normalized_stress(D_highSpace[dataSelected, :], D_lowSpaceList[index][dataSelected, :])
         resultShep = shepard_diagram_correlation(D_highSpace[dataSelected][:, dataSelected], D_lowSpaceList[index][dataSelected][:, dataSelected]) 
-
+        resultAverage = (resultNeigh + resultTrust + resultContinuity + resultStress + resultShep) / 5
+        print(resultAverage)
+        metricsAverage.append(resultAverage)
         metricNeigh.append(resultNeigh)
         metricTrust.append(resultTrust)
         metricCont.append(resultContinuity)
@@ -423,17 +432,22 @@ def OptimizeSelection():
         valueCont = (metricCont[index] - min_value_cont) / (max_value_cont - min_value_cont) 
         valueStress = (metricStress[index] - min_value_stress) / (max_value_stress - min_value_stress) 
         valueShep = (metricShepCorr[index] - min_value_shep) / (max_value_shep - min_value_shep) 
-        metricsMatrixEntireSel.append([valueNeigh,valueTrust,valueCont,valueStress,valueShep])
+        average = (valueNeigh + valueTrust + valueCont + valueStress + valueShep) / 5
+        metricsMatrixEntireSel.append([average,valueNeigh,valueTrust,valueCont,valueStress,valueShep])
 
+    sortMetricsAverage = sorted(range(len(metricsAverage)), key=lambda k: metricsAverage[k], reverse=True)
+    print(sortMetricsAverage)
+    print(metricsAverage)
     sortNeigh = sorted(range(len(metricNeigh)), key=lambda k: metricNeigh[k], reverse=True)
     sortTrust = sorted(range(len(metricTrust)), key=lambda k: metricTrust[k], reverse=True)
     sortCont = sorted(range(len(metricCont)), key=lambda k: metricCont[k], reverse=True)
-    sortStress = sorted(range(len(metricStress)), key=lambda k: metricStress[k], reverse=True)
+    sortStress = sorted(range(len(metricStress)), key=lambda k: metricStress[k], reverse=False)
     sortShepCorr = sorted(range(len(metricShepCorr)), key=lambda k: metricShepCorr[k], reverse=True)
 
     global metricsMatrixSel
     metricsMatrixSel = []
 
+    metricsMatrixSel.append(sortMetricsAverage)
     metricsMatrixSel.append(sortNeigh)
     metricsMatrixSel.append(sortTrust)
     metricsMatrixSel.append(sortCont)
