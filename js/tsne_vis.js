@@ -206,18 +206,25 @@ var optionMetric = document.getElementById("param-SortM-view").value; // Get the
 
 var order = [];
 SelectedProjections = []
+var xValues;
 if (optionMetric == 1) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['<b>QMA</b>', 'NH', 'T', 'C', 'S', 'SDC'];
 } else if (optionMetric == 2) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', '<b>NH</b>', 'T', 'C', 'S', 'SDC'];
 } else if (optionMetric == 3) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', '<b>T</b>', 'C', 'S', 'SDC'];
 } else if (optionMetric == 4) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', 'T', '<b>C</b>', 'S', 'SDC'];
 } else if (optionMetric == 5) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', 'T', 'C', '<b>S</b>', 'SDC'];
 } else {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', 'T', 'C', 'S', '<b>SDC</b>'];
 }
 
 var index = order.indexOf(activeProjectionNumber);
@@ -249,8 +256,6 @@ for (let k = 0; k < 6; k++) {
 
 var checkCounter = 0
 var checkCounterMetr = 0
-
-var xValues = ['QMA', 'NH', 'T', 'C', 'S', 'SDC'];
 
 var colorscaleValue = [
   [0, '#d9d9d9'],
@@ -871,24 +876,29 @@ function ReSortOver() {
 var optionMetric = document.getElementById("param-SortMOver-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
 var order = [];
 
+var xValues;
 if (optionMetric == 1) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['<b>QMA</b>', 'NH', 'T', 'C', 'S', 'SDC'];
 } else if (optionMetric == 2) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', '<b>NH</b>', 'T', 'C', 'S', 'SDC'];
 } else if (optionMetric == 3) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', '<b>T</b>', 'C', 'S', 'SDC'];
 } else if (optionMetric == 4) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', 'T', '<b>C</b>', 'S', 'SDC'];
 } else if (optionMetric == 5) {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', 'T', 'C', '<b>S</b>', 'SDC'];
 } else {
   order = metricsSorting[optionMetric-1]
+  xValues = ['QMA', 'NH', 'T', 'C', 'S', '<b>SDC</b>'];
 }
 
   var checkCounter = 0
   var checkCounterMetr = 0
-
-  var xValues = ['QMA', 'NH', 'T', 'C', 'S', 'SDC'];
 
   var colorscaleValue = [
     [0, '#d9d9d9'],
@@ -998,7 +1008,7 @@ if (optionMetric == 1) {
 
 }
 
-  var width = 1250 // interactive visualization
+  var width = 1050 // interactive visualization
   var height = 1150 // interactive visualization
   document.getElementById("confirmModal").disabled = true;
 
