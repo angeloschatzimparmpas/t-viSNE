@@ -104,12 +104,9 @@
                           </div>
                           <div class="param">
                         <label for="param-learningrate" data-toggle="tooltip" data-placement="right" title="Tip: if the learning rate is too high, the data may look like a ‘ball’ with any point approximately equidistant from its nearest neighbours. If the learning rate is too low, most points may look compressed in a dense cloud with few outliers. If the cost function gets stuck in a bad local minimum increasing the learning rate may help. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html)">Learning rate</label>
-                        <input id="param-learningrate" type="range" min="1" max="150" value="10", step="1">
-                        <output for="param-learningrate" id="param-learningrate-value">10</output>
-                          </div>
-
-
-                          
+                        <input id="param-learningrate" type="range" min="1" max="150" value="1", step="1">
+                        <output for="param-learningrate" id="param-learningrate-value">1</output>
+                          </div>                          
                           <div class="param">
                               <div class="row">
                               <div class="col-md-3">
@@ -129,35 +126,22 @@
 
                           </div>
                           </div>
-                          <div class="param">
-                        <label for="param-distance" data-toggle="tooltip" data-placement="right" title="Tip: distance different measurements. Usually Euclidean distance is used.">Distance metric</label>
-                        <select id="param-distance" name="param-distance">
-                            <option value="euclideanDist" selected>Euclidean distance</option>
-                            <option value="jaccardDist">Jaccard dissimilarity</option>
-                        </select>
+                          <div class="param" style="margin-top: -10px">
                         <input id="file-input" type="file" name="name" style="display: none;" />
-                        <button type="button" class="button" onclick='loadAnalysis();' style="padding:0 12px 0 12px" data-toggle="tooltip" data-placement="right" title="Tip: load previously executed file in .txt format.">Load execut.</button>
-                          </div>
-                          <div class="param">
-                        <label for="param-transform" data-toggle="tooltip" data-placement="right" title="Tip: distance transformation measurements. Usually either no transformation or Log10/Asinh (logarithmic/hyperbolic) distance are used.">Data transform</label>
-                        <select id="param-transform" name="param-transform">
-                            <option value="noTrans" selected>No transform</option>
-                            <option value="logTrans">Log10</option>
-                            <option value="asinhTrans">Asinh</option>
-                            <option value="binTrans">Binarize</option>
-                        </select>
-                        <button type="button" class="button" onclick="SaveAnalysis()" style="padding:0 10px 0 10px" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed file in .txt format.">Store execut.</button>
-                          </div>
-                        <div class="row">
-                          <div class="col-md-8">
-                              <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis" style="margin-top: 4px"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></div></p>
-                          </div>
-                          <div class="col-md-4" style="margin-top: 10px">
+                        <button type="button" class="button" onclick='loadAnalysis();' style="padding:15px 12px 15px 12px; margin-left:15px" data-toggle="tooltip" data-placement="right" title="Tip: load previously executed file in .txt format.">Load execution</button>
+                        <button type="button" class="button" onclick="SaveAnalysis()" style="padding:15px 12px 15px 12px; margin-left:20px" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed file in .txt format.">Store execution</button>
+                        <div class="col-md-" style="margin-top: 14px; margin-left:15px">
                             <label data-toggle="tooltip" data-placement="right" title="Tip: if you store distances the file size will be larger but on a loading of this execution it will be processed much quicker than without this option enabled.">
                                 <input id="downloadDists" checked type="checkbox" >
                                 Distances cached on "Store execution"
                             </label>
                           </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-md-12" style="margin-top:10px">
+                              <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis" style="margin-top: 4px"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></div></p>
+                          </div>
+
                         </div>
                     </div>
                   </div>
@@ -291,7 +275,7 @@
                             <svg id="legend1" style =  "margin-left: -25px"></svg>
                           </div>
                           <div class="col-md-2">
-                            <svg id="legend4" style =  "margin-left: -45px"></svg>
+                            <svg id="legend4" style =  "margin-left: -50px"></svg>
                           </div>
                           </div>
                           <div class="annotationAllClass" style="margin-top: 20px">
@@ -318,7 +302,7 @@
                   </div>
         <div class="row">   
             <div class="col-md-3"  style="margin-top:-4px">
-                <div class="panel panel-default" style="padding-bottom : 60px">
+                <div class="panel panel-default" style="padding-bottom : 70px">
                   <div class="panel-heading">
                     <h2 class="panel-title" data-toggle="tooltip" data-placement="right" style="display:inline-block" title="Tip: a view related to the overall quality of the projection.">Shepard Heatmap</h2>
                     <div style="display:inline-block; float:right">
@@ -423,6 +407,7 @@
       $("#ExecuteBut").click(function(){
           var mode = document.getElementById('param-EX-view').value
           mode = parseInt(mode)
+
           if (mode == 1) {
             $("#myModal").modal('show');
             $('.modal-backdrop').removeClass("modal-backdrop");  
@@ -434,7 +419,7 @@
         $('#myModal').modal('hide');
       }
 
-      $("#cost").html('(Unknown Iteration and Cost Values)');
+      $("#cost").html('(Unknown Overall Cost)');
       $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
       $("#CategoryName").html('No Classification');
       $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');

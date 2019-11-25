@@ -227,7 +227,7 @@ circle.swatch{
 /* Legend of the Overview t-SNE canvas */
 #legend4 {
 height: 7vw;
-width: 5vw;
+width: 7vw;
 margin-left: -20px;
 margin-top: -10px;
 text-align: left;
@@ -512,7 +512,7 @@ ul {
   height: 140px;
   -webkit-animation: spin 2s linear infinite; /* Safari */
   animation: spin 2s linear infinite;
-  margin-left: 540px;
+  margin-left: 450px;
   margin-top: 500px;
   margin-bottom: 500px;
 }

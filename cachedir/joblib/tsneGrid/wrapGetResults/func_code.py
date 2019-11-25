@@ -1,5 +1,5 @@
-# first line: 198
+# first line: 217
 def wrapGetResults(listofParamsPlusData):
     pool = Pool()
     
-    return pool.map(multi_run_wrapper, listofParamsPlusData)
+    return zip(*pool.map(multi_run_wrapper, listofParamsPlusData))

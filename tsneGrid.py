@@ -42,11 +42,29 @@ def Reset():
     global projectionsAll
     projectionsAll = []
 
+    global betas
+    betas = []
+
+    global cpp
+    cpp = []
+
+    global cpi
+    cpi = []
+
     global SelectedListofParams
     SelectedListofParams = []
 
     global SelectedProjectionsReturn
     SelectedProjectionsReturn = []
+
+    global SelectedProjectionsBeta
+    SelectedProjectionsBeta = []
+
+    global SelectedProjectionsCPP
+    SelectedProjectionsCPP = []
+
+    global SelectedProjectionsCPI
+    SelectedProjectionsCPI = []
 
     global clusterIndex
     clusterIndex = []
@@ -160,8 +178,9 @@ def preprocess(data):
     return dataNP, length, gatherLabels
 
 def multi_run_wrapper(args):
-    embedding_array = bhtsne.run_bh_tsne(*args)
-    return embedding_array
+    projectionsAllLoc, betasL, cppL, cpiL = bhtsne.run_bh_tsne(*args)
+
+    return projectionsAllLoc, betasL, cppL, cpiL
 
 def procrustesFun(projections):
     similarityList = []
@@ -198,7 +217,7 @@ memory = Memory(location, verbose=0)
 def wrapGetResults(listofParamsPlusData):
     pool = Pool()
     
-    return pool.map(multi_run_wrapper, listofParamsPlusData)
+    return zip(*pool.map(multi_run_wrapper, listofParamsPlusData))
 
 wrapGetResults = memory.cache(wrapGetResults)
 
@@ -213,12 +232,9 @@ def calculateGrid():
     D_highSpace = distance.squareform(distance.pdist(dataProc))
 
     DEFAULT_NO_DIMS = 2
-    INITIAL_DIMENSIONS = 50
-    DEFAULT_PERPLEXITY = 50
-    DEFAULT_THETA = 0.5
-    EMPTY_SEED = -1
-    VERBOSE = True
-    DEFAULT_USE_PCA = False
+    VERBOSE = False
+    DEFAULT_USE_PCA = True
+    randseed=1137
 
     # all other data sets
     perplexity = [5,10,15,20,25,30,35,40,45,50] # 10 perplexity
@@ -249,15 +265,25 @@ def calculateGrid():
     for k in n_iter:
         for j in learning_rate:
             for i in perplexity:
-                listofParamsPlusData.append((dataProc,DEFAULT_NO_DIMS,length,i,j,EMPTY_SEED,VERBOSE,DEFAULT_USE_PCA,k))
+                listofParamsPlusData.append((dataProc,DEFAULT_NO_DIMS,i,j,randseed,VERBOSE,length,DEFAULT_USE_PCA,k,True,True,True))
                 listofParamsAll.append((i,j,k)) 
 
-    projectionsAll = wrapGetResults(listofParamsPlusData)
-    
+    projectionsAll, betas, cpp, cpi = wrapGetResults(listofParamsPlusData)
+
     global SelectedListofParams
     SelectedListofParams = []
+
     global SelectedProjectionsReturn
     SelectedProjectionsReturn = []
+
+    global SelectedProjectionsBeta
+    SelectedProjectionsBeta = []
+
+    global SelectedProjectionsCPP
+    SelectedProjectionsCPP = []
+
+    global SelectedProjectionsCPI
+    SelectedProjectionsCPI = []
     
     global clusterIndex
     clusterIndex = procrustesFun(projectionsAll)
@@ -295,9 +321,17 @@ def calculateGrid():
     global KeepKs
     KeepKs = []
 
+
+
     for index in clusterIndex:
         SelectedProjectionsReturn.append(projectionsAll[index].tolist())
         SelectedListofParams.append(listofParamsAll[index])
+
+        SelectedProjectionsBeta.append(betas[index].tolist())
+
+        SelectedProjectionsCPP.append(cpp[index].tolist())
+
+        SelectedProjectionsCPI.append(cpi[index].tolist())
 
         D_lowSpace = distance.squareform(distance.pdist(projectionsAll[index]))
         D_lowSpaceList.append(D_lowSpace)
@@ -372,10 +406,13 @@ def background_process():
     global overalProjectionsNumber
     global metricsMatrix
     global metricsMatrixEntire
+    global SelectedProjectionsBeta
+    global SelectedProjectionsCPP
+    global SelectedProjectionsCPI
 
     while (len(projectionsAll) != overalProjectionsNumber):
         pass
-    return jsonify({ 'projections': SelectedProjectionsReturn, 'parameters': SelectedListofParams, 'metrics': metricsMatrix, 'metricsEntire': metricsMatrixEntire })
+    return jsonify({ 'projections': SelectedProjectionsReturn, 'parameters': SelectedListofParams, 'metrics': metricsMatrix, 'metricsEntire': metricsMatrixEntire, 'betas': SelectedProjectionsBeta, 'cpp': SelectedProjectionsCPP, 'cpi': SelectedProjectionsCPI})
 
 @app.route('/receiverOptimizer', methods = ['POST'])
 def OptimizeSelection():
@@ -462,6 +499,69 @@ def SendOptimizedProjections():
 
     return jsonify({'metrics': metricsMatrixSel, 'metricsEntire': metricsMatrixEntireSel })
 
+@app.route('/receiverSingle', methods = ['POST'])
+def singleParameters():
+    data = request.get_data().decode('utf8').replace("'", '"')
+    data = json.loads(data)
+
+    global dataProc
+    dataProc, length, labels = preprocess(data[3])
+
+    DEFAULT_NO_DIMS = 2
+    VERBOSE = False
+    DEFAULT_USE_PCA = True
+    randseed=1137
+
+    perplexity = int(data[0])
+    learning_rate = int(data[1])
+    n_iter = int(data[2])
+
+    global projectionsAll
+
+    listofParamsPlusData = []
+    listofParamsAll= []
+    listofParamsPlusData.append((dataProc,DEFAULT_NO_DIMS,perplexity,learning_rate,randseed,VERBOSE,length,DEFAULT_USE_PCA,n_iter,True,True,True))
+    listofParamsAll.append((perplexity,learning_rate,n_iter)) 
+
+    projectionsAll, betas, cpp, cpi = wrapGetResults(listofParamsPlusData)
+
+
+    global SelectedProjectionsReturn
+    SelectedProjectionsReturn = []
+
+    global SelectedProjectionsBeta
+    SelectedProjectionsBeta = []
+
+    global SelectedProjectionsCPP
+    SelectedProjectionsCPP = []
+
+    global SelectedProjectionsCPI
+    SelectedProjectionsCPI = []
+
+    SelectedProjectionsReturn.append(projectionsAll[0].tolist())
+
+    SelectedProjectionsBeta.append(betas[0].tolist())
+
+    SelectedProjectionsCPP.append(cpp[0].tolist())
+
+    SelectedProjectionsCPI.append(cpi[0].tolist())
+
+    return 'OK'
+
+@app.route('/senderSingle')
+def sendSingle():
+
+    global projectionsAll
+    global SelectedProjectionsReturn
+    global SelectedProjectionsBeta 
+    global SelectedProjectionsCPP
+    global SelectedProjectionsCPI
+    while (len(projectionsAll) != 1):
+        pass
+    return jsonify({ 'projections': SelectedProjectionsReturn, 'betas': SelectedProjectionsBeta, 'cpp': SelectedProjectionsCPP, 'cpi': SelectedProjectionsCPI})
+
+
 if __name__ == '__main__':
     app.run("0.0.0.0", "5000")
+
 

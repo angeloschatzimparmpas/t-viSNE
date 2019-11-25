@@ -3,6 +3,7 @@
 
 This software package contains a Barnes-Hut implementation of the t-SNE algorithm. The implementation is described in [this paper](http://lvdmaaten.github.io/publications/papers/JMLR_2014.pdf).
 
+**Note:** This repository is a version of t-SNE modified to support ongoing research. It may be slightly slower than the original. If you're just trying to run t-SNE, check the original repository that we forked from.
 
 # Installation #
 

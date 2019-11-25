@@ -64,7 +64,7 @@ INITIAL_DIMENSIONS = 50
 DEFAULT_PERPLEXITY = 50
 DEFAULT_THETA = 0.5
 EMPTY_SEED = -1
-DEFAULT_USE_PCA = False
+DEFAULT_USE_PCA = True
 DEFAULT_MAX_ITERATIONS = 1000
 
 ###
@@ -102,7 +102,8 @@ def _is_filelike_object(f):
         return isinstance(f, io.IOBase)
 
 
-def init_bh_tsne(samples, workdir, no_dims, initial_dims, perplexity, theta, randseed, verbose, use_pca, max_iter):
+def init_bh_tsne(samples, workdir, no_dims=DEFAULT_NO_DIMS, initial_dims=INITIAL_DIMENSIONS, perplexity=DEFAULT_PERPLEXITY,
+            theta=DEFAULT_THETA, randseed=EMPTY_SEED, verbose=False, use_pca=DEFAULT_USE_PCA, max_iter=DEFAULT_MAX_ITERATIONS):
 
     if use_pca:
         samples = samples - np.mean(samples, axis=0)
@@ -172,7 +173,9 @@ def bh_tsne(workdir, verbose=False):
         # The last piece of data is the cost for each sample, we ignore it
         #read_unpack('{}d'.format(sample_count), output_file)
 
-def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1, verbose=False, initial_dims=50, use_pca=True, max_iter=1000):
+def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1,
+        verbose=False, initial_dims=50, use_pca=True, max_iter=1000,
+        return_betas=False, return_cost_per_point=False, return_cost_per_iter=False):
     '''
     Run TSNE based on the Barnes-HT algorithm
 
@@ -200,8 +203,8 @@ def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1, verbose=
         if _is_filelike_object(data):
             data = load_data(data)
 
-        init_bh_tsne(data, tmp_dir_path, no_dims, perplexity, theta, randseed, verbose, initial_dims, use_pca, max_iter)
-        sys.exit(0)
+        init_bh_tsne(data, tmp_dir_path, no_dims=no_dims, perplexity=perplexity, theta=theta, randseed=randseed,verbose=verbose, initial_dims=initial_dims, use_pca=use_pca, max_iter=max_iter)
+        os._exit(0)
     else:
         try:
             os.waitpid(child_pid, 0)
@@ -215,8 +218,23 @@ def run_bh_tsne(data, no_dims=2, perplexity=50, theta=0.5, randseed=-1, verbose=
             for r in result:
                 sample_res.append(r)
             res.append(sample_res)
+
+        ret = np.asarray(res, dtype='float64')
+
+        if return_betas:
+            betas = np.loadtxt(path_join(tmp_dir_path, 'betas.txt'))
+            ret = (ret, betas)
+
+        if return_cost_per_point:
+            cpp = np.loadtxt(path_join(tmp_dir_path, 'cost_per_point.txt'))
+            ret = (*ret, cpp)
+
+        if return_cost_per_iter:
+            cpi = np.loadtxt(path_join(tmp_dir_path, 'cost_per_iter.txt'))
+            ret = (*ret, cpi)
+
         rmtree(tmp_dir_path)
-        return np.asarray(res, dtype='float64')
+        return ret
 
 
 def main(args):

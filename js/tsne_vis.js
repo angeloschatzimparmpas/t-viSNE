@@ -19,7 +19,7 @@ var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions 
 
 // Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
 // ColorsCategorical = the categorical colors (maximum value = 10).
-var Category; var ColorsCategorical; var valCategExists = 0; 
+var Category; var ColorsCategorical; var valCategExists = 0; var insideCall = false;
 
 // This is for the removal of the distances cache. 
 var returnVal = false; 
@@ -34,7 +34,7 @@ var sliderTrigger = false; var sliderInsideTrigger = false; var parameters; var 
 var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
 var maxKNN = 0
 
-var mode = 1; var colors = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; var projections = []; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
+var mode = 1; var colors = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; var projections = []; var betas = []; var cost_per_point = []; var cost_overall; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
 
 var Category; var target_names = []
 
@@ -140,6 +140,9 @@ function ReSort(flagInitialize) {
   projections = dataReceivedFromServer['projections']
   parameters = dataReceivedFromServer['parameters']
   metricsSorting = dataReceivedFromServer['metrics']
+  betas = dataReceivedFromServer['betas']
+  cost_per_point = dataReceivedFromServer['cpp']
+  cost_overall = dataReceivedFromServer['cpi']
 
   if (FocusedIDs.length != 0) {
     if (globalFlagCheck) {
@@ -147,11 +150,12 @@ function ReSort(flagInitialize) {
       metricsCopy = metrics
     }
     globalFlagCheck = false
-    document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for the Current Points Selection:";
     metricsSorting = dataReceivedFromServerOptimized['metrics']
     metrics = dataReceivedFromServerOptimized['metricsEntire']
     if (FocusedIDs.length == points.length) {
-      document.getElementById("textToChange").innerHTML = "[Sorting Metric:";
+      document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric:";
+    } else {
+      document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for Current Selection:";
     }
   } else {
     if (!globalFlagCheck) {
@@ -669,6 +673,7 @@ if(k >= 6) {
           Plotly.relayout(graphDiv, update)
 
           sliderInsideTrigger = true
+          insideCall = true;
           activeProjectionNumberProv = order[SelProjIDSProv[0]]
 
       getData()
@@ -676,6 +681,7 @@ if(k >= 6) {
 
   if (flagInitialize) {
     closeModalFun()
+    insideCall = true;
     getData()
   }
   
@@ -804,19 +810,68 @@ function parseData(url) {
             // results.data variable is all the columns except strings, undefined values, or "Version" plus beta and cost values."
             // results.meta.fields variable is all the features (columns) plus beta and cost strings.  
             if (mode == 2) {
-              init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
+                if (insideCall) {
+                  init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
+                } else {
+                  $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+                  });
+                  var parametersLocal = []
+                  parametersLocal.push(document.getElementById("param-perplexity-value").value)
+                  parametersLocal.push(document.getElementById("param-learningrate-value").value)
+                  parametersLocal.push(document.getElementById("param-maxiter-value").value)
+                  parametersLocal.push(results_all)
+                  $.post("http://127.0.0.1:5000/receiverSingle", JSON.stringify(parametersLocal), function(){
+                    $.get("http://127.0.0.1:5000/senderSingle", function( data ) {
+                      dataReceivedFromServer = data
+                      projections = dataReceivedFromServer['projections']
+                      betas = dataReceivedFromServer['betas']
+                      cost_per_point = dataReceivedFromServer['cpp']
+                      cost_overall = dataReceivedFromServer['cpi']
+                      activeProjectionNumber = 0
+                      activeProjectionNumberProv = 0
+                      init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
+                  });
+                  
+                });
+              }
             } else {
-              // ajax the JSON to the server
-              $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
-              });
-              $.post("http://127.0.0.1:5000/receiver", JSON.stringify(results_all), function(){
-                $.get("http://127.0.0.1:5000/sender", function( data ) {
-                  dataReceivedFromServer = data
-                  ReSortOver()
+              if (flagAnalysis) {
 
-            });
-            
-          });
+                $('#myModal').modal('hide');
+                $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+                  });
+
+                  var parametersLocal = []
+                  parametersLocal.push(document.getElementById("param-perplexity-value").value)
+                  parametersLocal.push(document.getElementById("param-learningrate-value").value)
+                  parametersLocal.push(document.getElementById("param-maxiter-value").value)
+                  parametersLocal.push(results_all)
+                  $.post("http://127.0.0.1:5000/receiverSingle", JSON.stringify(parametersLocal), function(){
+                    $.get("http://127.0.0.1:5000/senderSingle", function( data ) {
+                      dataReceivedFromServer = data
+                      projections = dataReceivedFromServer['projections']
+                      betas = dataReceivedFromServer['betas']
+                      cost_per_point = dataReceivedFromServer['cpp']
+                      cost_overall = dataReceivedFromServer['cpi']
+                      activeProjectionNumber = 0
+                      init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
+                  });
+                  
+                });
+              } else {
+                    // ajax the JSON to the server
+                    $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+                    });
+                    $.post("http://127.0.0.1:5000/receiver", JSON.stringify(results_all), function(){
+                      $.get("http://127.0.0.1:5000/sender", function( data ) {
+                        dataReceivedFromServer = data
+                        ReSortOver()
+
+                  });
+                  
+                });
+              }
+
         }
             
           }
@@ -834,6 +889,9 @@ function ReSortOver() {
   parameters = dataReceivedFromServer['parameters']
   metricsSorting = dataReceivedFromServer['metrics']
   metrics = dataReceivedFromServer['metricsEntire']
+  betas = dataReceivedFromServer['betas']
+  cost_per_point = dataReceivedFromServer['cpp']
+  cost_overall = dataReceivedFromServer['cpi']
 
   var traces = []
   var target_names = []
@@ -2629,10 +2687,10 @@ function init(data, results_all, fields) {
     } else{
       tsne = new tsnejs.tSNE(opt); // Set new t-SNE with specific perplexity.
       dists = [];
-      dists = computeDistances(data, document.getElementById("param-distance").value, document.getElementById("param-transform").value); // Compute the distances in the high-dimensional space.
+      dists = computeDistances(data, 'euclideanDist', 'noTrans'); // Compute the distances in the high-dimensional space.
       InitialFormDists.push(dists);
-      tsne.initDataDist(dists); // Init t-SNE with dists.
-      for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];} // Calculate beta and bring it back from the t-SNE algorithm.
+      //tsne.initDataDist(dists); // Init t-SNE with dists.
+      //for(var i = 0; i < final_dataset.length; i++) {final_dataset[i].beta = tsne.beta[i]; beta_all[i] = tsne.beta[i];} // Calculate beta and bring it back from the t-SNE algorithm.
     }
     var object;
     all_labels = [];
@@ -2748,28 +2806,6 @@ function euclideanDist(data) {
 
 }
 
-// Calculate jaccard dist
-function jaccardDist(data) {
-
-  dist = initDist(data);
-  for(var i = 0; i < data.length; i++) {
-    for(var j = i + 1; j < data.length; j++) {
-      for(var d in data[0]) {
-        if(d != Category) {
-          x = data[i][d];
-          y = data[j][d];
-          if(x == y) {
-            dist[i][j] += 1;
-          }
-        }
-      }
-      dist[j][i] = dist[i][j];
-    }
-  }
-  return dist;
-
-}
-
 // Normalize distances to prevent numerical issues.
 function normDist(data, dist) {
 
@@ -2791,51 +2827,6 @@ function normDist(data, dist) {
 // No tranformation
 function noTrans(data) {
   return data;
-}
-
-// Log tranformation
-function logTrans(data) {
-
-  for(var i = 0; i < data.length; i++) {
-    for(var d in data[0]) {
-      if(d != Category) {
-        X = data[i][d];
-        data[i][d] = Math.log10(X + 1);
-      }
-    }
-  }
-  return data;
-
-}
-
-// asinh tranformation
-function asinhTrans(data) {
-
-  for(var i = 0; i < data.length; i++) {
-    for(var d in data[0]) {
-      if(d != Category) {
-        X = data[i][d];
-        data[i][d] = Math.log(X + Math.sqrt(X * X + 1));
-      }
-    }
-  }
-  return data;
-
-}
-// Binarize tranformation
-function binTrans(data) {
-
-  for(var i = 0; i < data.length; i++) {
-    for(var d in data[0]) {
-      if(d != Category) {
-        X = data[i][d];
-        if(X > 0) data[i][d] = 1;
-        if(X < 0) data[i][d] = 0;
-      }
-    }
-  }
-  return data;
-
 }
 
 // Compute the distances by applying the chosen distance functions and transformation functions.
@@ -2884,7 +2875,7 @@ function OverallCostLineChart(){
     margin: {
       l: 40,
       r: 15,
-      b: 26,
+      b: 30,
       t: 5
     },
   };
@@ -2899,7 +2890,15 @@ function updateEmbedding(AnalysisResults) {
   points = [];
   points2d = [];
   if (AnalysisResults == ""){ // Check if the embedding does not need to load because we had a previous analysis uploaded.
-    var Y = tsne.getSolution(); // We receive the solution from the t-SNE
+    if (sliderTrigger) {
+      if (sliderInsideTrigger) {
+        var Y = projections[activeProjectionNumberProv]
+      } else {
+        var Y = projections[activeProjectionNumber]
+      }
+    } else {
+      var Y = projections[activeProjectionNumber]
+    }
     var xExt = d3.extent(Y, d => d[0]);
     var yExt = d3.extent(Y, d => d[1]);
     var maxExt = [Math.min(xExt[0], yExt[0]), Math.max(xExt[1], yExt[1])];
@@ -2911,10 +2910,11 @@ function updateEmbedding(AnalysisResults) {
     var y = d3.scaleLinear() // Scale the y points into the canvas width/height
             .domain(maxExt)
             .range([10, +dimensionsY-10]);
-      for(var i = 0; i < final_dataset.length; i++) {
+
+      for(var i = 0; i < betas[activeProjectionNumber].length; i++) {
         x_position[i] = x(Y[i][0]); // x points position
         y_position[i] = y(Y[i][1]); // y points position
-            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: final_dataset[i].beta, cost: final_dataset[i].cost, selected: true, schemaInv: false, DimON: null, pcp: false}; // Create the points and points2D (2 dimensions) 
+            points[i] = {id: i, x: x_position[i], y: y_position[i], beta: betas[activeProjectionNumber][i], cost: cost_per_point[activeProjectionNumber][i], selected: true, schemaInv: false, DimON: null, pcp: false}; // Create the points and points2D (2 dimensions) 
             points2d[i] = {x: x_position[i], y: y_position[i]}; // and add everything that we know about the points (e.g., selected = true, pcp = false in the beginning and so on)
             points[i] = extend(points[i], ArrayContainsDataFeaturesCleared[i]);
             points[i] = extend(points[i], dataFeatures[i]);
@@ -2934,12 +2934,10 @@ function updateEmbedding(AnalysisResults) {
       ArrayWithCostsList = AnalysisResults.slice(2*dataFeatures.length+length+10, 2*dataFeatures.length+length+11);
       Iterations = IterationsList[0];
       ArrayWithCosts = ArrayWithCostsList[0];
-      $("#cost").html("(Number. of Iter.: " + ParametersSet[3] + ", Ov. Cost: " + overallCost + ")");
+      $("#cost").html("(Overall Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
-      document.getElementById("param-distance").value = ParametersSet[4];
-      document.getElementById("param-transform").value = ParametersSet[5];
     } else{
       var length = (AnalysisResults.length - 9) / 2;
       points = AnalysisResults.slice(0, length); // Load the points from the previous analysis
@@ -2950,12 +2948,10 @@ function updateEmbedding(AnalysisResults) {
       ArrayWithCostsList = AnalysisResults.slice(2*length+8, 2*length+9);
       Iterations = IterationsList[0];
       ArrayWithCosts = ArrayWithCostsList[0];
-      $("#cost").html("(Number of Iter.: " + ParametersSet[3] + ", Ov. Cost: " + overallCost + ")");
+      $("#cost").html("(Overall Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
-      document.getElementById("param-distance").value = ParametersSet[4];
-      document.getElementById("param-transform").value = ParametersSet[5];
     }
     $("#data").html(ParametersSet[0]); // Print on the screen the classification label.
     $("#param-dataset").html('-');
@@ -3014,7 +3010,7 @@ function ShepardHeatMap () {
       dist_list2d = []; // Distances lists empty
       dist_list = [];
       // Calculate the 2D distances.
-      dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
+      dists2d = computeDistances(points2d, 'euclideanDist', 'noTrans');
       InitialFormDists2D.push(dists2d);
       for (var j=0; j<dists2d.length; j++){ // Fill them with the distances 2D and high-dimensional, respectively.
         dists2d[j] = dists2d[j].slice(0,j);
@@ -3237,7 +3233,7 @@ function ShepardHeatMap () {
       dist_list2d = []; // Distances lists empty
       dist_list = [];
       // Calculate the 2D distances.
-      dists2d = computeDistances(points2d, document.getElementById("param-distance").value, document.getElementById("param-transform").value);
+      dists2d = computeDistances(points2d, 'euclideanDist', 'noTrans');
       InitialFormDists2D.push(dists2d);
     }
 
@@ -3381,12 +3377,43 @@ function ShepardHeatMap () {
 function step() {
       step_counter++;
       if(step_counter <= max_counter) {
-          cost = tsne.step();
-          cost_each = cost[1];
-          for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
-          $("#cost").html("(Number of Iter.: " + tsne.iter + ", Ov. Cost: " + cost[0].toFixed(3) + ")");
-          ArrayWithCosts.push(cost[0].toFixed(3));
-          Iterations.push(step_counter);
+          //cost = tsne.step();
+          //cost_each = cost[1];
+          //for(var i = 0; i < final_dataset.length; i++) final_dataset[i].cost = cost_each[i];
+          if (sliderTrigger) {
+            if (sliderInsideTrigger) {
+              if (cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3) < 0) {
+                $("#cost").html("(Overall Cost: 0.000)");
+                ArrayWithCosts.push(0);
+                Iterations.push(step_counter);
+              } else {
+                $("#cost").html("(Overall Cost: " + cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3) + ")");
+                ArrayWithCosts.push(cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3));
+                Iterations.push(step_counter);
+              }
+
+            } else {
+              if (cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) < 0) {
+                $("#cost").html("(Overall Cost: 0.000)");
+                ArrayWithCosts.push(0);
+                Iterations.push(step_counter);
+              } else {
+                $("#cost").html("(Overall Cost: " + cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) + ")");
+                ArrayWithCosts.push(cost_overall[activeProjectionNumber][step_counter-1].toFixed(3));
+                Iterations.push(step_counter);
+              }
+            }
+          } else {
+            if (cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) < 0) {
+              $("#cost").html("(Overall Cost: 0.000)");
+              ArrayWithCosts.push(0);
+              Iterations.push(step_counter);
+            } else {
+              $("#cost").html("(Overall Cost: " + cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) + ")");
+              ArrayWithCosts.push(cost_overall[activeProjectionNumber][step_counter-1].toFixed(3));
+              Iterations.push(step_counter);
+            }
+        }
         }
         else {
             clearInterval(runner);
@@ -3586,7 +3613,11 @@ function CostHistogram(points){
     var max = (d3.max(points,function(d){ return d.cost; }));
     var min = (d3.min(points,function(d){ return d.cost; }));
     for (var i=0; i<points.length; i++){
-      frequency.push((points[i].cost-min)/(max-min));
+      if ((points[i].cost-min)/(max-min) < 0) {
+        frequency.push(0)
+      } else {
+        frequency.push((points[i].cost-min)/(max-min));
+      }
     }
     var trace2 = {
       x: frequency,
@@ -5179,10 +5210,10 @@ if (points.length) { // If points exist (at least 1 point)
     var minSize1 = points[temp].cost;
     for (var i=temp+1; i<points.length; i++){
       if (minSize1 > points[i].cost){
-        minSize1 = points[i].cost;
+          minSize1 = points[i].cost;
       }
     }
-
+    
     var rscale1 = d3.scaleLinear()
     .domain([minSize1, maxSize1])
     .range([5,parseInt(12-(1-document.getElementById("param-costlim").value)*7)]);
@@ -5233,7 +5264,12 @@ if (points.length) { // If points exist (at least 1 point)
         .attr("transform", "translate(10,20)");
 
       var SizeRange1 = [];
-      SizeRange1.push((minSize1).toFixed(4));
+
+      if (minSize1 < 0) {
+        SizeRange1.push(0.0000)
+      } else {
+        SizeRange1.push((minSize1).toFixed(4));
+      }
       SizeRange1.push(((maxSize1-minSize1)/2).toFixed(4));
       SizeRange1.push((maxSize1).toFixed(4));
 
@@ -5267,7 +5303,11 @@ if (points.length) { // If points exist (at least 1 point)
     var min = points[temp].cost;
     for (var i=temp+1; i<points.length; i++){
       if (min > points[i].cost){
-        min = points[i].cost;
+        if (points[i].cost < 0) {
+          min = 0;
+        } else {
+          min = points[i].cost;
+        }
       }
     }
 
@@ -5294,7 +5334,7 @@ if (points.length) { // If points exist (at least 1 point)
       labels_cost = d3.range(min, max+calcStep, calcStep);
       for (var i=0; i<9; i++){
         labels_cost[i] = labels_cost[i].toFixed(5);
-        abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+        abbr_labels_cost[i] = Math.abs(abbreviateNumber(labels_cost[i]));
       }
 
       var svg = d3.select("#legend1"); // Add the legend for the beta/cost
@@ -5575,8 +5615,8 @@ if (points.length) { // If points exist (at least 1 point)
         var abbr_labels_cost = [];
         labels_cost = d3.range(min, max+calcStep, calcStep);
         for (var i=0; i<7; i++){
-          labels_cost[i] = labels_cost[i].toFixed(5);
-          abbr_labels_cost[i] = abbreviateNumber(labels_cost[i]);
+          labels_cost[i] = labels_cost[i].toFixed(4);
+          abbr_labels_cost[i] = Math.abs(abbreviateNumber(labels_cost[i]));
         }
   
         var svg = d3.select("#legend1"); // Add the legend for the beta/cost
@@ -5588,7 +5628,7 @@ if (points.length) { // If points exist (at least 1 point)
           .labelFormat(d3.format(",.5f"))
           .cells(7)
           .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6]])
-          .title("Remaining Cost")
+          .title("Rem. Cost")
           .scale(colorScale);
   
         svg.select(".legendLinear")
@@ -6027,8 +6067,8 @@ function SaveAnalysis(){ // Save the analysis into a .txt file
   let perplexity = document.getElementById("param-perplexity-value").value;
   let learningRate = document.getElementById("param-learningrate-value").value;
   let IterValue = document.getElementById("param-maxiter-value").value;
-  let parDist = document.getElementById("param-distance").value;
-  let parTrans = document.getElementById("param-transform").value;
+  let parDist = 'euclideanDist';
+  let parTrans = 'noTrans';
   let Parameters = [];
   if (dataset == "empty"){
     Parameters.push(new_file.name);
