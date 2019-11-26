@@ -128,7 +128,7 @@ function ReSort(flagInitialize) {
   var width= dimensions*0.97;
   var viewport = getViewport(); // Get the width and height of the main visualization
   var vh = viewport[1] * 0.035;
-  var height= vh * 2.3;
+  var height= vh * 1.9;
 
   var graphDiv = 'ProjectionsVisual'
 
