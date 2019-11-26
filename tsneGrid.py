@@ -20,6 +20,7 @@ from joblib import Memory
 
 
 import numpy as np
+import time
 import pandas as pd
 import random, json
 import bhtsne
@@ -92,6 +93,9 @@ def Reset():
 
     return 'Reset'
 
+location = './cachedir'
+memory = Memory(location, verbose=0)
+
 # NOTE: Only works with labeled data
 def neighborhood_hit(X, y, k, selected=None):
     # Add 1 to k because the nearest neighbor is always the point itself
@@ -110,6 +114,11 @@ def neighborhood_hit(X, y, k, selected=None):
     score = np.mean((y[neighbors] == np.tile(y[selected].reshape((-1, 1)), k)).astype('uint8'))
 
     return score
+
+neighborhood_hit = memory.cache(neighborhood_hit)
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
 
 def trustworthiness(D_high, D_low, k):
     n = D_high.shape[0]
@@ -133,6 +142,11 @@ def trustworthiness(D_high, D_low, k):
 
     return float((1 - (2 / (n * k * (2 * n - 3 * k - 1)) * sum_i)).squeeze())
 
+trustworthiness = memory.cache(trustworthiness)
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
+
 def continuity(D_high, D_low, k):
     n = D_high.shape[0]
     
@@ -155,8 +169,18 @@ def continuity(D_high, D_low, k):
 
     return float((1 - (2 / (n * k * (2 * n - 3 * k - 1)) * sum_i)).squeeze())
 
+continuity = memory.cache(continuity)
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
+
 def normalized_stress(D_high, D_low):
     return (-1) * (np.sum((D_high - D_low)**2) / np.sum(D_high**2) / 100)
+
+normalized_stress = memory.cache(normalized_stress)
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
 
 def shepard_diagram_correlation(D_high, D_low):
     if len(D_high.shape) > 1:
@@ -165,6 +189,11 @@ def shepard_diagram_correlation(D_high, D_low):
         D_low = spatial.distance.squareform(D_low)
 
     return stats.spearmanr(D_high, D_low)[0]
+
+shepard_diagram_correlation = memory.cache(shepard_diagram_correlation)
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
 
 def preprocess(data):
     dataPandas = pd.DataFrame(data)
@@ -177,10 +206,15 @@ def preprocess(data):
     dataNP = dataPandas.to_numpy()
     return dataNP, length, gatherLabels
 
+preprocess = memory.cache(preprocess)
+
 def multi_run_wrapper(args):
     projectionsAllLoc, betasL, cppL, cpiL = bhtsne.run_bh_tsne(*args)
 
     return projectionsAllLoc, betasL, cppL, cpiL
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
 
 def procrustesFun(projections):
     similarityList = []
@@ -197,6 +231,11 @@ def procrustesFun(projections):
 
     return clusterIndex
     
+procrustesFun = memory.cache(procrustesFun)
+
+location = './cachedir'
+memory = Memory(location, verbose=0)
+
 def Clustering(similarity):
     similarityNP = np.array(similarity)
     n_clusters = 25 # change that to send less diverse projections
@@ -210,6 +249,8 @@ def Clustering(similarity):
         clusterIndex.append(cluster_indices[center])
 
     return clusterIndex
+
+Clustering = memory.cache(Clustering)
 
 location = './cachedir'
 memory = Memory(location, verbose=0)
@@ -251,8 +292,8 @@ def calculateGrid():
     if (labels[0] == 1):
         perplexity = [10,15,20,25,30,35,40,45,50,55] # 10 perplexity
 
-    learning_rate = [10,20,30,40,50,60,70,80,90,100] # 10 learning rate
-    n_iter = [100,150,200,250,350] # 5 iterations
+    learning_rate = [1,10,20,30,40,50,60,70,80,90] # 10 learning rate
+    n_iter = [200,250,350,400,450] # 5 iterations
 
     global overalProjectionsNumber
     overalProjectionsNumber = 0

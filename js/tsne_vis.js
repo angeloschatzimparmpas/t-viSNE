@@ -34,7 +34,7 @@ var sliderTrigger = false; var sliderInsideTrigger = false; var parameters; var 
 var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
 var maxKNN = 0
 
-var mode = 1; var colors = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; var projections = []; var betas = []; var cost_per_point = []; var cost_overall; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
+var mode = 1; var colors = ['#00bbbb','#ff7f00','#b15928','#e31a1c','#1f78b4']; var projections = []; var betas = []; var cost_per_point = []; var cost_overall; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
 
 var Category; var target_names = []
 
@@ -128,7 +128,7 @@ function ReSort(flagInitialize) {
   var width= dimensions*0.97;
   var viewport = getViewport(); // Get the width and height of the main visualization
   var vh = viewport[1] * 0.035;
-  var height= vh * 2;
+  var height= vh * 2.3;
 
   var graphDiv = 'ProjectionsVisual'
 
@@ -158,6 +158,7 @@ function ReSort(flagInitialize) {
       document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for Current Selection:";
     }
   } else {
+    document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for Current Selection:";
     if (!globalFlagCheck) {
       metricsSorting = metricsSortingCopy
       metrics = metricsCopy
@@ -2685,7 +2686,6 @@ function init(data, results_all, fields) {
     dataFeatures = results_all;
     if (flagAnalysis){
     } else{
-      tsne = new tsnejs.tSNE(opt); // Set new t-SNE with specific perplexity.
       dists = [];
       dists = computeDistances(data, 'euclideanDist', 'noTrans'); // Compute the distances in the high-dimensional space.
       InitialFormDists.push(dists);
@@ -3463,9 +3463,9 @@ function OverviewtSNE(points){ // The overview t-SNE function
 //Make an SVG Container
 d3.selectAll("#overviewRect > *").remove(); 
 if (format[0] == "diabetes"){
-  ColorsCategorical = ['#fb9a99','#a6cee3','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
+  ColorsCategorical = ['#00bbbb','#b15928','#ff7f00','#e31a1c','#1f78b4']; // Colors for the labels/categories if there are some!
 } else{
-  ColorsCategorical = ['#a6cee3','#fb9a99','#b2df8a','#33a02c','#1f78b4','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a']; // Colors for the labels/categories if there are some!
+  ColorsCategorical = ['#00bbbb','#b15928','#ff7f00','#e31a1c','#1f78b4']; // Colors for the labels/categories if there are some!
 }
 
 
@@ -5937,7 +5937,7 @@ function LineBar() {
       name: 'Selected points', 
       type: 'bar',
       marker: {
-        color: 'rgb(0, 187, 187)'
+        color: 'gray'
       }
     };
     var LimitXaxis = Number(maxKNN) + 1;
@@ -5983,7 +5983,7 @@ function LineBar() {
       name: 'Selected points', 
       type: type,
       marker: {
-        color: 'rgb(0, 187, 187)'
+        color: 'gray'
       }
     };
     var LimitXaxis = Number(maxKNN) + 1;
