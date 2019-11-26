@@ -34,7 +34,7 @@ var sliderTrigger = false; var sliderInsideTrigger = false; var parameters; var 
 var inside = 0; var kValuesLegend = []; var findNearestTable = []; var howManyPoints;
 var maxKNN = 0
 
-var mode = 1; var colors = ['#00bbbb','#ff7f00','#b15928','#e31a1c','#1f78b4']; var projections = []; var betas = []; var cost_per_point = []; var cost_overall; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
+var mode = 1; var colors = ['#00bbbb','#b15928','#ff7f00','#e31a1c','#1f78b4']; var projections = []; var betas = []; var cost_per_point = []; var cost_overall; var metricsSorting = []; var dataReceivedFromServer = []; var dataReceivedFromServerOptimized = []; var metrics = []; var FocusedIDs = [];
 
 var Category; var target_names = []
 
@@ -158,7 +158,6 @@ function ReSort(flagInitialize) {
       document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for Current Selection:";
     }
   } else {
-    document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for Current Selection:";
     if (!globalFlagCheck) {
       metricsSorting = metricsSortingCopy
       metrics = metricsCopy
@@ -184,7 +183,6 @@ function ReSort(flagInitialize) {
   for (let i = 0; i < results_all_global.length; i++){
     target_names.push(results_all_global[i][Category])
   }
-
   const unique = (value, index, self) => {
     return self.indexOf(value) === index
   }
@@ -311,10 +309,9 @@ if(k >= 6) {
     return r;
   }, {})
   var Text = [];
-  var countPrev = 0;
-  var count = 0;
+
   for (let i = 0; i < uniqueTarget.length; i++) {
-    count = 0
+    /*count = 0
     for (let j = 0; j < target_names.length; j++) {
 
       Text.push('Perplexity: '+parameters[SelectedProjections[checkCounter]][0]+'; Learning rate: '+parameters[SelectedProjections[checkCounter]][1]+'; Max iterations: '+parameters[SelectedProjections[checkCounter]][2])
@@ -323,11 +320,20 @@ if(k >= 6) {
         count = count + 1
       }
        
-    }
+    }*/
+
+    const aux_X = result.Xax.filter((item, index) => target_names[index] == uniqueTarget[i]);
+    const aux_Y = result.Yax.filter((item, index) => target_names[index] == uniqueTarget[i]);
+
+    Text = aux_X.map(() => {
+      let popup = 'Perplexity: '+parameters[SelectedProjections[checkCounter]][0]+'; Learning rate: '+parameters[SelectedProjections[checkCounter]][1]+'; Max iterations: '+parameters[SelectedProjections[checkCounter]][2];
+      return popup;
+    });
+
     
         traces.push({
-          x: result.Xax.slice(countPrev,count+countPrev),
-          y: result.Yax.slice(countPrev,count+countPrev),
+          x: aux_X,
+          y: aux_Y,
           mode: 'markers',
           showlegend: false,
           text: Text,
@@ -345,7 +351,7 @@ if(k >= 6) {
           yaxis: 'y'+parseInt(k+1),
         })
 
-    countPrev = count + countPrev
+    //countPrev = count + countPrev
   }
 
   checkCounter++;
@@ -1008,22 +1014,23 @@ if (optionMetric == 1) {
       return r;
     }, {})
     var Text = [];
-    var countPrev = 0;
-    var count = 0;
+
+
     for (let i = 0; i < uniqueTarget.length; i++) {
-      count = 0
-      for (let j = 0; j < target_names.length; j++) {
 
-        Text.push('Perplexity: '+parameters[order[checkCounter]][0]+'; Learning rate: '+parameters[order[checkCounter]][1]+'; Max iterations: '+parameters[order[checkCounter]][2])
+        const aux_X = result.Xax.filter((item, index) => target_names[index] == uniqueTarget[i]);
+        const aux_Y = result.Yax.filter((item, index) => target_names[index] == uniqueTarget[i]);
 
-        if (uniqueTarget[i] == target_names[j]) {
-          count = count + 1
-        }
-      }
+
+        Text = aux_X.map(() => {
+          let popup = 'Perplexity: '+parameters[order[checkCounter]][0]+'; Learning rate: '+parameters[order[checkCounter]][1]+'; Max iterations: '+parameters[order[checkCounter]][2];
+          return popup;
+        });
+    
         if (k == 0) {
           traces.push({
-            x: result.Xax.slice(countPrev,count+countPrev),
-            y: result.Yax.slice(countPrev,count+countPrev),
+            x: aux_X,
+            y: aux_Y,
             mode: 'markers',
             name: labelsTarget[i],
             text: Text,
@@ -1040,8 +1047,8 @@ if (optionMetric == 1) {
           })
         } else {
           traces.push({
-            x: result.Xax.slice(countPrev,count+countPrev),
-            y: result.Yax.slice(countPrev,count+countPrev),
+            x: aux_X,
+            y: aux_Y,
             mode: 'markers',
             showlegend: false,
             text: Text,
@@ -1059,7 +1066,6 @@ if (optionMetric == 1) {
             yaxis: 'y'+parseInt(k+1),
           })
         }
-      countPrev = count + countPrev
     }
 
     checkCounter++;
@@ -2909,7 +2915,7 @@ function updateEmbedding(AnalysisResults) {
 
     var y = d3.scaleLinear() // Scale the y points into the canvas width/height
             .domain(maxExt)
-            .range([10, +dimensionsY-10]);
+            .range([+dimensionsY-10, 10]);
 
       for(var i = 0; i < betas[activeProjectionNumber].length; i++) {
         x_position[i] = x(Y[i][0]); // x points position
