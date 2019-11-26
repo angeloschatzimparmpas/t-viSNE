@@ -143,7 +143,6 @@ function ReSort(flagInitialize) {
   betas = dataReceivedFromServer['betas']
   cost_per_point = dataReceivedFromServer['cpp']
   cost_overall = dataReceivedFromServer['cpi']
-
   if (FocusedIDs.length != 0) {
     if (globalFlagCheck) {
       metricsSortingCopy = metricsSorting
