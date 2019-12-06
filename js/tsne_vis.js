@@ -5884,6 +5884,7 @@ function LineBar() {
       y: difference, 
       name: 'Delta(preservation)', 
       showlegend:  true,
+      mode: 'lines',
       type: 'line',
       marker: {
         color: 'rgb(128,128,0)'
@@ -5922,6 +5923,7 @@ function LineBar() {
       y: difference, 
       name: 'Delta(preservation)', 
       showlegend:  true,
+      mode: 'lines',
       type: 'line',
       marker: {
         color: 'rgb(128,128,0)'
@@ -5977,6 +5979,7 @@ function LineBar() {
       x: kValuesLegend, 
       y: StoreInitialFindNearestTable, 
       name: 'Projection average', 
+      mode: 'lines',
       type: type,
       marker: {
         color: 'rgb(0,0,0)'
@@ -5986,6 +5989,7 @@ function LineBar() {
       x: kValuesLegend, 
       y: findNearestTable, 
       name: 'Selected points', 
+      mode: 'lines',
       type: type,
       marker: {
         color: 'gray'

@@ -5,8 +5,8 @@ html, body {
     max-width: 100%;
     font-family: sans-serif !important;
     font-size: 15px !important;
-    /*overflow-x: hidden;
-    overflow-y: hidden;*/
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 .container-fluid {
