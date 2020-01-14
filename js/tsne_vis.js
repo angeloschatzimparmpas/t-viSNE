@@ -199,6 +199,7 @@ function ReSort(flagInitialize) {
 } else {
   labelsTarget = uniqueTarget
 }
+
 if(flagInitialize) {
   var optionMetricOver = document.getElementById("param-SortMOver-view").value; // Get the threshold value with which the user set's the boundaries of the schema investigation
   $('#param-SortM-view').val(optionMetricOver).change();
@@ -979,6 +980,8 @@ if (optionMetric == 1) {
         type: 'heatmap',
         hoverinfo:"z",
         colorscale: colorscaleValue,
+        zmin:0,
+        zmax:1,
         colorbar: {
             title: 'Normalized Metrics Performance',
             tickvals:[0,0.2,0.4,0.6,0.8,1],
@@ -988,12 +991,15 @@ if (optionMetric == 1) {
         yaxis: 'y'+parseInt(k+1),
       })
     } else {
+      console.log(metrics[order[checkCounterMetr]])
       traces.push({
         y: [],
         x: xValues,
         z: [metrics[order[checkCounterMetr]]],
         hoverinfo:"z",
         type: 'heatmap',
+        zmin:0,
+        zmax:1,
         colorscale: colorscaleValue,
         showscale: false,
         xaxis: 'x'+parseInt(k+1),
@@ -1019,7 +1025,6 @@ if (optionMetric == 1) {
 
         const aux_X = result.Xax.filter((item, index) => target_names[index] == uniqueTarget[i]);
         const aux_Y = result.Yax.filter((item, index) => target_names[index] == uniqueTarget[i]);
-
 
         Text = aux_X.map(() => {
           let popup = 'Perplexity: '+parameters[order[checkCounter]][0]+'; Learning rate: '+parameters[order[checkCounter]][1]+'; Max iterations: '+parameters[order[checkCounter]][2];
