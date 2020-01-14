@@ -274,6 +274,8 @@ if(k >= 6) {
       z: [metrics[SelectedProjections[checkCounterMetr]]],
       type: 'heatmap',
       hoverinfo:"z",
+      zmin:0,
+      zmax:1,
       colorscale: colorscaleValue,
       colorbar: {
           title: 'Met. Per.',
@@ -289,6 +291,8 @@ if(k >= 6) {
       x: xValues,
       z: [metrics[SelectedProjections[checkCounterMetr]]],
       hoverinfo:"z",
+      zmin:0,
+      zmax:1,
       type: 'heatmap',
       colorscale: colorscaleValue,
       showscale: false,
@@ -991,7 +995,7 @@ if (optionMetric == 1) {
         yaxis: 'y'+parseInt(k+1),
       })
     } else {
-      console.log(metrics[order[checkCounterMetr]])
+
       traces.push({
         y: [],
         x: xValues,
