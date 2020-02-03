@@ -3374,6 +3374,7 @@ function ShepardHeatMap () {
 
           //var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
      // Add dots
+     // opacity for Shepard Diagram
      svg.append('g')
      .selectAll("dot")
      .data(dist_list_all)
@@ -3382,6 +3383,7 @@ function ShepardHeatMap () {
        .attr("cx", function (d) { if (d.TwoD === 'undefined') {} else {return x(d.TwoD);} } )
        .attr("cy", function (d) { if (d.ND === 'undefined') {} else {return y(d.ND); } } )
        .attr("r", 1.5)
+       .style("opacity", 0.05)
        .style("fill", "#323232");
   }
 }
