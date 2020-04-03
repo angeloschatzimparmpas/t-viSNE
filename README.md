@@ -1,6 +1,6 @@
 # t-viSNE #
 
-This Git repository contains the code that accompanies a research publication so-called "t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections". The details of the experiments and the research outcome are described in [this paper](https://arxiv.org/abs/2002.06910).
+This Git repository contains the code that accompanies a research publication so-called ``t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections''. The details of the experiments and the research outcome are described in [this paper](https://arxiv.org/abs/2002.06910).
 
 **Note:** This repository is a version of t-SNE modified to support ongoing research. It may be slightly slower than the original. If you're just trying to run t-SNE, check the original repository that we forked from.
 
