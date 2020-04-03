@@ -21,9 +21,11 @@ Demonstration of usage in Python:
 
 ```
 # first terminal: hosting the visualization side (client)
-python3 -m http.server # for Python3
+# for Python3
+python3 -m http.server 
 #or 
-python -m SimpleHTTPServer 8000 # for Python2
+# for Python2
+python -m SimpleHTTPServer 8000
 
 # second terminal: hosting the computational side (server)
 FLASK_APP=tsneGrid.py flask run
