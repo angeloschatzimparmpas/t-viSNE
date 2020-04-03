@@ -87,3 +87,4 @@ Below are the various options the wrapper program `bhtsne.py` expects:
 - `--no_pca`
 - `-m MAX_ITER, --max_iter`         MAX_ITER
 
+# t-viSNE
