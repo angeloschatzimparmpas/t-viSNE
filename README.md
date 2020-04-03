@@ -17,9 +17,6 @@ For the frontend:
 - [Plotly.js](https://github.com/plotly/plotly.js/)
 
 # Usage #
-
-The code comes with wrappers for Matlab and Python. These wrappers write your data to a file called `data.dat`, run the `bh_tsne` binary, and read the result file `result.dat` that the binary produces. There are also external wrappers available for [Torch](https://github.com/clementfarabet/manifold), [R](https://github.com/jkrijthe/Rtsne), and [Julia](https://github.com/zhmz90/BHTsne.jl). Writing your own wrapper should be straightforward; please refer to one of the existing wrappers for the format of the data and result files.
-
 Demonstration of usage in Python:
 
 ```
@@ -32,4 +29,4 @@ python -m SimpleHTTPServer 8000 # for Python2
 FLASK_APP=tsneGrid.py flask run
 ```
 
-# Reproducability #
+# Reproducability of the Results#
