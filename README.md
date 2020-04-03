@@ -15,39 +15,6 @@ For the backend:
 For the frontend:
 - [D3.js](https://d3js.org/)
 - [Plotly.js](https://github.com/plotly/plotly.js/)
-- 
-
-# Installation #
-
-On Linux or OS X, compile the source using the following command:
-
-```
-g++ sptree.cpp tsne.cpp tsne_main.cpp -o bh_tsne -O2
-```
-
-The executable will be called `bh_tsne`.
-
-On Windows using Visual C++, do the following in your command line:
-
-- Find the `vcvars64.bat` file in your Visual C++ installation directory. This file may be named `vcvars64.bat` or something similar. For example:
-
-```
-  // Visual Studio 12
-  "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\amd64\vcvars64.bat"
-
-  // Visual Studio 2013 Express:
-  C:\VisualStudioExp2013\VC\bin\x86_amd64\vcvarsx86_amd64.bat
-```
-
-- From `cmd.exe`, go to the directory containing that .bat file and run it.
-
-- Go to `bhtsne` directory and run:
-
-```
-  nmake -f Makefile.win all
-```
-
-The executable will be called `windows\bh_tsne.exe`.
 
 # Usage #
 
@@ -64,3 +31,5 @@ python -m SimpleHTTPServer 8000 # for Python2
 # second terminal: hosting the computational side (server)
 FLASK_APP=tsneGrid.py flask run
 ```
+
+# Reproducability #
