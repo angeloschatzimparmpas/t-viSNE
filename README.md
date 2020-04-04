@@ -14,6 +14,7 @@ For the backend:
 - [Flask](https://palletsprojects.com/p/flask/)
 
 For the frontend:
+- [Node.js](https://nodejs.org/en/)
 - [D3.js](https://d3js.org/)
 - [Plotly.js](https://github.com/plotly/plotly.js/)
 
