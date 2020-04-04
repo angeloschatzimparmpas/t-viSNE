@@ -36,7 +36,6 @@ FLASK_APP=tsneGrid.py flask run
 ```
 
 # Reproducability of the Results #
-<<<<<<< HEAD
 The following instructions describe how to reach the results present in Figure 1 of the article. The aforementioned figure is connected with the Subsection 5.2 ("Use Case: Improving Diabetes Classification"). This is more or less the main use case described in the paper.
 
 **Tip:** The "Reset Filters" button illustrated in Figure 1(h), resets all the applied interactions in case you made a mistake and you want to redraw something.
