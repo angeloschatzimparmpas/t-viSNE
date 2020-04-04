@@ -53,7 +53,4 @@ The following instructions describe how to reach the results present in Figure 1
 **Outcome:** The above process describes how you will be able to reproduce precisely the results presented in Figures 1 and 7 of the paper. Thank you for your time!
 
 # Corresponding Author #
-For any questions with regard to the implementation or the paper, feel free to contact: angelos.chatzimparmpas@lnu.se.
-
-=======
->>>>>>> a9639b2e000a1b9ed39a56318610e8d8efd42279
+For any questions with regard to the implementation or the paper, feel free to contact: [Angelos Chatzimparmpas](mailto:angelos.chatzimparmpas@lnu.se)
