@@ -3,7 +3,7 @@ This Git repository contains the code that accompanies a research publication so
 
 **Note:** t-viSNE is optimized to work better for the 2560x1440 resolution (1440p/QHD (Quad High Definition)). Any other resolution might need manual adjustment of your browser's zoom level to work properly.
 
-**Note:** This repository contains a frozen version (commit id: 137) that matches the paper's implementation. However, we plan to further improve the implementation in the future.
+**Note:** This repository contains a frozen version (commit id: 145) that matches the paper's implementation. However, we plan to further improve the implementation in the future.
 
 # Data Sets #
 The data sets are available online from the [UCI Machine Learning Repository](http://archive.ics.uci.edu/ml/index.php). We use the Iris data set, Breast Cancer Wisconsin (Original) data set, Pima Indians Diabetes data set, and the SPECTF Heart data set. All data sets are transformed in comma separated format (csv).
