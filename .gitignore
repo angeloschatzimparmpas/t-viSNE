@@ -8,3 +8,5 @@ paper/template.out
 paper/template.pdf
 template.bbl
 template.blg
+cachedir
+__pycache__
