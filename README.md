@@ -22,6 +22,7 @@ pip install -r requirements.txt
 ```
 
 For the frontend:
+- [Node.js](https://nodejs.org/en/)
 - [D3.js](https://d3js.org/)
 - [Plotly.js](https://github.com/plotly/plotly.js/)
 
@@ -48,8 +49,14 @@ FLASK_APP=tsneGrid.py flask run
 Then, open your browser and point it to `localhost:8000`. We recommend using an up-to-date version of Google Chrome.
 
 
+<<<<<<< HEAD
 # Reproducibility of the Results #
 The following instructions describe how to reach the results present in Figure 1 of the article. The aforementioned figure is connected with the Subsection 5.2 (*Use Case: Improving Diabetes Classification*) and is the main use case described in the paper.
+=======
+# Reproducability of the Results #
+<<<<<<< HEAD
+The following instructions describe how to reach the results present in Figure 1 of the article. The aforementioned figure is connected with the Subsection 5.2 ("Use Case: Improving Diabetes Classification"). This is more or less the main use case described in the paper.
+>>>>>>> 0a187cf4591abcfa80534fa817ada427cd70a402
 
 **Note:** We used OSX and Google Chrome in all our tests, so we cannot guarantee that it works in other OS or browser. However, since t-viSNE is written in JS and Python, it should work in all the most common platforms.
 
@@ -67,4 +74,8 @@ The following instructions describe how to reach the results present in Figure 1
 **Outcome:** The above process describes how you will be able to reproduce precisely the results presented in Figures 1 and 7 of the paper. Thank you for your time!
 
 # Corresponding Author #
+<<<<<<< HEAD
 For any questions with regard to the implementation or the paper, feel free to contact [Angelos Chatzimparmpas](mailto:angelos.chatzimparmpas@lnu.se).
+=======
+For any questions with regard to the implementation or the paper, feel free to contact: [Angelos Chatzimparmpas](mailto:angelos.chatzimparmpas@lnu.se)
+>>>>>>> 0a187cf4591abcfa80534fa817ada427cd70a402
