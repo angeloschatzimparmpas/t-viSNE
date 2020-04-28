@@ -1,18 +1,11 @@
 #!flask/bin/python
 
-import sys
-import os
-
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from multiprocessing import Pool
 from scipy.spatial import procrustes
 from scipy.spatial import distance
 from sklearn_extra.cluster import KMedoids
-from sklearn import metrics
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from scipy import spatial
 from scipy import stats
@@ -22,7 +15,7 @@ from joblib import Memory
 import numpy as np
 import time
 import pandas as pd
-import random, json
+import json
 import bhtsne
 
 app = Flask(__name__)
@@ -210,7 +203,6 @@ preprocess = memory.cache(preprocess)
 
 def multi_run_wrapper(args):
     projectionsAllLoc, betasL, cppL, cpiL = bhtsne.run_bh_tsne(*args)
-
     return projectionsAllLoc, betasL, cppL, cpiL
 
 location = './cachedir'
