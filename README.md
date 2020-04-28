@@ -1,4 +1,7 @@
 # t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections #
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/56e643b253bf40afb9d788c0643c6940)](https://www.codacy.com/manual/Angelos-Chatzimparmpas/t-viSNE?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=angeloschatzimparmpas/t-viSNE&amp;utm_campaign=Badge_Grade)
+
 This Git repository contains the code that accompanies the research paper "t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections". The details of the experiments and the research outcome are described in [the paper](https://arxiv.org/abs/2002.06910) (soon to appear in IEEE Transactions on Visualization and Computer Graphics).
 
 **Note:** t-viSNE is optimized to work better for the 2560x1440 resolution (1440p/QHD (Quad High Definition)). Any other resolution might need manual adjustment of your browser's zoom level to work properly.
