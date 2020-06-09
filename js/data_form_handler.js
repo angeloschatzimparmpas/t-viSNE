@@ -9,10 +9,11 @@ function changeDataset(value) {
       d3.select("#data")
         .append("input")
          .attr("type", "file")
-         .style("font-size", "10px")
+         .style("font-size", 'calc(0.35em + 0.9vmin)')
          .on("change", function() {
           var file = d3.event.target.files[0];
           getfile(file);
+          $("#data").html(file.name);
         })
     } else {
       $("#data").html('Data sets'); // Print on the screen the classification label.

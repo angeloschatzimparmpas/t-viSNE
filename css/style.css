@@ -1,22 +1,40 @@
 /* Custom styling */
 
-/* Main html/body configurations */
 html, body {
-    max-width: 100%;
+    max-width: 100% !important;
     font-family: sans-serif !important;
-    font-size: 15px !important;
-    /*overflow-x: hidden;
-    overflow-y: hidden;*/
+    font-size: calc(0.35em + 1vmin) !important;
+}
+
+h2 {
+  font-size: calc(0.5em + 1vmin) !important;
+}
+
+select {
+  font-size: calc(0.35em + 1vmin) !important;
+}
+
+button {
+  font-size: calc(0.35em + 1vmin) !important;
 }
 
 .container-fluid {
-  margin-top: 8px;
+  margin-top: 15px;
 }
 
-.btn{
-  font-size: 15px !important;
+.table {
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
+table td {
+  vertical-align: middle !important;
+}
+
+input[type='file'] {
+  color: transparent;    /* Hides your "No File Selected" */
+  width: 95px;
+}
 
 #param-correlation {
   flex: 1;
@@ -52,53 +70,6 @@ text-align: left;
 }
 
 #param-correlation > .param > output {
-flex: 1;
-text-align: left;
-padding:5px 0;
-vertical-align: middle;
-user-select: none;
--webkit-user-select: none;
--moz-user-select: none;
-cursor: default;
-}
-
-
-/* Control panels on the left side are styled */
-
-#control-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-#control-panel > .param {
-  display: flex;
-  margin: 5px 0px;
-}
-
-#control-panel > .param > label {
-  width: 200px;
-  text-align: left;
-  padding: 4px 0 0 8px;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  cursor: default;
-}
-
-#control-panel > .param > input[type='range'] {
-  width: 60%;
-  margin-right: 10px;
-  text-align: left;
-}
-
-#control-panel > .param > select {
-flex: 0 0 45%;
-width: 100%;
-text-align: left;
-}
-
-#control-panel > .param > output {
 flex: 1;
 text-align: left;
 padding:5px 0;
@@ -267,8 +238,6 @@ svg#legend3 {
 }
 
 #hider2 {
-  height: 3vw;
-  width: 8.4vw;
   margin-left: -5px;
   text-align: left;
   background-color: white;
@@ -445,7 +414,6 @@ svg#legend3 {
   text-decoration: none;
   display: inline-block;
   font-size: 14px;
-  margin-left:10px;
 }
 
 /* Load and Save Analysis Buttons Styling */

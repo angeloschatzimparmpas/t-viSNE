@@ -61,6 +61,13 @@ var minimum; var correlationResults = []; var correlationResultsFinal = []; var 
 
 var results_all_global = []
 
+var overallWidth = 0, overallHeight = 0;
+
+function myResponsiveComponent(props) {
+  overallWidth = props.width;
+  overallHeight = props.height;
+}
+
 // This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
   var graphDiv = 'ProjectionsVisual'
@@ -2627,6 +2634,8 @@ function init(data, results_all, fields) {
     d3.select("#knnBarChart").style("z-index", 1);
 
     d3.select("#hider2").style("z-index", 2);
+    d3.select("#hider2").style("width", overallWidth/4.6);
+    d3.select("#hider2").style("height", overallHeight/14.3);
     d3.select("#PlotCost").style("z-index", 1);
 
     // Clear the previously drawn main visualization canvas.
@@ -2639,9 +2648,9 @@ function init(data, results_all, fields) {
     d3.selectAll("#legend3 > *").remove();
     d3.selectAll("#legend4 > *").remove();
 
-    $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
-    $("#CategoryName").html('No Classification');
-    $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
+    $("#datasetDetails").html('(Num. of Dim. and Ins.: ?)');
+    $("#CategoryName").html('No labels');
+    $("#knnBarChartDetails").html('(Num. of Selected Points: 0/0)');
 
     // Enable again the lasso interaction.
     lassoEnable();
@@ -2854,6 +2863,8 @@ function computeDistances(data, distFunc, transFunc) {
 function OverallCostLineChart(){
 
   d3.select("#hider2").style("z-index", -1);
+  d3.select("#hider2").style("width", 0);
+  d3.select("#hider2").style("height", 0);
   d3.select("#PlotCost").style("z-index", 2);
 
   var trace1 = {
@@ -2874,27 +2885,30 @@ function OverallCostLineChart(){
   
   var layout = {
     showlegend: false,
-    width: 215,
-    height: 80,
-    xaxis:{title: 'Iterations',
-    titlefont: {
-      size: 12,
-      color: 'black'
-    }},
-    yaxis:{title: 'Ov. Cost',
-            titlefont: {
-              size: 12,
-              color: 'black'
-            }},
+    width: overallWidth/4.6,
+    height: overallHeight/14.3,
+    xaxis:{title: 'Iteration',
+      titlefont: {
+        family: "sans-serif",
+        size: '12',
+        color: 'black'
+      }},
+    yaxis:{title: 'Ov. cost',
+      titlefont: {
+        family: "sans-serif",
+        size: '12',
+        color: 'black'
+      },
+      y: 0.1,},
     margin: {
-      l: 40,
+      l: 32,
       r: 15,
       b: 30,
       t: 5
     },
   };
   
-  Plotly.newPlot('PlotCost', data, layout,{displayModeBar:false}, {staticPlot: true});
+  Plotly.newPlot('PlotCost', data, layout,{displayModeBar:false}, {staticPlot: true}, {responsive: true});
 }
 
 // Function that updates embedding
@@ -2948,7 +2962,7 @@ function updateEmbedding(AnalysisResults) {
       ArrayWithCostsList = AnalysisResults.slice(2*dataFeatures.length+length+10, 2*dataFeatures.length+length+11);
       Iterations = IterationsList[0];
       ArrayWithCosts = ArrayWithCostsList[0];
-      $("#cost").html("(Overall Cost: " + overallCost + ")");
+      $("#cost").html("(Ov. Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
@@ -2962,7 +2976,7 @@ function updateEmbedding(AnalysisResults) {
       ArrayWithCostsList = AnalysisResults.slice(2*length+8, 2*length+9);
       Iterations = IterationsList[0];
       ArrayWithCosts = ArrayWithCostsList[0];
-      $("#cost").html("(Overall Cost: " + overallCost + ")");
+      $("#cost").html("(Ov. Cost: " + overallCost + ")");
       $('#param-perplexity-value').text(ParametersSet[1]);
       $('#param-learningrate-value').text(ParametersSet[2]);
       $('#param-maxiter-value').text(ParametersSet[3]);
@@ -3216,7 +3230,7 @@ function ShepardHeatMap () {
       var legend = d3.legendColor() // Legend color and title!
         .labelFormat(d3.format(",.0f"))
         .cells(9)
-        .title("Number of Points")
+        .title("Num. of Points")
         .scale(colorScale);
 
       heatleg.select(".legendLinear")
@@ -3399,33 +3413,33 @@ function step() {
           if (sliderTrigger) {
             if (sliderInsideTrigger) {
               if (cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3) < 0) {
-                $("#cost").html("(Overall Cost: 0.000)");
+                $("#cost").html("(Ov. Cost: 0.000)");
                 ArrayWithCosts.push(0);
                 Iterations.push(step_counter);
               } else {
-                $("#cost").html("(Overall Cost: " + cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3) + ")");
+                $("#cost").html("(Ov. Cost: " + cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3) + ")");
                 ArrayWithCosts.push(cost_overall[activeProjectionNumberProv][step_counter-1].toFixed(3));
                 Iterations.push(step_counter);
               }
 
             } else {
               if (cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) < 0) {
-                $("#cost").html("(Overall Cost: 0.000)");
+                $("#cost").html("(Ov. Cost: 0.000)");
                 ArrayWithCosts.push(0);
                 Iterations.push(step_counter);
               } else {
-                $("#cost").html("(Overall Cost: " + cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) + ")");
+                $("#cost").html("(Ov. Cost: " + cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) + ")");
                 ArrayWithCosts.push(cost_overall[activeProjectionNumber][step_counter-1].toFixed(3));
                 Iterations.push(step_counter);
               }
             }
           } else {
             if (cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) < 0) {
-              $("#cost").html("(Overall Cost: 0.000)");
+              $("#cost").html("(Ov. Cost: 0.000)");
               ArrayWithCosts.push(0);
               Iterations.push(step_counter);
             } else {
-              $("#cost").html("(Overall Cost: " + cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) + ")");
+              $("#cost").html("(Ov. Cost: " + cost_overall[activeProjectionNumber][step_counter-1].toFixed(3) + ")");
               ArrayWithCosts.push(cost_overall[activeProjectionNumber][step_counter-1].toFixed(3));
               Iterations.push(step_counter);
             }
@@ -3469,7 +3483,7 @@ function OverviewtSNE(points){ // The overview t-SNE function
       }
     }
   }
-  $("#datasetDetails").html("(Number of Dimensions: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Number of Instances: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
+  $("#datasetDetails").html("(Num. of Dim.: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Num. of Ins.: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
   if (Category == undefined){
     $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
   } else {
@@ -3675,7 +3689,7 @@ function CostHistogram(points){
                 size: 14,
                 color: 'black'
               }},
-    yaxis:{title: 'Number of Points (log)',
+    yaxis:{title: 'Num. of Points (log)',
           type: "log",
             titlefont: {
               size: 14,
@@ -5915,7 +5929,7 @@ function LineBar() {
         pad: 4
       },
       xaxis: {range: [0, LimitXaxis],
-        title: 'Number of neighbors',
+        title: 'Num. of neighbors',
         titlefont: {
           size: 12,
           color: 'black'
@@ -5972,7 +5986,7 @@ function LineBar() {
         pad: 4
       },
       xaxis: {range: [0, LimitXaxis],
-        title: 'Number of neighbors',
+        title: 'Num. of neighbors',
         titlefont: {
           size: 12,
           color: 'black'
@@ -6020,7 +6034,7 @@ function LineBar() {
         pad: 4
       },
       xaxis: {range: [0, LimitXaxis],
-        title: 'Number of neighbors',
+        title: 'Num. of neighbors',
         titlefont: {
           size: 12,
           color: 'black'
@@ -6034,7 +6048,7 @@ function LineBar() {
 
   Plotly.newPlot('knnBarChart', data, layout, {displayModeBar:false}, {staticPlot: true});
   }
-  $("#knnBarChartDetails").html("(Number of Selected Points: "+howManyPoints+"/"+dataFeatures.length+")");
+  $("#knnBarChartDetails").html("(Num. of Selected Points: "+howManyPoints+"/"+dataFeatures.length+")");
   // If the checkbox is checked, display the output text
 }
  

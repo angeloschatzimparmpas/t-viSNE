@@ -4,6 +4,8 @@
     <!-- Ignore Favicon -> Solved the warning in console of the browser. -->
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
 
+    <title>t-viSNE</title>
+
     <!-- Three.js and Lodash libraries-->
     <script src='./modules/three.js-r101/three.js'></script>
     <script src='./modules/lodash/lodash.js'></script>
@@ -72,79 +74,75 @@
           
     <div class="container-fluid">
         <div class="row">
-            <div class="col-md-3">
+            <div class="col-lg-3">
                 <div class="panel panel-default" id="left-side-param">
                     <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: control t-SNE algorithm and its parameters.">t-SNE Parameters</h2>
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: a panel for controlling the t-SNE algorithm and its parameters.">Parameters</h2>
                         [Mode:
-                        <select id="param-EX-view" name="param-EX-view" data-toggle="tooltip" data-placement="right" title="Tip: change between grid search and a single set of parameters." onchange="ExecuteMode()">
+                        <select id="param-EX-view" name="param-EX-view" data-toggle="tooltip" data-placement="right" title="Tip: the option of changing between grid search (generating 500 projections) and a single set of parameters (1 projection)." onchange="ExecuteMode()">
                             <option value="1" selected>Grid Search</option>
                             <option value="2">Single Set</option>
                           </select>
                         ]
-                        <div id="cost" style="display:inline-block; margin-top:3px; float:right"></div>
+                        <div id="cost" title="Tip: the overall cost reduced by each iteration step of the t-SNE algorithm." style="display:inline-block; margin-top:3px; float:right"></div>
                     </div>
                   <div class="panel-body">
-                    <div id="control-panel" data-sr="enter left over 8s">
-                      <div class="param">
-                          <label id="data" for="param-dataset" data-toggle="tooltip" data-placement="right" title="Tip: use one of the data sets already provided or upload a new file.">Data sets</label>
-                          <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
-                            <option value="diabetes.csv" selected>Pima Indian Diabetes</option>
-                            <option value="breast-cancer-wisconsin.csv">Breast Cancer Wisconsin</option>
-                            <option value="iris.csv">Iris</option>                            
-                            <option value="SPECTF.csv">SPECTF</option>
-                            <option value="blobs.csv">Gaussian Clusters</option>
-                            <option value="empty">Upload New File</option>
-                          </select>
-                          <button type="button" class="button" id="FactRes" onclick="FactoryReset()" data-toggle="tooltip" data-placement="right" title="Tip: Restart the entire web page/application.">Factory reset</button>
-                      </div>
-                          <div class="param">
-                        <label for="param-perplexity" data-toggle="tooltip" data-placement="right" title="Tip: perplexity is a measure for information that is defined as 2 to the power of the Shannon entropy. The perplexity of a fair die with k sides is equal to k. In t-SNE, the perplexity may be viewed as a knob that sets the number of effective nearest neighbors. (Source: https://lvdmaaten.github.io/tsne/)">Perplexity</label>
-                        <input id="param-perplexity" type="range" min="5" max="100" value="30", step="1" >
-                        <output for="param-perplexity" id="param-perplexity-value">30</output>
-                          </div>
-                          <div class="param">
-                        <label for="param-learningrate" data-toggle="tooltip" data-placement="right" title="Tip: if the learning rate is too high, the data may look like a ‘ball’ with any point approximately equidistant from its nearest neighbours. If the learning rate is too low, most points may look compressed in a dense cloud with few outliers. If the cost function gets stuck in a bad local minimum increasing the learning rate may help. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html)">Learning rate</label>
-                        <input id="param-learningrate" type="range" min="1" max="150" value="1", step="1">
-                        <output for="param-learningrate" id="param-learningrate-value">1</output>
-                          </div>                          
-                          <div class="param">
-                              <div class="row">
-                              <div class="col-md-3">
-                              <label for="param-maxiter" style="padding: 25px 0 0 8px" data-toggle="tooltip" data-placement="right" title="Tip: maximum number of iterations for the optimization. Should usually be around 250. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html)">Max iterations</label>
-                              </div>
-                              <div class="col-md-4" style="padding: 25px 0 0 0px">
-                              <input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10" >
-                            </div>
-                            <div class="col-md-1">
-                              <output for="param-maxiter" id="param-maxiter-value" style="padding: 25px 0 0 0" >500</output>
-                              </div>
-
-                          <div class="col-md-4">
-                              <div id="hider2"></div>
+                      <table class="table table-borderless">
+                        <tbody>
+                          <tr>
+                            <td scope="row"><label id="data" for="param-dataset" data-toggle="tooltip" data-placement="right" title="Tip: use one of the data sets already provided (only numerical values supported) or upload a new file (do not forget to use * for the target label).">Data sets</label></td>
+                            <td>
+                              <select id="param-dataset" name="param-dataset" onChange="changeDataset(this.value);">
+                                <option value="diabetes.csv" selected>Diabetes</option>
+                                <option value="breast-cancer-wisconsin.csv">Breast Cancer</option>
+                                <option value="iris.csv">Iris</option>                            
+                                <option value="SPECTF.csv">SPECTF</option>
+                                <option value="blobs.csv">Gaussian Clusters</option>
+                                <option value="empty">Upload File</option>
+                              </select>
+                            </td>
+                            <td><button type="button" class="button" id="FactRes" onclick="FactoryReset()" data-toggle="tooltip" data-placement="right" title="Tip: Restart the entire web page/application.">Factory reset</button></td>
+                          </tr>
+                          <tr>
+                            <td scope="row"><label for="param-perplexity" data-toggle="tooltip" data-placement="right" title="Tip: perplexity is a measure for information that is defined as 2 to the power of the Shannon entropy. The perplexity of a fair die with k sides is equal to k. In t-SNE, the perplexity may be viewed as a knob that sets the number of effective nearest neighbors. (Source: https://lvdmaaten.github.io/tsne/).">Perplexity</label></td>
+                            <td><input id="param-perplexity" type="range" min="5" max="100" value="30", step="1" ></td>
+                            <td><output for="param-perplexity" id="param-perplexity-value">30</output></td>
+                          </tr>
+                          <tr>
+                            <td scope="row"><label for="param-learningrate" data-toggle="tooltip" data-placement="right" title="Tip: if the learning rate is too high, the data may look like a ‘ball’ with any point approximately equidistant from its nearest neighbours. If the learning rate is too low, most points may look compressed in a dense cloud with few outliers. If the cost function gets stuck in a bad local minimum increasing the learning rate may help. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html).">Learning rate</label></td>
+                            <td><input id="param-learningrate" type="range" min="1" max="150" value="1", step="1"></td>
+                            <td><output for="param-learningrate" id="param-learningrate-value">1</output></td>
+                          </tr>
+                          <tr>
+                            <td scope="row"><label for="param-maxiter" data-toggle="tooltip" data-placement="right" title="Tip: maximum number of iterations for the optimization. Should usually be around 250. (Source: https://scikit-learn.org/stable/modules/generated/sklearn.manifold.TSNE.html).">Max iterations</label></td>
+                            <td><input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10"></td>
+                            <td><output for="param-maxiter" id="param-maxiter-value" >500</output></td>
+                          </tr>
+                          <tr>
+                            <td scope="row" colspan="3">
+                              <div id="hider2" title="Tip: wait for line chart to load (overall cost vs. iteration)."></div>
                               <div id="PlotCost"></div>
-                            </div>
-
-                          </div>
-                          </div>
-                          <div class="param" style="margin-top: -10px">
-                        <input id="file-input" type="file" name="name" style="display: none;" />
-                        <button type="button" class="button" onclick='loadAnalysis();' style="padding:15px 12px 15px 12px; margin-left:15px" data-toggle="tooltip" data-placement="right" title="Tip: load previously executed file in .txt format.">Load execution</button>
-                        <button type="button" class="button" onclick="SaveAnalysis()" style="padding:15px 12px 15px 12px; margin-left:20px" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed file in .txt format.">Store execution</button>
-                        <div class="col-md-" style="margin-top: 14px; margin-left:15px">
-                            <label data-toggle="tooltip" data-placement="right" title="Tip: if you store distances the file size will be larger but on a loading of this execution it will be processed much quicker than without this option enabled.">
-                                <input id="downloadDists" checked type="checkbox" >
-                                Distances cached on "Store execution"
+                            </td>
+                          </tr>
+                          <tr>
+                            <td scope="row">
+                              <input id="file-input" type="file" name="name" style="display: none;"/>
+                              <button type="button" class="button" onclick='loadAnalysis();' data-toggle="tooltip" data-placement="right" title="Tip: load previously executed analysis in .txt format.">Load execution</button>  
+                            </td>
+                            <td><label data-toggle="tooltip" data-placement="right" title="Tip: if you store distances the file size will be larger but on a loading of this execution it will be processed much quicker than without this option enabled.">
+                              <input id="downloadDists" checked type="checkbox" >
+                              Cache distances
                             </label>
-                          </div>
-                        </div>
-                        <div class="row">
-                          <div class="col-md-12" style="margin-top:10px">
-                              <p><div id="run-button"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" value="Execute new t-SNE analysis" style="margin-top: 4px"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></div></p>
-                          </div>
-
-                        </div>
-                    </div>
+                            </td>
+                            <td>
+                              <button type="button" class="button" onclick="SaveAnalysis()" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed analysis in .txt format.">Store execution</button>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td scope="row" colspan="3"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" title="Tip: initialize a new t-SNE investigation or start a previous analysis, in case load execution is activated." value="Execute new t-SNE analysis"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></td>
+                          </tr>
+                        </tbody>
+                      </table>
                   </div>
                 </div>
               </div>
@@ -198,7 +196,7 @@
             <div class="col-md-3"  style="margin-top:-4px">
                 <div class="panel panel-default" style="padding-bottom: 35px;">
                   <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: t-SNE overview with or without labels depending on each data set. To determine the feature of a data set that corresponds to classes set a * mark after this feature.">t-SNE Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: t-SNE overview with or without labels depending on each data set. To determine the feature of a data set that corresponds to classes set a * mark after this feature.">Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
                   </div>
                   <div class="row">
                     <div class="panel-body">
@@ -395,10 +393,35 @@
             </div>
            </div>
           </div>
+        -->
+      </div>
+      <div class="footer">
+        <hr>
+         <p class="text-muted credit no-top-margin no-bottom-margin">
+             &copy; ISOVIS group 2019&ndash;2020
+         </p>
+         <p class="text-muted credit no-top-margin no-bottom-margin">
+             Last updated: June 15, 2020
+         </p>
       </div>
     </div>
+    
+    <!-- Load the core visualization script. -->
+    <script src="./js/tsne_vis.js"></script>
 
     <script>
+
+      function render() {
+        myResponsiveComponent({
+          width: document.body.clientWidth,
+          height: document.body.clientHeight
+        });
+      }
+
+      render();
+
+      window.addEventListener('resize', render);
+
       // Tooltip
       $(document).ready(function(){
         $("[rel='tooltip']").tooltip();
@@ -420,10 +443,10 @@
         $('#myModal').modal('hide');
       }
 
-      $("#cost").html('(Unknown Overall Cost)');
-      $("#datasetDetails").html('(Unknown Number of Dimensions and Instances)');
-      $("#CategoryName").html('No Classification');
-      $("#knnBarChartDetails").html('(Number of Selected Points: 0/0)');
+      $("#cost").html('(Ov. Cost: ?)');
+      $("#datasetDetails").html('(Num. of Dim. and Ins.: ?)');
+      $("#CategoryName").html('No labels');
+      $("#knnBarChartDetails").html('(Num. of Selected Points: 0/0)');
       /* This script is used in order to give functionalities to the different buttons provide through the front-end. */
       $('#param-lim').bind('input', function () { $('#param-lim-value').text($('#param-lim').val()); }); 
       $('#param-corr').bind('input', function () { $('#param-corr-value').text($('#param-corr').val()); });
@@ -462,9 +485,6 @@
         });
       }
 
-    </script>
-
-    <script>
       /* On resize refresh the shepardHeatmap */
       window.onresize = function(event) {
         if ( document.getElementById('cost').hasChildNodes() ) {
@@ -504,9 +524,6 @@
         }
       }
     </script>
-
-    <!-- Load the core visualization script. -->
-    <script src="./js/tsne_vis.js"></script>
 
   </body>
 
