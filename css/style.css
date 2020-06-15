@@ -2,8 +2,9 @@
 
 html, body {
     max-width: 100% !important;
+    margin-top: -5px !important;
     font-family: sans-serif !important;
-    font-size: calc(0.35em + 1vmin) !important;
+    font-size: calc(0.32em + 1vmin) !important;
 }
 
 h2 {
@@ -29,7 +30,18 @@ button {
 
 table td {
   vertical-align: middle !important;
+  padding: 2 !important;
+  margin: 0 !important;
 }
+
+.centerTable {
+  text-align: center; 
+}
+
+.centerTable td {
+  padding: 8 !important;
+}
+
 
 input[type='file'] {
   color: transparent;    /* Hides your "No File Selected" */
@@ -63,6 +75,14 @@ input[type='file'] {
   text-align: left;
 }
 
+#param-corlim {
+  width: 55% !important;
+}
+
+#param-costlim {
+  width: 85% !important;
+}
+
 #param-correlation > .param > select {
 flex: 0 0 45%;
 width: 100%;
@@ -86,11 +106,7 @@ cursor: default;
 
 .right-side-hist {
   margin-left:-2px;
-  margin-top: 1px;
-}
-
-.right-side-PCP {
-  margin-top: -57px;
+  margin-top: -0.5vh;
 }
 
 #left-side-visual{
@@ -101,7 +117,7 @@ cursor: default;
 /* Styling of the main canvas */
 #modtSNEcanvas {
     width: 50vw !important;
-    height: 42.8vw !important;
+    height: 66vh !important;
     border: 1px solid black;
     position: absolute;
     margin-left: -15px;
@@ -110,6 +126,10 @@ cursor: default;
 
 .dot {
   fill: steelblue;
+}
+
+.panel-body {
+  padding: 5px !important;
 }
 
 .bounding-rect {
@@ -121,7 +141,7 @@ cursor: default;
 #overviewRect {
   border: 1px solid black;
   width: 11vw;
-  height: 11vw;
+  height: 13vh;
   position: absolute;
   z-index: 1;
 }
@@ -129,46 +149,48 @@ cursor: default;
 /* A little styling for knn's bar chart */
 #knnBarChart {
   width: 48.7vw !important;
-  height: 2.8vw;
   position: absolute !important;
   z-index: 1;
 }
 
 #hider {
-  width: 48.7vw !important;
-  height: 3vw;
   background-color: white;
   position: absolute !important;
   z-index: 2;
 }
 
-.med-bottom {
-  margin-top: 6.7vw;
+.med-bottom-neigh {
   margin-left: -16px;
+  margin-top: 67vh;
+  position: absolute;
   width: 50.1vw !important;
-  height: 5.4vw !important;
+  height: 14.5vh !important;
 }
 
 .med-bottomProv {
-  margin-top: 6.7vw;
   margin-left: -16px;
   width: 50.1vw !important;
-  height: 6.4vw !important;
+  height: 16vh !important;
+}
+
+#comment {
+  width: 8vw !important;
+  height: 2.5vh !important;
 }
 
 /* Styling of the main SVG behind canvas */
 #modtSNEcanvas_svg {
   width: 50vw ;
-  height: 42.8vw ;
+  margin-top: 17.5vh;
+  height: 66vh !important;
   opacity: 1.0;
-  margin-top: 178px;
   position:absolute; 
   z-index: 2;
 }
 
 #modtSNEcanvas_svg_Schema {
   width: 50vw;
-  height: 42.8vw;
+  height: 66vh !important;
   opacity: 1.0;
   position:absolute; 
   margin-left: -15px;
@@ -181,50 +203,52 @@ circle.swatch{
 
 /* Legend of the Overview t-SNE canvas */
 #legend2 {
-   height: 9vw;
-   width: 11vw;
+   height: 11vh;
+   width: 10.5vw;
    text-align: left;
    overflow: auto;
    margin-left: -6px;
+   margin-top: 2px;
   }
 
   /* Legend of the Overview t-SNE canvas */
  #legend1 {
-  height: 7vw;
-  width: 5vw;
-  margin-top: -5px;
+  height: 19vh;
+  margin-top: -0.5vh;
+  width: 5.5vw;
   text-align: left;
  }
 /* Legend of the Overview t-SNE canvas */
 #legend4 {
-height: 7vw;
+height: 13.5vh;
 width: 7vw;
-margin-left: -20px;
-margin-top: -10px;
+margin-top: -1.5vh;
 text-align: left;
 }
 
 /* Styling of the ShepardHeatmap */
 #sheparheat {
-  width: 11vw;
-  height: 11vw;
+  width: 10.65vw;
+  height: 10.65vw;
   position: absolute;
 }
 
 /* Number of Points font-size */
 text.legendtitle {
-  font-size: 15px;
+  font-size: calc(0.35em + 0.8vmin) !important;
 }
 
 /* Number of Points font-size */
 text.label {
-  font-size: 15px;
+  font-size: calc(0.35em + 0.8vmin) !important;
 }
 
 /* Styling of the ShepardHeatmap */
 svg#legend3 {
-  height: 8vw;
-  width: 11vw;
+  height: 19.2vh;
+  width: 10.65vw;
+  margin-top: 2px;
+  font-size: calc(0.35em + 1vmin) !important;
   text-align: left;
   overflow: auto;
 }
@@ -326,8 +350,7 @@ svg#legend3 {
 
 /* This is for the Correlation bar chart */
 #correlation{
-  margin-left: -20px;
-  margin-top: -20px;
+  margin-left: -0.5vw;
 }
 
 .y.axis line {
@@ -382,14 +405,13 @@ svg#legend3 {
 
 #selectionLabel{
   border: 1px solid black;
-  padding: 5px 5px 5px 5px;
+  padding: 1px 1px 1px 1px;
 }
 
 #PCP{
-  margin-left:-15px;
   margin-top:0px;
-  width: 23.2vw;
-  height: 11.6vw;
+  width: 22.6vw;
+  height: 17vh;
 }
 
 .parent-row{
@@ -469,7 +491,7 @@ ul {
 
 #costHist {
   width: 6vw;
-  height: 9.55vw;
+  height: 16.5vh;
 }
 
 #loader {

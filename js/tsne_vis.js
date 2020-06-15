@@ -1,7 +1,45 @@
 // t-SNE Visualization and global variables
 
+//BACKEND_API_URL = "https://sheldon.lnu.se/t-viSNE/tsneGrid"
+BACKEND_API_URL = "http://127.0.0.1:5000"
+
 // This variable is used when a new file is upload by a user.
 var new_file; 
+
+// Scale - Responsiveness
+var overallWidth = 0, overallHeight = 0;
+
+// Initialize the horizontal (correlations) barchart's variables
+var svg, defs, gBrush, brush, main_xScale, mini_xScale, main_yScale, mini_yScale, main_xAxis, main_yAxis, mini_width, textScale, main_margin, mini_margin;
+
+// Added only for the mouse wheel
+var zoomer = d3v3.behavior.zoom()
+.on("zoom", null);
+
+function myResponsiveComponent(props) {
+  overallWidth = props.width;
+  overallHeight = props.height;
+
+  // Margin of the main barchart
+  main_margin = {top: 8, right: 10, bottom: 30, left: 100},
+    main_width = overallWidth/5.2 - main_margin.left - main_margin.right,
+    main_height = overallHeight/5.2 - main_margin.top - main_margin.bottom;
+  // Margin of the mini barchart
+  mini_margin = {top: 8, right: 10, bottom: 30, left: 10},
+    mini_height = overallHeight/5.2 - mini_margin.top - mini_margin.bottom;
+    mini_width =  overallWidth/23 - mini_margin.left - mini_margin.right;
+
+  // Create the svg correlation component
+  svg = d3v3.select("#correlation").attr("class", "svgWrapper")
+    .attr("width", main_width + main_margin.left + main_margin.right + mini_width + mini_margin.left + mini_margin.right)
+    .attr("height", main_height + main_margin.top + main_margin.bottom)
+    .call(zoomer)
+    .on("wheel.zoom", scroll)
+    .on("mousedown.zoom", null)
+    .on("touchstart.zoom", null)
+    .on("touchmove.zoom", null)
+    .on("touchend.zoom", null);
+}
 
 // The basic variables in order to execute t-SNE (opt is perplexity and learning rate). 
 var tsne; var opt; var step_counter; var max_counter; var runner; 
@@ -16,6 +54,7 @@ var dists; var dists2d; var all_labels; var dist_list = []; var dist_list2d = []
 
 // These are the dimensions for the Overview view and the Main view
 var dim = document.getElementById('overviewRect').offsetWidth-2; var dimensions = document.getElementById('modtSNEcanvas').offsetWidth; var dimensionsY = document.getElementById('modtSNEcanvas').offsetHeight; var lassoFlag = false;
+var dimh = document.getElementById('overviewRect').offsetHeight-2;
 
 // Category = the name of the category if it exists. The user has to add an asterisk ("*") mark in order to let the program identify this feature as a label/category name. 
 // ColorsCategorical = the categorical colors (maximum value = 10).
@@ -53,20 +92,13 @@ var ParametersSet = []; var overallCost; var input;
 var ringNotes = []; var gAnnotationsAll = []; var AnnotationsAll = []; var draggable = [];
 
 // These variables are set here in order to instatiate the very first Three.js scene.
-var MainCanvas; var Child; var renderer; var fov = 18; var near = 10; var far = 7000; var camera; var scene;
+var MainCanvas; var Child; var renderer; var fov = 10.2; var near = 10; var far = 7000; var camera; var scene;
 
 // Initialize the Schema Investigation variables.
 var Arrayx = []; var Arrayy = []; var XYDistId = []; var Arrayxy = []; var DistanceDrawing1D = []; var allTransformPoints = []; var p; var pFinal = []; var paths; var path; var ArrayLimit = [];
 var minimum; var correlationResults = []; var correlationResultsFinal = []; var ArrayContainsDataFeaturesLimit = [];
 
 var results_all_global = []
-
-var overallWidth = 0, overallHeight = 0;
-
-function myResponsiveComponent(props) {
-  overallWidth = props.width;
-  overallHeight = props.height;
-}
 
 // This function is executed when the factory button is pressed in order to bring the visualization in the initial state.
 function FactoryReset(){
@@ -115,8 +147,8 @@ function OptimizePoints() {
     }
 
      // ajax the JSON to the server
-     $.post("http://127.0.0.1:5000/receiverOptimizer", JSON.stringify(FocusedIDs), function(){
-      $.get("http://127.0.0.1:5000/senderOptimizer", function( data ) {
+     $.post(BACKEND_API_URL+"/receiverOptimizer", JSON.stringify(FocusedIDs), function(){
+      $.get(BACKEND_API_URL+"/senderOptimizer", function( data ) {
         dataReceivedFromServerOptimized = data
         ReSort(false)
     });
@@ -135,7 +167,7 @@ function ReSort(flagInitialize) {
   var width= dimensions*0.97;
   var viewport = getViewport(); // Get the width and height of the main visualization
   var vh = viewport[1] * 0.035;
-  var height= vh * 1.9;
+  var height= vh * 2.8;
 
   var graphDiv = 'ProjectionsVisual'
 
@@ -159,9 +191,9 @@ function ReSort(flagInitialize) {
     metricsSorting = dataReceivedFromServerOptimized['metrics']
     metrics = dataReceivedFromServerOptimized['metricsEntire']
     if (FocusedIDs.length == points.length) {
-      document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric:";
+      document.getElementById("textToChange").innerHTML = "[Sorting:";
     } else {
-      document.getElementById("textToChange").innerHTML = "[Sorting Projections According to Metric for Current Selection:";
+      document.getElementById("textToChange").innerHTML = "[Sorting for Selection:";
     }
   } else {
     if (!globalFlagCheck) {
@@ -285,8 +317,8 @@ if(k >= 6) {
       zmax:1,
       colorscale: colorscaleValue,
       colorbar: {
-          title: 'Met. Per.',
-          tickvals:[0,0.2,0.4,0.6,0.8,1],
+          title: 'Perform.',
+          tickvals:[0,0.5,1],
           titleside:'right',
         },
       xaxis: 'x'+parseInt(k+1),
@@ -596,7 +628,7 @@ if(k >= 6) {
       margin: {
         l: 10,
         r: 10,
-        b: 15,
+        b: 37,
         t: 2,
         pad: 0
       },
@@ -831,15 +863,15 @@ function parseData(url) {
                 if (insideCall) {
                   init(results.data, results_all, results.meta.fields); // Call the init() function that starts everything!
                 } else {
-                  $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+                  $.post(BACKEND_API_URL+"/resetAll", JSON.stringify(''), function(){
                   });
                   var parametersLocal = []
                   parametersLocal.push(document.getElementById("param-perplexity-value").value)
                   parametersLocal.push(document.getElementById("param-learningrate-value").value)
                   parametersLocal.push(document.getElementById("param-maxiter-value").value)
                   parametersLocal.push(results_all)
-                  $.post("http://127.0.0.1:5000/receiverSingle", JSON.stringify(parametersLocal), function(){
-                    $.get("http://127.0.0.1:5000/senderSingle", function( data ) {
+                  $.post(BACKEND_API_URL+"/receiverSingle", JSON.stringify(parametersLocal), function(){
+                    $.get(BACKEND_API_URL+"/senderSingle", function( data ) {
                       dataReceivedFromServer = data
                       projections = dataReceivedFromServer['projections']
                       betas = dataReceivedFromServer['betas']
@@ -856,7 +888,7 @@ function parseData(url) {
               if (flagAnalysis) {
 
                 $('#myModal').modal('hide');
-                $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+                $.post(BACKEND_API_URL+"/resetAll", JSON.stringify(''), function(){
                   });
 
                   var parametersLocal = []
@@ -864,8 +896,8 @@ function parseData(url) {
                   parametersLocal.push(document.getElementById("param-learningrate-value").value)
                   parametersLocal.push(document.getElementById("param-maxiter-value").value)
                   parametersLocal.push(results_all)
-                  $.post("http://127.0.0.1:5000/receiverSingle", JSON.stringify(parametersLocal), function(){
-                    $.get("http://127.0.0.1:5000/senderSingle", function( data ) {
+                  $.post(BACKEND_API_URL+"/receiverSingle", JSON.stringify(parametersLocal), function(){
+                    $.get(BACKEND_API_URL+"/senderSingle", function( data ) {
                       dataReceivedFromServer = data
                       projections = dataReceivedFromServer['projections']
                       betas = dataReceivedFromServer['betas']
@@ -878,10 +910,10 @@ function parseData(url) {
                 });
               } else {
                     // ajax the JSON to the server
-                    $.post("http://127.0.0.1:5000/resetAll", JSON.stringify(''), function(){
+                    $.post(BACKEND_API_URL+"/resetAll", JSON.stringify(''), function(){
                     });
-                    $.post("http://127.0.0.1:5000/receiver", JSON.stringify(results_all), function(){
-                      $.get("http://127.0.0.1:5000/sender", function( data ) {
+                    $.post(BACKEND_API_URL+"/receiver", JSON.stringify(results_all), function(){
+                      $.get(BACKEND_API_URL+"/sender", function( data ) {
                         dataReceivedFromServer = data
                         ReSortOver()
 
@@ -994,11 +1026,12 @@ if (optionMetric == 1) {
         zmin:0,
         zmax:1,
         colorbar: {
-            title: 'Normalized Metrics Performance',
+            title: 'Metrics performance (normalized)',
             tickvals:[0,0.2,0.4,0.6,0.8,1],
             titleside:'right',
           },
         xaxis: 'x'+parseInt(k+1),
+        
         yaxis: 'y'+parseInt(k+1),
       })
     } else {
@@ -2373,10 +2406,10 @@ function setReInitializeDistanceCorrelation(flag){
 function setReInitialize(flag){
   if(flag){
     // Change between color-encoding and size-encoding mapped to 1/sigma and KLD.
-    if (document.getElementById('selectionLabel').innerHTML == 'Size-encoding'){
-      document.getElementById('selectionLabel').innerHTML = 'Color-encoding';
+    if (document.getElementById('selectionLabel').innerHTML == 'Size'){
+      document.getElementById('selectionLabel').innerHTML = 'Color';
     } else{
-      document.getElementById('selectionLabel').innerHTML = 'Size-encoding';
+      document.getElementById('selectionLabel').innerHTML = 'Size';
     }
   } 
 
@@ -2554,7 +2587,7 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
       // Unchecked!
       checkBox.checked = false;
       // Print a message to the user.
-      alert("Cannot hide the annotators' controls because, currently, there are no annotations into the visual representation.")
+      alert("Cannot hide the annotator controls because there are no comments on top of the main visualization at the moment.")
     }
   });
 
@@ -2563,7 +2596,7 @@ function setAnnotator(){ // Set a new annotation on top of the main visualizatio
 
     $('#downloadDists').change(function() {
         if(!this.checked) {
-            returnVal = confirm("Are you sure that you want to store the points and the parameters without the distances?");
+            returnVal = confirm("Are you sure that you want to store only the points and all the parameters without the distances?");
             $(this).prop("checked", !returnVal);
         }
     });
@@ -2612,7 +2645,7 @@ function MainVisual(){
 // fields variable is all the features (columns) plus beta and cost strings.  
 function init(data, results_all, fields) { 
 
-    $('#comment').attr('placeholder', "Please, provide your comment.");
+    $('#comment').attr('placeholder', "Write a comment.");
     ArrayWithCosts = [];
     Iterations = [];
     VisiblePoints = [];
@@ -2631,11 +2664,13 @@ function init(data, results_all, fields) {
     //pcpInitialize();
     
     d3.select("#hider").style("z-index", 2);
+    d3.select("#hider").style("width", "48.7vw");
+    d3.select("#hider").style("height", overallHeight/11.8);
     d3.select("#knnBarChart").style("z-index", 1);
 
     d3.select("#hider2").style("z-index", 2);
     d3.select("#hider2").style("width", overallWidth/4.6);
-    d3.select("#hider2").style("height", overallHeight/14.3);
+    d3.select("#hider2").style("height", overallHeight/16);
     d3.select("#PlotCost").style("z-index", 1);
 
     // Clear the previously drawn main visualization canvas.
@@ -2886,25 +2921,25 @@ function OverallCostLineChart(){
   var layout = {
     showlegend: false,
     width: overallWidth/4.6,
-    height: overallHeight/14.3,
+    height: overallHeight/16,
     xaxis:{title: 'Iteration',
       titlefont: {
         family: "sans-serif",
-        size: '12',
+        size: '11',
         color: 'black'
       }},
     yaxis:{title: 'Ov. cost',
       titlefont: {
         family: "sans-serif",
-        size: '12',
+        size: '11',
         color: 'black'
       },
       y: 0.1,},
     margin: {
       l: 32,
       r: 15,
-      b: 30,
-      t: 5
+      b: 25,
+      t: 6
     },
   };
   
@@ -3016,7 +3051,7 @@ function ShepardHeatMap () {
   if (SHViewOptions == 1) {
 
     // Set the margin of the shepard heatmap
-    var margin = { top: 35, right: 15, bottom: 15, left: 35 },
+    var margin = { top: 35, right: 15, bottom: 15, left: 40 },
     dim2 = Math.min(parseInt(d3.select("#sheparheat").style("width")), parseInt(d3.select("#sheparheat").style("height")))
     width = dim2- margin.left - margin.right,
     height = dim2 - margin.top - margin.bottom,
@@ -3132,18 +3167,18 @@ function ShepardHeatMap () {
             .attr("x", 0)
             .attr("y", function (d, i) { return i * gridSize * 2; })
             .style("text-anchor", "end")
-            .style("font-size", "10px")
+            .style("font-size", "calc(0.35em + 0.5vmin)")
             .attr("transform", "translate(-6," + gridSize / 4 + ")")
             .attr("class","mono");
   
 
-      var tooltip2 = d3.select("body")
+      /*var tooltip2 = d3.select("body")
         .append("div")
         .style("position", "absolute")
         .style("z-index", "12")	
         .style("text-align","center")
         .style("width","300px")
-        .style("height","50px")
+        .style("height","60px")
         .style("padding","2px")
         .style("background","lightsteelblue")
         .style("border-radius","8px")
@@ -3151,26 +3186,27 @@ function ShepardHeatMap () {
         .style("pointer-events","centnoneer")		
         .style("color","black")
         .style("visibility", "hidden")
-        .text("Hint: if values are closer to N-Dim. distances, then the visualization is too compressed.");
+        .text("Tip: if values are closer to N-D distances, then the visualization is too compressed.");*/
 
       var title = svg.append("text") // Title = Input Distance
                       .attr("class", "mono")
                       .attr("x", -(gridSize * 8))
-                      .attr("y", -26)
-                      .style("font-size", "12px")
+                      .attr("y", -28)
+                      .style("font-size", "calc(0.35em + 0.75vmin)")
                       .attr("transform", "rotate(-90)")
-                      .on("mouseover", function(){return tooltip2.style("visibility", "visible");})
-                      .on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-                      .on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
-                      .text("N-Dimensional Distances");
+                      .attr("title","Tip: if values are closer to N-D distances, then the visualization is too compressed.")
+                      //.on("mouseover", function(){return tooltip2.style("visibility", "visible");})
+                      //.on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+                      //.on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
+                      .text("N-D distances");
 
-      var tooltip1 = d3.select("body")
+      /*var tooltip1 = d3.select("body")
         .append("div")
         .style("position", "absolute")
         .style("z-index", "12")	
         .style("text-align","center")
         .style("width","300px")
-        .style("height","50px")
+        .style("height","60px")
         .style("padding","2px")
         .style("background","lightsteelblue")
         .style("border-radius","8px")
@@ -3178,17 +3214,18 @@ function ShepardHeatMap () {
         .style("pointer-events","centnoneer")		
         .style("color","black")
         .style("visibility", "hidden")
-        .text("Hint: if values are closer to 2-Dim. distances, then the visualization is too spread out.");
+        .text("Tip: if values are closer to 2-D distances, then the visualization is too spread out.");*/
 
       var title = svg.append("text") // Title = Output Distance
         .attr("class", "mono")
-        .attr("x", gridSize * 2 )
+        .attr("x", gridSize * 2.5)
         .attr("y", -20)
-        .on("mouseover", function(){return tooltip1.style("visibility", "visible");})
-        .on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-        .on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
-        .style("font-size", "12px")
-        .text("2-Dimensional Distances");
+        .attr("title","Tip: if values are closer to 2-D distances, then the visualization is too spread out.")
+        //.on("mouseover", function(){return tooltip1.style("visibility", "visible");})
+        //.on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+        //.on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
+        .style("font-size", "calc(0.35em + 0.75vmin)")
+        .text("2-D distances");
 
       var dim2Labels = svg.selectAll(".dim2Label") // Label
           .data(dim_2)
@@ -3197,7 +3234,7 @@ function ShepardHeatMap () {
             .attr("x", function(d, i) { return i * gridSize * 3.2; })
             .attr("y", 0)
             .style("text-anchor", "middle")
-            .style("font-size", "10px")
+            .style("font-size", "calc(0.35em + 0.5vmin)")
             .attr("transform", "translate(" + gridSize / 4 + ", -6)")
             .attr("class","mono");
 
@@ -3229,8 +3266,10 @@ function ShepardHeatMap () {
 
       var legend = d3.legendColor() // Legend color and title!
         .labelFormat(d3.format(",.0f"))
+        .shapeWidth(14)
+        .shapeHeight(14)
         .cells(9)
-        .title("Num. of Points")
+        .title("Num. of points")
         .scale(colorScale);
 
       heatleg.select(".legendLinear")
@@ -3298,13 +3337,13 @@ function ShepardHeatMap () {
 
       tip(svg.append("g"));
 
-      var tooltip2 = d3.select("body")
+      /*var tooltip2 = d3.select("body")
         .append("div")
         .style("position", "absolute")
         .style("z-index", "12")	
         .style("text-align","center")
         .style("width","300px")
-        .style("height","50px")
+        .style("height","60px")
         .style("padding","2px")
         .style("background","lightsteelblue")
         .style("border-radius","8px")
@@ -3312,7 +3351,7 @@ function ShepardHeatMap () {
         .style("pointer-events","centnoneer")		
         .style("color","black")
         .style("visibility", "hidden")
-        .text("Hint: if values are closer to N-Dim. distances, then the visualization is too compressed.");
+        .text("Tip: if values are closer to N-D distances, then the visualization is too compressed.");
 
       var tooltip1 = d3.select("body")
         .append("div")
@@ -3320,7 +3359,7 @@ function ShepardHeatMap () {
         .style("z-index", "12")	
         .style("text-align","center")
         .style("width","300px")
-        .style("height","50px")
+        .style("height","60px")
         .style("padding","2px")
         .style("background","lightsteelblue")
         .style("border-radius","8px")
@@ -3328,7 +3367,7 @@ function ShepardHeatMap () {
         .style("pointer-events","centnoneer")		
         .style("color","black")
         .style("visibility", "hidden")
-        .text("Hint: if values are closer to 2-Dim. distances, then the visualization is too spread out.");
+        .text("Tip: if values are closer to 2-D distances, then the visualization is too spread out.");*/
 
       svg.append("rect")
       .attr("x",0)
@@ -3360,13 +3399,14 @@ function ShepardHeatMap () {
       var title = svg.append("text") // Title = Input Distance
       .attr("class", "mono")
       .attr("x", -(gridSize * 8))
-      .attr("y", -26)
-      .style("font-size", "12px")
+      .attr("y", -28)
+      .style("font-size", "calc(0.35em + 0.8vmin)")
       .attr("transform", "rotate(-90)")
-      .on("mouseover", function(){return tooltip2.style("visibility", "visible");})
-      .on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-      .on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
-      .text("N-Dimensional Distances");
+      .attr("title","Tip: if values are closer to N-D distances, then the visualization is too compressed.")
+      //.on("mouseover", function(){return tooltip2.style("visibility", "visible");})
+      //.on("mousemove", function(){return tooltip2.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+      //.on("mouseout", function(){return tooltip2.style("visibility", "hidden");})
+      .text("N-D distances");
 
 
       // Add X axis label:
@@ -3374,17 +3414,18 @@ function ShepardHeatMap () {
         .attr("text-anchor", "end")
         .attr("x", width/2 + margin.left)
         .attr("y", height + margin.top + 20)
-        .text("2-Dimensional Distances");
+        .text("2-D distances");
 
         var title = svg.append("text") // Title = Output Distance
         .attr("class", "mono")
-        .attr("x", gridSize * 2 )
+        .attr("x", gridSize * 2.5)
         .attr("y", -20)
-        .style("font-size", "12px")
-        .on("mouseover", function(){return tooltip1.style("visibility", "visible");})
-        .on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
-        .on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
-        .text("2-Dimensional Distances");
+        .style("font-size", "calc(0.35em + 0.75vmin)")
+        .attr("title","Tip: if values are closer to 2-D distances, then the visualization is too spread out.")
+        //.on("mouseover", function(){return tooltip1.style("visibility", "visible");})
+        //.on("mousemove", function(){return tooltip1.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+        //.on("mouseout", function(){return tooltip1.style("visibility", "hidden");})
+        .text("2-D distances");
 
           //var colors = ["#f7fbff","#deebf7","#c6dbef","#9ecae1","#6baed6","#4292c6","#2171b5","#08519c","#08306b"];
      // Add dots
@@ -3485,9 +3526,9 @@ function OverviewtSNE(points){ // The overview t-SNE function
   }
   $("#datasetDetails").html("(Num. of Dim.: " + (Object.keys(dataFeatures[0]).length - valCategExists) + ", Num. of Ins.: " + final_dataset.length + ")"); // Print on the screen the number of features and instances of the data set, which is being analyzed.
   if (Category == undefined){
-    $("#CategoryName").html("Classification label: No category"); // Print on the screen the classification label.
+    $("#CategoryName").html("Target label: N/A"); // Print on the screen the classification label.
   } else {
-    $("#CategoryName").html("Classification label: "+Category.replace('*','')); // Print on the screen the classification label.
+    $("#CategoryName").html("Target label: "+Category.replace('*','')); // Print on the screen the classification label.
   }
 
 //Make an SVG Container
@@ -3524,7 +3565,7 @@ if (format[0] == "diabetes"){
 // CREATE THE SVG
 var svg = d3.select('#overviewRect').append('svg')
   .attr('width', dim)
-  .attr('height', dim)
+  .attr('height', dimh)
   .append('g');
 
 // CREATE THE GROUP
@@ -3595,7 +3636,7 @@ var theRect = theGroup.append('rect')
     .attr("id", function(d){return d.id;})
     .attr("r", 2)
     .attr("cx", function(d){return ((d.x/dimensions)*dim);})
-    .attr("cy", function(d){return ((d.y/dimensionsY)*dim);});
+    .attr("cy", function(d){return ((d.y/dimensionsY)*dimh);});
     }
     updateRect();
 }
@@ -3675,8 +3716,8 @@ function CostHistogram(points){
     barmode: "overlay",
     bargroupgap: points.length,
     autosize: false,
-    width: 560,
-    height: 250,
+    width: overallWidth/4.4,
+    height: overallHeight/6,
     margin: {
       l: 50,
       r: 20,
@@ -3684,15 +3725,15 @@ function CostHistogram(points){
       t: 10,
       pad: 4
     },
-    xaxis:{range: [0,1.01],title: 'Normalized bins from min to max values.',
+    xaxis:{range: [0,1.01],title: 'Bins (normalized)',
               titlefont: {
-                size: 14,
+                size: 12,
                 color: 'black'
               }},
-    yaxis:{title: 'Num. of Points (log)',
+    yaxis:{title: 'Num. of points (log)',
           type: "log",
             titlefont: {
-              size: 14,
+              size: 12,
               color: 'black'
             }}
   };
@@ -3770,33 +3811,6 @@ function handleLassoStart(lassoPolygon) { // Empty we do not need to reset anyth
 
   redraw(points);*/
 }
-
-// Initialize the horizontal (correlations) barchart's variables
-var svg, defs, gBrush, brush, main_xScale, mini_xScale, main_yScale, mini_yScale, main_xAxis, main_yAxis, mini_width, textScale;
-
-// Added only for the mouse wheel
-var zoomer = d3v3.behavior.zoom()
-.on("zoom", null);
-
-// Margin of the main barchart
-var main_margin = {top: 8, right: 10, bottom: 30, left: 100},
-  main_width = 500 - main_margin.left - main_margin.right,
-  main_height = 350 - main_margin.top - main_margin.bottom;
-// Margin of the mini barchart
-var mini_margin = {top: 8, right: 10, bottom: 30, left: 10},
-  mini_height = 350 - mini_margin.top - mini_margin.bottom;
-  mini_width = 100 - mini_margin.left - mini_margin.right;
-
-// Create the svg correlation component
-svg = d3v3.select("#correlation").attr("class", "svgWrapper")
-  .attr("width", main_width + main_margin.left + main_margin.right + mini_width + mini_margin.left + mini_margin.right)
-  .attr("height", main_height + main_margin.top + main_margin.bottom)
-  .call(zoomer)
-  .on("wheel.zoom", scroll)
-  .on("mousedown.zoom", null)
-  .on("touchstart.zoom", null)
-  .on("touchmove.zoom", null)
-  .on("touchend.zoom", null);
 
 function click(){ // This is the click of the Schema Investigation scenario
   
@@ -5397,7 +5411,7 @@ if (points.length) { // If points exist (at least 1 point)
 
       svg.append("g")
         .attr("class", "legendSize")
-        .attr("transform", "translate(45,20)");
+        .attr("transform", "translate(10,15)");
 
       var SizeRange2 = [];
       SizeRange2.push(0);
@@ -5658,7 +5672,7 @@ if (points.length) { // If points exist (at least 1 point)
           .labelFormat(d3.format(",.5f"))
           .cells(7)
           .labels([abbr_labels_cost[0],abbr_labels_cost[1],abbr_labels_cost[2],abbr_labels_cost[3],abbr_labels_cost[4],abbr_labels_cost[5],abbr_labels_cost[6]])
-          .title("Rem. Cost")
+          .title("Remaining Cost")
           .scale(colorScale);
   
         svg.select(".legendLinear")
@@ -5920,12 +5934,12 @@ function LineBar() {
     layout = {
       barmode: 'group',autosize: false,
       width: dimensions*0.97,
-      height: vh * 1.3,
+      height: overallHeight/11.8,
       margin: {
         l: 50,
         r: 30,
         b: 30,
-        t: 5,
+        t: 10,
         pad: 4
       },
       xaxis: {range: [0, LimitXaxis],
@@ -5977,12 +5991,12 @@ function LineBar() {
     layout = {
       barmode: 'group',autosize: false,
       width: dimensions*0.97,
-      height: vh * 1.3,
+      height: overallHeight/11.8,
       margin: {
         l: 50,
         r: 30,
         b: 30,
-        t: 5,
+        t: 10,
         pad: 4
       },
       xaxis: {range: [0, LimitXaxis],
@@ -6025,12 +6039,12 @@ function LineBar() {
     layout = {
       barmode: 'group',autosize: false,
       width: dimensions*0.97,
-      height: vh * 1.3,
+      height: overallHeight/11.8,
       margin: {
         l: 50,
         r: 30,
         b: 30,
-        t: 5,
+        t: 10,
         pad: 4
       },
       xaxis: {range: [0, LimitXaxis],

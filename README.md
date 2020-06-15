@@ -4,7 +4,7 @@
 
 This Git repository contains the code that accompanies the research paper "t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections". The details of the experiments and the research outcome are described in [the paper](https://doi.org/10.1109/TVCG.2020.2986996).
 
-**Note:** t-viSNE is optimized to work better for the 2560x1440 resolution (1440p/QHD (Quad High Definition)). Any other resolution might need manual adjustment of your browser's zoom level to work properly.
+**Note:** t-viSNE is optimized to work better for standard resolutions (such as 1440p/QHD (Quad High Definition) and 1080p). Any other resolution might need manual adjustment of your browser's zoom level to work properly.
 
 **Note:** The tag `paper-version` matches the implementation at the time of the paper's publication. The current version might look significantly different depending on how much time has passed since then.
 

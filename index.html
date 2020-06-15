@@ -49,8 +49,8 @@
           <div id="myModal" class="w3-modal">
            <div class="w3-modal-content w3-card-4 w3-animate-zoom">
             <header class="w3-container w3-blue"> 
-             <h3 style="display:inline-block; font-size: 16px; margin-top: 15px; margin-left: 10px; margin-bottom:15px">t-SNE Grid Search Resulting Diverse Projections</h3>
-             [Sorting Projections According to Metric:
+             <h2 title="Tip: t-SNE grid search with 25 most diverse projections extracted from 500 generated embeddings (using Procrustes distance). " style="display:inline-block; font-size: 16px; margin-top: 15px; margin-left: 10px; margin-bottom:15px">t-SNE Grid Search</h3>
+             [Sorting:
              <select id="param-SortMOver-view" name="param-SortMOver-view" style="color: black" onchange="ReSortOver()">
                 <option value="1" selected>Quality Metrics Average (QMA)</option>   
                 <option value="2">Neighborhood Hit (NH)</option>                
@@ -77,8 +77,8 @@
             <div class="col-lg-3">
                 <div class="panel panel-default" id="left-side-param">
                     <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: a panel for controlling the t-SNE algorithm and its parameters.">Parameters</h2>
-                        [Mode:
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: a panel for controlling the t-SNE algorithm and its parameters. There is also an option to choose between grid parameter search and single set mode.">Parameters</h2>
+                        [M:
                         <select id="param-EX-view" name="param-EX-view" data-toggle="tooltip" data-placement="right" title="Tip: the option of changing between grid search (generating 500 projections) and a single set of parameters (1 projection)." onchange="ExecuteMode()">
                             <option value="1" selected>Grid Search</option>
                             <option value="2">Single Set</option>
@@ -87,7 +87,7 @@
                         <div id="cost" title="Tip: the overall cost reduced by each iteration step of the t-SNE algorithm." style="display:inline-block; margin-top:3px; float:right"></div>
                     </div>
                   <div class="panel-body">
-                      <table class="table table-borderless">
+                      <table class="table table-borderless paramTable">
                         <tbody>
                           <tr>
                             <td scope="row"><label id="data" for="param-dataset" data-toggle="tooltip" data-placement="right" title="Tip: use one of the data sets already provided (only numerical values supported) or upload a new file (do not forget to use * for the target label).">Data sets</label></td>
@@ -118,39 +118,39 @@
                             <td><input id="param-maxiter" type="range" min="10" max="1000" value="500", step="10"></td>
                             <td><output for="param-maxiter" id="param-maxiter-value" >500</output></td>
                           </tr>
-                          <tr>
+                          <tr style="margin-top: -4px !important;">
                             <td scope="row" colspan="3">
                               <div id="hider2" title="Tip: wait for line chart to load (overall cost vs. iteration)."></div>
                               <div id="PlotCost"></div>
                             </td>
                           </tr>
-                          <tr>
-                            <td scope="row">
+                          <tr >
+                            <td scope="row" style="padding-top: 0.8vh !important">
                               <input id="file-input" type="file" name="name" style="display: none;"/>
-                              <button type="button" class="button" onclick='loadAnalysis();' data-toggle="tooltip" data-placement="right" title="Tip: load previously executed analysis in .txt format.">Load execution</button>  
+                              <button type="button" class="button" onclick='loadAnalysis();' data-toggle="tooltip" data-placement="right" title="Tip: load previously executed analysis in .txt format.">Load exec.</button>  
                             </td>
-                            <td><label data-toggle="tooltip" data-placement="right" title="Tip: if you store distances the file size will be larger but on a loading of this execution it will be processed much quicker than without this option enabled.">
+                            <td style="padding-top: 0.8vh !important"><label data-toggle="tooltip" data-placement="right" title="Tip: if you store distances the file size will be larger but on a loading of this execution it will be processed much quicker than without this option enabled.">
                               <input id="downloadDists" checked type="checkbox" >
                               Cache distances
                             </label>
                             </td>
-                            <td>
-                              <button type="button" class="button" onclick="SaveAnalysis()" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed analysis in .txt format.">Store execution</button>
+                            <td style="padding-top: 0.8vh !important">
+                              <button type="button" class="button" onclick="SaveAnalysis()" data-toggle="tooltip" data-placement="right" title="Tip: save/store previously executed analysis in .txt format.">Store exec.</button>
                             </td>
                           </tr>
                           <tr>
-                            <td scope="row" colspan="3"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" title="Tip: initialize a new t-SNE investigation or start a previous analysis, in case load execution is activated." value="Execute new t-SNE analysis"><i class="fas fa-running fa-lg" style="margin-right: 10px"></i>Execute new t-SNE analysis</button></td>
+                            <td scope="row" colspan="3"><button id="ExecuteBut" class="btn btn-primary btn-block" onclick="getData();" title="Tip: initialize a new t-SNE investigation or start a previous analysis, in case load execution is activated." value="Execute new t-SNE analysis"><i class="fas fa-running fa-lg"></i>Execute new t-SNE analysis</button></td>
                           </tr>
                         </tbody>
                       </table>
                   </div>
                 </div>
               </div>
-          <div class="col-md-6">
-              <div class="panel panel-default med-bottomProv" style="margin-top:0.2px; margin-bottom:+14px">
+          <div class="col-lg-6">
+              <div class="panel panel-default med-bottomProv" style="margin-bottom:+1.4vh">
                   <div class="panel-heading">
-                    <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Projections Provenance</h2>
-                    <div id="textToChange" style="display:inline-block">[Sorting Projections According to Metric:</div>
+                    <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user. You can also find the best projections based on a lasso selection of points (with optimize selection).">Projections Provenance</h2>
+                    <div id="textToChange" style="display:inline-block">[Sorting:</div>
                     <select id="param-SortM-view" name="param-SortM-view" onchange="ReSort(false)">
                         <option value="1" selected>Quality Metrics Average (QMA)</option>   
                         <option value="2">Neighborhood Hit (NH)</option>                
@@ -166,8 +166,26 @@
                   </div>
                   <div class="panel-body">
                     <div id="ProjectionsVisual"></div>
-                    <div id="ProjectionsMetrics"></div>
                   </div>
+              </div>
+              <div class="panel panel-default med-bottom-neigh">
+                <div class="panel-heading">
+                  <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Neighborhood Preservation </h2>
+                  [Visualization:
+                  <select id="param-NB-view" name="param-NB-view" onchange="LineBar()">
+                      <option value="1" selected>Bar Chart</option> 
+                      <option value="2">Difference Bar Chart</option>                
+                      <option value="3">Line Plot</option>
+                      <option value="4">Difference Line Plot</option>
+                    </select>
+                  ]
+                  <div id="knnBarChartDetails"style="display:inline-block; float:right">
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <div id="knnBarChart"></div>
+                  <div id="hider"></div>
+                </div>
               </div>
             <svg id="SvgAnnotator"></svg>
             <svg id="modtSNEcanvas_svg"></svg>
@@ -176,34 +194,92 @@
             <canvas id = "modtSNEcanvas" ></canvas>
           </div>
           </div>
-          <div class="col-md-2" style="width: 24.999999995%">
+          <div class="col-lg-3">
             <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h2 class="panel-title"  data-toggle="tooltip" data-placement="right" title="Tip: various functionalities depending on the user. These modes enable different interactions in the main visualization view.">Interaction Modes</h2>
+              <div class="panel-heading">
+                  <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: in this panel the user can adapt the visual encodings of the main visualization view. Furthermore, the dimension correlation capturing points thresholds are situated in this panel. For the main view, there is also an annotation functionality available.">Visual Mapping</h2>
+              </div>
+                <div class="panel-body" id="commBtn">
+                        <table class="table table-borderless">
+                          <tbody>
+                            <tr>
+                              <td scope="row"><label for="male" data-toggle="tooltip" data-placement="right" title="Tip: density in the high-dimensional space taken from the t-SNE itself.">Density</label>
+                                <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);">
+                                  <option selected="selected" value="color">Color</option>
+                                  <option value="size">Size</option>
+                                </select> 
+                              </td>
+                              <td rowspan="3"><svg id="legend4"></svg></td>
+                              <td></td>
+                              <td rowspan="5"><svg id="legend1"></svg></td>
+                            </tr>
+                            <tr>
+                              <td scope="row">
+                                <output for="param-neighborHood" id="param-neighborHood-value " ></output>
+                                <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: remaining cost of each point throughout the entire projection.">Remaining cost</label>
+                                <label id="selectionLabel" data-toggle="tooltip" data-placement="right" title="Tip: change between size/radius and color encodings.">Size</label>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td scope="row"><label for="male" data-toggle="tooltip" data-placement="right" title="Tip: adapt the selection of points in the two-dimensional space. The options are a simple distance measurement between point and line or using the KNN algorithm.">Correl.</label>
+                                <select id="param-correlationMeasur" name ="param-correlationMeasur" onchange="setReInitializeDistanceCorrelation(true);">
+                                  <option selected="selected" value="1">Distance</option>
+                                  <option value="2">KNN</option>
+                                </select> 
+                              </td>
+                            </tr>
+                            <tr>
+                              <td scope="row">
+                                <label for="param-corr" id="param-corrLabel" data-toggle="tooltip" data-placement="right" title="Tip: percentage of all points taken into account by Dimension Correlation.">Correl. threshold (%)</label>
+                                <label for="param-corr2" id="param-corrLabel2" data-toggle="tooltip" data-placement="right" style="display: none;">K-value nearest neighbor</label>
+                              </td>
+                              <td>
+                                <input id="param-corr" type="range" min="0" max="100" value="50", step="1" onchange="CalculateCorrel(true, 1);">
+                                <input id="param-corr2" type="range" min="1" max="250" value="10", step="1" onchange="CalculateCorrel(true, 2);" style="display: none">
+                              </td>
+                              <td>
+                                <output for="param-corr" id="param-corr-value">50</output>
+                                <output for="param-corr2" id="param-corr-value2" style="display: none">10</output>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td scope="row"><label for="param-lim" data-toggle="tooltip" data-placement="right" title="Tip: x*times the actual radius (increases/decreases points' radius).">Point radius scaling</label></td>
+                              <td><input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize(false);"></td>
+                              <td><output for="param-lim" id="param-lim-value">3</output></td>
+                            </tr>
+                            <tr>
+                              <td scope="row">
+                                <input id="controls" type="checkbox">
+                                Disable annotator</input>
+                              </td>
+                              <td style="text-align:center;"><button class="btn btn-default" style="padding: 2px 10px 2px 10px !important;" onclick="deleteAnnotations();" ><i class="fas fa-comment-slash fa-lg"></i>Erase</button></td>
+                              <td colspan="2"><button class="btn btn-default" style="padding: 2px 10px 2px 10px !important;" onclick="BringBackAnnotations();" ><i class="fas fa-eye fa-lg"></i>Reveal</button></td>
+                            </tr>
+                            <tr>
+                              <td scope="row">
+                                <textarea type="text" id="comment" name="textforAnnotator" placeholder="Write a comment."></textarea>
+                              </td>
+                              <td style="text-align:center;"><div id="toggleAnnotator"><button class="btn btn-default" style="padding: 2px 10px 2px 10px !important;" onclick="setAnnotator();" ><i class="fas fa-comment fa-lg"></i>Attach</button></div></td>
+                              <td colspan="2"><div id="continue"><button class="btn btn-default active" style="padding: 2px 10px 2px 10px !important;" onclick="setContinue();" ><i class="fas fa-chart-line fa-lg"></i>Analysis</button></div></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="panel-body">
-                  <div id="resetAllFilters" style="margin-bottom: 20px">
-                      <button class="btn btn-info active" onclick="setLayerProj();" style="margin-left: -1px !important" ><i class="fas fa-mouse-pointer fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: in this mode the user can zoom in and out in the main visualization view and when hovering on a particular point he/she receives the exact data set's instance dimensions."></i>t-SNE Points Exploration</button>
-                      <button class="btn btn-info" onclick="setLayerComp();" style="margin-left: -1.4px"><i class="far fa-object-group fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: lasso selection in the main visualization view." ></i>Group Selection</button>
-                      <button class="btn btn-info" onclick="setLayerSche();" style="margin-left: -2px !important"><i class="fas fa-draw-polygon fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: draw a shape (polylines) and check the related dimensions correlations for your drawing/shape. With the left click you set one point and the right click you confirm the drawing for further analysis."></i>Dimension Correlation</button>
-                  </div>
-                      <button class="btn btn-info" onclick="setReset();" style="margin-left: 225px"><i class="fas fa-trash-alt fa-lg" style="margin-right: 10px" data-toggle="tooltip" data-placement="right" title="Tip: reset all filters applied in the visualizations without losing the execution."></i>Reset Filters</button>
-                </div>
-            </div>
           </div>
         </div>
         <div class="row">
-            <div class="col-md-3"  style="margin-top:-4px">
-                <div class="panel panel-default" style="padding-bottom: 35px;">
+            <div class="col-lg-3" style="margin-top:-10px">
+                <div class="panel panel-default">
                   <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: t-SNE overview with or without labels depending on each data set. To determine the feature of a data set that corresponds to classes set a * mark after this feature.">Overview</h2><div id="datasetDetails"style="display:inline-block; float:right"></div>
+                      <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: t-SNE overview with or without labels depending on each data set. To determine the target label set a * mark after the appropriate dimension.">Overview</h2><div id="datasetDetails" title="Tip: the number of dimensions/features and instances of a data set." style="display:inline-block; float:right"></div>
                   </div>
                   <div class="row">
                     <div class="panel-body">
-                        <div class="col-md-6">
+                        <div class="col-lg-6">
                             <div id="overviewRect"></div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-lg-6">
                             <div style="display:block" id="CategoryName"></div>
                             <div class="legend" id = "legend2"></div>
                         </div>
@@ -211,114 +287,48 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-3 col-md-offset-6">
-                <div class="panel panel-default"  style="margin-top: -200px">
-                    <div class="panel-heading">
-                        <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: in this panel the user can adapt the visual mappings of the main visualization view.">Visual Mapping</h2>
-                    </div>
-                    <div class="row">
-                      <div class="panel-body">
-                        <div class="col-md-12">
-                          <div class="row">
-                            <div class="col-md-8">
-                            <div class="param" style="padding: 5px 0 5px 0">
-                              <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: density in the high-dimensional space taken from the t-SNE itself.">Density</label>
-                              <select id="param-neighborHood" name ="param-neighborHood" onchange="setReInitialize(true);" style="display:inline-block;margin-left: 60px">
-                                <option selected="selected" value="color">Color-encoding</option>
-                                <option value="size">Size-encoding</option>
-                              </select> 
-                            </div>
-                            <div class="param" style="padding: 0px 0 0px 0" >
-                              <output for="param-neighborHood" id="param-neighborHood-value " ></output>
-                              <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: remaining cost of each point throughout the entire projection.">Remaining cost</label>
-                              <label id="selectionLabel" style="margin-top:4px; margin-left: 15px" data-toggle="tooltip" data-placement="right" title="Tip: change between size/radius and color encodings.">Size-encoding</label>
-                            </div>
-                            <div class="param" style="padding: 20px 0 5px 0; margin-top: 5px;" >
-                                <label for="male" data-toggle="tooltip" data-placement="right" title="Tip: adapt the selection of points in the two-dimensional space: from a simple distance measurement between point and line to KNN algorithm, and vice versa.">Correlation measurement</label>
-                                <select id="param-correlationMeasur" name ="param-correlationMeasur" onchange="setReInitializeDistanceCorrelation(true);" style="display:inline-block;margin-left: 32px">
-                                  <option selected="selected" value="1">Distance</option>
-                                  <option value="2">KNN</option>
-                                </select> 
-                              </div>
-                           <div class="param">
-                              <div class="row" style="margin-top: 10px;">
-                                  <div class="col-md-6">
-                                <label for="param-corr" id="param-corrLabel" data-toggle="tooltip" data-placement="right" title="Tip: percentage of all points taken into account by Dimension Correlation.">Correlation threshold (%)</label>
-                                <label for="param-corr2" id="param-corrLabel2" data-toggle="tooltip" data-placement="right" style="display: none;">K-value (KNN)</label>
-                                  </div>
-                              <div class="col-md-5">
-                              <input id="param-corr" type="range" min="0" max="100" value="50", step="1" onchange="CalculateCorrel(true, 1);" style="margin-left: -20px;">
-                              <input id="param-corr2" type="range" min="1" max="250" value="10", step="1" onchange="CalculateCorrel(true, 2);" style="margin-left: -20px; display: none">
-                            </div>
-                            <div class="col-md-1">
-                              <output for="param-corr" id="param-corr-value" style="margin-left: -20px;">50</output>
-                              <output for="param-corr2" id="param-corr-value2" style="margin-left: -20px; display: none">10</output>
-                            </div>
-                            </div>
-                            </div>
-                              <div class="param">
-                                <div class="row" style="margin-top: 30px">
-                                  <div class="col-md-6">
-                                  <label for="param-lim" data-toggle="tooltip" data-placement="right" title="Tip: x*times the actual radius (increase/decrease points radius).">Points radius scaling</label>
-                                </div>
-                                <div class="col-md-5">
-                                  <input id="param-lim" type="range" min="1" max="4" value="3", step="0.5" onchange="setReInitialize(false);" style="margin-left: -20px;">
-                                </div>
-                                <div class="col-md-1">
-                                  <output for="param-lim" id="param-lim-value" style="margin-left: -20px;">3</output>
-                                  </div>
-                                </div>
-                              </div>
-                          </div>
-                          <div class="col-md-1">
-                            <svg id="legend1" style =  "margin-left: -30px"></svg>
-                          </div>
-                          <div class="col-md-2">
-                            <svg id="legend4" style =  "margin-left: -10px"></svg>
-                          </div>
-                          </div>
-                          <div class="annotationAllClass" style="margin-top: 20px">
-                            <label style="padding-bottom: 0px">
-                                <input id="controls" type="checkbox" style="margin-top: 18px">
-                                Hide annotations' controllers</input>
-                              <button class="btn btn-default" onclick="BringBackAnnotations();" style="display:inline-block; float:right; margin-left:178px"><i class="fas fa-eye fa-lg" style="margin-right: 10px"></i>Reveal annotations</button>
-                            </label>
-                            <div id="param-correlation">
-                              Annotation: <textarea type="text" id="comment" name="textforAnnotator" placeholder="Please, provide your comment."></textarea>
-                            </div>
-                            <div id="commBtn">
-                              <div class="param" style="margin-top:10px">
-                                <div id="toggleAnnotator" style= "margin-left: -120px"><button class="btn btn-default" onclick="setAnnotator();" style="display:inline-block; float:left; margin-left: 120px" ><i class="fas fa-comment fa-lg" style="margin-right: 10px"></i>Add annotation</button></div>
-                                <div id="continue"></div><button class="btn btn-default active" onclick="setContinue();" style="display:inline-block; float:middle; margin-left: 6px"><i class="fas fa-chart-line fa-lg" style="margin-right: 10px"></i>Continue the analysis</button></div>
-                                <button class="btn btn-default" onclick="deleteAnnotations();" style="display:inline-block; float:right; margin-top: -45px" ><i class="fas fa-comment-slash fa-lg" style="margin-right: 10px"></i>Delete annotations</button>
-                              </div>
-                            </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+              <div class="col-lg-3 col-lg-offset-6" style="margin-top:-10px">
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                      <h2 class="panel-title"  data-toggle="tooltip" data-placement="right" title="Tip: various functionalities depending on the user. These modes enable different interactions in the main visualization view.">Interaction Modes (M)</h2>
+                  </div>
+                  <div class="panel-body" id="resetAllFilters">
+                    <table class="table table-borderless centerTable">
+                      <tbody>
+                        <tr>
+                          <td scope="row"><button class="btn btn-info active" onclick="setLayerProj();" style="margin-left: -1px !important" ><i class="fas fa-mouse-pointer fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: in this mode the user can zoom in and out in the main visualization view and when hovering on a particular point he/she receives the exact data set's instance dimensions."></i>Points exploration</button></td>
+                          <td><button class="btn btn-info" onclick="setLayerComp();" style="margin-left: -1.4px"><i class="far fa-object-group fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: lasso selection in the main visualization view." ></i>Group selection</button></td>
+                        </tr>
+                        <tr>
+                          <td scope="row"><button class="btn btn-info" onclick="setLayerSche();" style="margin-left: -2px !important"><i class="fas fa-draw-polygon fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: draw a shape (polylines) and check the related dimensions correlations for your drawing/shape. With the left click you set one point and the right click you confirm the drawing for further analysis."></i>Dimension correl.</button></td>
+                          <td><button class="btn btn-info" onclick="setReset();"><i class="fas fa-trash-alt fa-lg" data-toggle="tooltip" data-placement="right" title="Tip: reset all filters applied in the visualizations without losing the execution."></i>Reset all filters</button></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+              </div>
                     </div>
                   </div>
         <div class="row">   
-            <div class="col-md-3"  style="margin-top:-4px">
-                <div class="panel panel-default" style="padding-bottom : 70px">
+            <div class="col-lg-3"  style="margin-top:-10px">
+                <div class="panel panel-default">
                   <div class="panel-heading">
-                    <h2 class="panel-title" data-toggle="tooltip" data-placement="right" style="display:inline-block" title="Tip: a view related to the overall quality of the projection.">Shepard Heatmap</h2>
+                    <h2 class="panel-title" data-toggle="tooltip" data-placement="right" style="display:inline-block" title="Tip: a view related to the overall quality of the projection. If the points/values belong to the diagonal, then the distances are preserved in both spaces. If values are closer to N-D distances, then the visualization is too compressed. If values are closer to 2-D distances, then the visualization is too spread out.">Shepard Heatmap</h2>
                     <div style="display:inline-block; float:right">
                     [Visualization:
                     <select id="param-SH-view" name="param-SH-view" onchange="ShepardHeatMap()">
-                        <option value="1" selected>Shepard Heatmap</option>
-                        <option value="2">Shepard Diagram</option>
+                        <option value="1" selected>Heatmap</option>
+                        <option value="2">Diagram</option>
                       </select>
                     ]
                   </div>
                   </div>
                 <div class="panel-body">
                   <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-lg-6">
                       <svg id="sheparheat"></svg>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-lg-2">
                       <svg id="legend3"></svg>
                     </div>
                   </div>
@@ -326,10 +336,10 @@
                 </div>
               </div>
 
-      <div class="col-md-3 col-md-offset-6" style="margin-top: -2px">
-          <div class="panel panel-default right-side-cor">
+      <div class="col-lg-3 col-lg-offset-6" style="margin-top:-10px">
+          <div class="panel panel-default">
               <div class="panel-heading">
-                  <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: user-driven shape investigation of the most correlated dimensions.">Dimension Correlation</h2><div class="param" style="display:inline-block; margin-top:-5px; float:right"><label for="param-corlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: the minimum acceptable visible correlation. Default is 0, so the tool accepts all the correlations.">Min. Visible Correlation: #<output for="param-corlim" id="param-corlim-value" style="display:inline-block; float:right">0.0</output></label>
+                  <h2 class="panel-title" style="display:inline-block" data-toggle="tooltip" data-placement="right" title="Tip: user-driven shape investigation of the most correlated dimensions.">Dimension Correlation</h2><div class="param" style="display:inline-block; margin-top:-2.2vh; float:right"><label for="param-corlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: the minimum acceptable visible correlation. Default is 0, so the tool accepts all the correlations.">Min Correlation: #<output for="param-corlim" id="param-corlim-value" title="Tip: minimum visible correlation (range: 0.0 to 1.0)." style="display:inline-block; float:right">0.0</output></label>
                   <input id="param-corlim" type="range" min="0" max="1" value="0.0", step="0.1" style="display:inline-block; float:right" onchange="CalculateCorrel(true);">
                   </div>
               </div>
@@ -340,16 +350,16 @@
         </div>
         </div>
       <div class="row">
-        <div class="col-md-3">
+        <div class="col-lg-3">
 
-        <div class="col-md-3" id="extra-information" style="width: 24.8vw">
+        <div class="col-lg-3" id="extra-information" style="width: 24.8vw">
             <div class="panel panel-default right-side-hist">
                 <div class="panel-heading">
-                      <h2 class="panel-title" style="display:inline-block;" data-toggle="tooltip" data-placement="right" title="Tip: it might be useful to take a look at this histogram, to observe the density and remaining cost distributions, when remaining cost values are low and have an idea about the distributions.">Density and Remaining Cost Distributions</h2>
-                    <div class="col-md-7"></div>
-                    <div class="col-md-5">
-                      <div class="param" style="display:inline-block; float:right; margin-top:-21.5px; margin-right: -18px">
-                      <label for="param-costlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: set the rate of the limiter for the minimum acceptable visible cost at the main visualization view.">Min. Visible Cost Rate: #<output for="param-costlim" id="param-costlim-value" style="display:inline-block; float:right">1</output></label>
+                      <h2 class="panel-title" style="display:inline-block;" data-toggle="tooltip" data-placement="right" title="Tip: the density and remaining cost distributions are important to look at along with the main visualization view individual values.">Density and Remaining Cost</h2>
+                    <div class="col-lg-7"></div>
+                    <div class="col-lg-5">
+                      <div class="param" style="display:inline-block; float:right; margin-top:-23px; margin-right: -18px">
+                      <label for="param-costlim" style="display:inline-block; float: right" data-toggle="tooltip" data-placement="right" title="Tip: set the rate of the limiter for the minimum acceptable visible cost at the main visualization view.">Min Cost: #<output for="param-costlim" id="param-costlim-value" title="Tip: minimum visible cost rate (range: 0.1 to 1.0)." style="display:inline-block; float:right">1.0</output></label>
                       <input id="param-costlim" type="range" min="0.1" max="1" value="1", step="0.1" style="display:inline-block; float:right" onchange="setReInitialize(false);">
                     </div>
                   </div>
@@ -359,43 +369,19 @@
                 </div>
             </div>
           </div>
-          
         </div>
-        <div class = col-md-6>
-          <div class="panel panel-default med-bottom" style="margin-top:+172px">
-            <div class="panel-heading">
-              <h2 class="panel-title" style="display:inline-block"  data-toggle="tooltip" data-placement="right" title="Tip: a feature of this tool that supports clusters (and points) exploration. Checking the neighborhood preservation between the entire projection's average and a selection driven by the user.">Neighborhood Preservation </h2>
-              [Visualization:
-              <select id="param-NB-view" name="param-NB-view" onchange="LineBar()">
-                  <option value="1" selected>Bar Chart</option> 
-                  <option value="2">Difference Bar Chart</option>                
-                  <option value="3">Line Plot</option>
-                  <option value="4">Difference Line Plot</option>
-                </select>
-              ]
-              <div id="knnBarChartDetails"style="display:inline-block; float:right">
-              </div>
-            </div>
-            <div class="panel-body">
-              <div id="hider"></div>
-              <div id="knnBarChart"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="panel panel-default right-side-PCP">
+        <div class="col-lg-3 col-lg-offset-6" style="margin-top:-1.5vh">
+            <div class="panel panel-default">
               <div class="panel-heading">
-                  <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: for every selection the tool runs a local Principal Component Analysis (PCA) algorithm and dynamically adapts and shows the top 8 dimensions in an order from left to right. This sorting from left to right presents the most related (with high variance) features of the data set to the least important (low variance).">Adaptive Parallel Coordinates Plot</h2>
+                  <h2 class="panel-title" data-toggle="tooltip" data-placement="right" title="Tip: for every selection the tool runs a local Principal Component Analysis (PCA) algorithm and dynamically adapts and shows the top 8 dimensions in an order from left to right. This sorting from left to right presents the most related (with high variance) features of the data set to the least important (low variance). It also works with local selections of points!">Adaptive Parallel Coordinates Plot</h2>
               </div>
               <div class="panel-body">
                 <div id="PCP" class="parcoords"></div>
             </div>
            </div>
           </div>
-        -->
       </div>
-      <div class="footer">
+      <div class="footer" style="margin-top: -25px">
         <hr>
          <p class="text-muted credit no-top-margin no-bottom-margin">
              &copy; ISOVIS group 2019&ndash;2020
@@ -414,7 +400,7 @@
       function render() {
         myResponsiveComponent({
           width: document.body.clientWidth,
-          height: document.body.clientHeight
+          height: document.body.clientHeight,
         });
       }
 
@@ -476,11 +462,11 @@
 
       // Get all buttons with class="btn" inside the container
       var btns2 = btnContainer2.getElementsByClassName("btn");
-      
+
       for (var i = 0; i < btns2.length; i++) {
         btns2[i].addEventListener("click", function() {
         let current = document.getElementsByClassName("active");
-        current[0].className = current[0].className.replace("btn btn-info active", "btn btn-info");
+        current[1].className = current[1].className.replace("btn btn-info active", "btn btn-info");
         this.className += " active";
         });
       }
