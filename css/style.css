@@ -39,7 +39,7 @@ table td {
 }
 
 .centerTable td {
-  padding: 8 !important;
+  padding: 0.9vh !important;
 }
 
 
@@ -76,11 +76,11 @@ input[type='file'] {
 }
 
 #param-corlim {
-  width: 55% !important;
+  width: 75% !important;
 }
 
 #param-costlim {
-  width: 85% !important;
+  width: 65% !important;
 }
 
 #param-correlation > .param > select {
