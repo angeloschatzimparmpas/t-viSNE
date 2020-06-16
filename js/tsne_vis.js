@@ -92,7 +92,13 @@ var ParametersSet = []; var overallCost; var input;
 var ringNotes = []; var gAnnotationsAll = []; var AnnotationsAll = []; var draggable = [];
 
 // These variables are set here in order to instatiate the very first Three.js scene.
-var MainCanvas; var Child; var renderer; var fov = 10.2; var near = 10; var far = 7000; var camera; var scene;
+var MainCanvas; var Child; var renderer; var near = 10; var far = 7000; var camera; var scene;
+
+if (getViewport()[0] >= 2560) {
+  var fov = 14.3;
+} else {
+  var fov = 10.2;
+}
 
 // Initialize the Schema Investigation variables.
 var Arrayx = []; var Arrayy = []; var XYDistId = []; var Arrayxy = []; var DistanceDrawing1D = []; var allTransformPoints = []; var p; var pFinal = []; var paths; var path; var ArrayLimit = [];
