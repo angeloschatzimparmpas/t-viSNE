@@ -34,7 +34,7 @@ For the frontend:
 There is no need to install anything for the frontend, since all modules are in the repository.
 
 # Usage #
-Below is an example of how you can get t-viSNE running using Python for both frontend and backend. The frontend is written in Javascript/HTML, so it could be hosted in any other web server of your preference. The only hard requirement (currently) is that both frontend and backend must be running on the same machine. 
+Below is an example of how you can get t-viSNE running using Python for both frontend and backend. The frontend is written in JavaScript/HTML, so it could be hosted in any other web server of your preference. The only hard requirement (currently) is that both frontend and backend must be running on the same machine. 
 ```
 # first terminal: hosting the visualization side (client)
 # for Python3
