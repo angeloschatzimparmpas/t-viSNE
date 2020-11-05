@@ -10,7 +10,7 @@ This Git repository contains the code that accompanies the research paper "t-viS
 
 **Note**: This software is based on the bhtsne library, its native executable and the python interface that is used to call the native executable. This library is the official implementation of t-SNE, made by its authors. Using the exact same input data, different systems will generate slightly different outputs in this library, and such differences will propagate to our software.
 
-**Note:** As any other software, the code is not bug free. There might be limitations in the views and functionalities of the system that could be addressed in a future code update.
+**Note:** As any other software, the code is not bug free. There might be limitations in the views and functionalities of the tool that could be addressed in a future code update.
 
 # Data Sets #
 All data sets used in the paper are in the `data` folder, formatted as comma separated values (csv). 
