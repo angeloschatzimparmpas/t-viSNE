@@ -1,6 +1,6 @@
 # t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections #
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/56e643b253bf40afb9d788c0643c6940)](https://www.codacy.com/manual/Angelos-Chatzimparmpas/t-viSNE?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=angeloschatzimparmpas/t-viSNE&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ccdcbc85525446269d842cfd97c14569)](https://www.codacy.com/gh/angeloschatzimparmpas/t-viSNE/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=angeloschatzimparmpas/t-viSNE&amp;utm_campaign=Badge_Grade)
 
 This Git repository contains the code that accompanies the research paper "t-viSNE: Interactive Assessment and Interpretation of t-SNE Projections". The details of the experiments and the research outcome are described in [the paper](https://doi.org/10.1109/TVCG.2020.2986996).
 
